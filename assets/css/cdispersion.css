@@ -1,0 +1,73 @@
+body {
+  min-height: 100vh;
+  padding: 0 1px;
+  margin: 0;
+  display: grid;
+  grid-template-rows: 1fr;
+}
+
+#container {
+  justify-self: center;
+  margin: 0 auto;
+  align-self: center;
+  text-align: center;
+  min-width: 200px;
+  font-family: 'Alumni Sans', sans-serif;
+}
+
+#title {
+  margin: 0;
+  font-size: 2em;
+}
+#subtitle {
+  margin: .2em 0 .8em;
+  font-size: 1.4em;
+  font-weight: lighter;
+}
+
+#chart-container {
+  display: flex;
+  justify-content: center;
+}
+
+.dot {
+  opacity: .5;
+  stroke: #000;
+  stroke-width: .75px;
+  
+  transition: all .25s;
+}
+.dot:hover {
+  opacity: 1;
+  stroke-width: 1.25px;
+}
+
+.allegations {
+  fill: red;
+}
+.no-allegations {
+  fill: blue;
+}
+
+.legend-label { font-style: italic; }
+
+#tooltip {
+  padding: .75em;
+  font-family: 'Montserrat', sans-serif;
+  font-size: .8em;
+  background-color: #FFA400;
+  opacity: 0;
+  border-radius: 10px;
+  box-shadow: 1.25px 1px 5px .5px #000;
+  
+  position: absolute;
+  z-index: -100;
+  left: 200px;
+  top: 100px;
+}
+
+#tooltip p { margin: 0; }
+
+#tooltip .mt-doping { margin-top: 1em; }
+
+#tooltip .mb-sindoping { margin-bottom: .5em; }
