@@ -18,7 +18,7 @@
 
                                 
                                 echo "<img src='" . $imagenperfil . "' alt='' class='img-circle' width='44' />";
-                                echo $_SESSION['NOMBRE_USUARIO'] ; 
+                                echo $_SESSION['nombre'] ; 
                                 
                                 
 
