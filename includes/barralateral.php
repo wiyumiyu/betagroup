@@ -15,8 +15,9 @@ $op_menu03 = "";
 $op_menu04 = "";
 $op_menu05 = "";
 
-$idusuario = $_SESSION['ID_USUARIO'];
-$rol = $_SESSION['ROL'];
+$idusuario = $_SESSION['id_usuario'];
+$rol = $_SESSION['rol'];
+
 
 switch ($op) {
     case 0:
@@ -44,7 +45,7 @@ if ($pc == 0) {
 } else {
     echo "<div class='page-container sidebar-collapsed'>";
 }
-
+//echo $rol . "aaaaaaaa";
 //$rol = 0;
 //admin = 1
 //vendedor = 0
@@ -111,7 +112,7 @@ if ($pc == 0) {
                 </a>
                 <ul>
                                      <li class='active'>
-                                            <a href=''>
+                                            <a href='..\_usuarios\usuarios.php'>
                                                 <span>Lista de Usuarios</span>
                                             </a>                            
                                         </li>          
