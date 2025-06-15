@@ -22,10 +22,10 @@ include ('../includes/funciones.php');
 
 
             <div class="jumbotron">
-                <h1>Sistema afaa asf safa asdf</h1>
+                <h1>Bienvenido al sistema administrativo de BetaGroup</h1>
                     
                 <p>
-                    Sistema fsdfa asdf asdf f a.
+                    Beta Group S.A. es una empresa costarricense dedicada a la comercialización de equipos médicos y estéticos, se especializa en tecnología de punta. Su propuesta de valor está basada en brindar calidad, confianza y respaldos técnicos, lo cual se diferencia de la competencia a la hora de ofrecer una garantía, dicho esto, es un servicio único en el país (cinco años de garantía para todos sus productos), así como un servicio postventa robusto.
                     <?php
 
                     ?>

@@ -11,6 +11,9 @@ if (isset($_GET['pc'])) {
 
 $op_menu01 = "";
 $op_menu02 = "";
+$op_menu03 = "";
+$op_menu04 = "";
+$op_menu05 = "";
 
 $idusuario = $_SESSION['ID_USUARIO'];
 $rol = $_SESSION['ROL'];
@@ -21,6 +24,15 @@ switch ($op) {
         break;
     case 1:
         $op_menu02 = "opened";
+        break;
+    case 2:
+        $op_menu03 = "opened";
+        break;
+    case 3:
+        $op_menu04 = "opened";
+        break;
+    case 4:
+        $op_menu05 = "opened";
         break;
 
     default:
@@ -94,8 +106,8 @@ if ($pc == 0) {
         if ($rol == 1) {
             echo "           <li class='active $op_menu01 active'>
                 <a href='index.html'>
-                    <i class='entypo-doc-text'></i>
-                    <span><font size='3'><strong>USUARIOS</strong></font></span>
+                    <i class='entypo-users'></i>
+                    <span><font size='3'><strong>Usuarios</strong></font></span>
                 </a>
                 <ul>
                                      <li class='active'>
@@ -122,7 +134,7 @@ if ($pc == 0) {
 
         <li class="active <?php echo $op_menu02; ?> active">
             <a href="">
-                <i class="entypo-chart-line"></i>
+                <i class="entypo-suitcase"></i>
                 <span><font size="3"><strong>Proveedores</strong></font></span>
             </a> 
             <ul>
@@ -132,14 +144,73 @@ if ($pc == 0) {
                         <span>Lista de Proveedores</span>
                     </a>                            
                 </li>          
-  
+
             </ul>
         </li>
 
+        <li class="active <?php echo $op_menu03; ?> active">
+            <a href="">
+                <i class="entypo-bag"></i>
+                <span><font size="3"><strong>Productos</strong></font></span>
+            </a> 
+            <ul>
 
+                <li class="active">
+                    <a href="">
+                        <span>Lista de Productos</span>
+                    </a>                            
+                </li>     
+
+                <li class="active">
+                    <a href="">
+                        <span>Categorías</span>
+                    </a>                            
+                </li>   
+
+            </ul>
+        </li>
+
+        <li class="active <?php echo $op_menu04; ?> active">
+            <a href="">
+                <i class="entypo-user-add"></i>
+                <span><font size="3"><strong>Clientes</strong></font></span>
+            </a> 
+            <ul>
+
+                <li class="active">
+                    <a href="">
+                        <span>Lista de Clientes</span>
+                    </a>                            
+                </li>     
+
+                <li class="active">
+                    <a href="">
+                        <span>Tipos de Clínica</span>
+                    </a>                            
+                </li>   
+
+            </ul>
+        </li>
+
+        <li class="active <?php echo $op_menu05; ?> active">
+            <a href="">
+                <i class="entypo-doc-text"></i>
+                <span><font size="3"><strong>Ventas</strong></font></span>
+            </a> 
+            <ul>
+
+                <li class="active">
+                    <a href="">
+                        <span>Reporte de Ventas</span>
+                    </a>                            
+                </li>     
+
+            </ul>
+        </li>
 
     </ul>
 </div>	
+
 <div class="main-content">
 
 

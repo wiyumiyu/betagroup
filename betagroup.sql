@@ -1,9 +1,4 @@
-/*
-Conéctate como un usuario con privilegios de DBA (por ejemplo, SYS AS SYSDBA).
-
-Ejecutá este script para crear un nuevo usuario:
-*/
-
+-- OJO DESDE AQUÍ SE EMPIEZA A EJECUTAR DESDE EL ESQUEMA ADMIN_SYS
 
 CREATE USER betagroup IDENTIFIED BY beta123;
 
@@ -11,6 +6,8 @@ CREATE USER betagroup IDENTIFIED BY beta123;
 GRANT CONNECT, RESOURCE TO betagroup;
 -- (Opcional para pruebas)
 GRANT UNLIMITED TABLESPACE TO betagroup;
+
+GRANT EXECUTE ON DBMS_CRYPTO TO betagroup;
 
 
 /*Crear un nuevo tablespace*/
@@ -23,12 +20,14 @@ ALTER USER betagroup DEFAULT TABLESPACE tbs_betagroup;
 commit
 
 
+-- OJO DESDE AQUÍ SE EMPIEZA A EJECUTAR DESDE EL ESQUEMA BETAGROUP
+
+-- ------------------------------------------------- TABLAS ---------------------------------------------------------------------
+
 /*
 Crear tabla inicial (USUARIOS)
 
 */
-
-
 CREATE TABLE USUARIO (
   ID_USUARIO NUMBER PRIMARY KEY,
   NOMBRE_USUARIO VARCHAR2(100) NOT NULL,
@@ -39,67 +38,49 @@ CREATE TABLE USUARIO (
   FECHA_REGISTRO DATE DEFAULT SYSDATE
 );
 
+-- ------------------------------------------------- PROCEDIMIENTOS ALMACENADOS ---------------------------------------------------------------------
+
+-- Función para encriptar la contraseña
+
+CREATE OR REPLACE FUNCTION HASH_PASSWORD(p_pass VARCHAR2) RETURN VARCHAR2 IS
+BEGIN
+  RETURN RAWTOHEX(DBMS_CRYPTO.HASH(UTL_I18N.STRING_TO_RAW(p_pass, 'AL32UTF8'), DBMS_CRYPTO.HASH_SH256));
+END;
+/
+
+-- Función para validar el login 
+CREATE OR REPLACE PROCEDURE VALIDAR_LOGIN (
+    p_correo IN VARCHAR2,
+    p_pass IN VARCHAR2,
+    p_resultado OUT NUMBER,
+    p_id_usuario OUT NUMBER,
+    p_nombre OUT VARCHAR2,
+    p_rol OUT VARCHAR2
+) IS
+    v_hash VARCHAR2(64);
+BEGIN
+    v_hash := HASH_PASSWORD(p_pass);
+
+    SELECT id_usuario, nombre_usuario, rol
+    INTO p_id_usuario, p_nombre, p_rol
+    FROM USUARIO
+    WHERE correo = p_correo AND contrasena = v_hash;
+
+    p_resultado := 1; -- login válido
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        p_resultado := 0; -- login inválido
+END;
+/
+
+-- -------------------------- DATOS Y PRUEBAS ------------------------------------------------------ 
+
 INSERT INTO USUARIO (ID_USUARIO, NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL)
-VALUES (1, 'admin', 'a','','admin@gmail.com',1);
+VALUES (1, 'admin', HASH_PASSWORD('a'), '', 'admin@gmail.com', 1);
 
+SELECT NOMBRE_USUARIO, CONTRASENA FROM USUARIO;
 COMMIT;
-
-/*
- En este punto tienen que crear una nueva conexión, 
- la pueden llamar betagroup igual que yo la llamé
- llenar el formulario de nueva conexion:
-
-Nombre conexión		BetaGroup (o como quieras)
-Nombre de usuario	betagroup
-Contraseña		beta123 (la que usaste)
-Host			localhost
-Puerto			1521
-Tipo de conexión	TNS O BASICO
-Tipo de conexión	ORCL o XE (dependiendo de tu instalación)
-
-conectarse con BETAGROUP. Yo escogí el color verde para la conexión
-
-*/
-
--- con esta consulta vemos cual service usamos en nuestra base de datos
-SELECT sys_context('userenv', 'service_name') FROM dual;
--- en mi pc es ORCL, si en sus pc es diferente, hay que cambiarlo en el sitio web de betagroup o me avisan
-
-
-/*
-AHORA HAY QUE HACER TODO ESTO:
-
- Editar el archivo php.ini
- C:\xampp\php\php.ini
- 
- Buscá esta línea (usá Ctrl+F):
- ;extension=oci8_12c
-
-Reemplazala por:
-extension=oci8_19 // si usás Oracle 19c
-
-Instalar Oracle Instant Client
-https://www.oracle.com/database/technologies/instant-client/downloads.html
-
-Descargá la versión Basic Light y descomprimila en una carpeta como:
-C:\Oracle\instantclient\instantclient_19_26
-
-Luego, agregar esa carpeta a la variable de entorno PATH:
-
-Abrí "Configuración del sistema" ? Variables de entorno 
-* eso se hace presionando inicio, 
-* en el buscador de windows poner: editar las variables de entorno del sistema
-* al presionar el acceso se abre una ventana pequeña, ir al boton: Variables de Entorno
-* se abre otra ventana, en el cuadro Variables de Sistema, buscar Path
-* Selecionar Path, y darle editar
-* NO BORREN NADA DE AHÍ
-* darle Nuevo, y agregar la direccion del instaclient
-    C:\Oracle\instantclient\instantclient_19_26
-    
-guardar y reiniciar el Apache (no hay que reiniciar la pc)
-
-
-*/
 
 
 
