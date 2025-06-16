@@ -2,12 +2,19 @@
 
 CREATE USER betagroup IDENTIFIED BY beta123;
 
--- Darle permisos básicos:
+-- Permisos básicos
 GRANT CONNECT, RESOURCE TO betagroup;
--- (Opcional para pruebas)
 GRANT UNLIMITED TABLESPACE TO betagroup;
 
-GRANT EXECUTE ON DBMS_CRYPTO TO betagroup;
+-- Crear objetos necesarios para autoincremento
+GRANT CREATE SEQUENCE TO betagroup;
+GRANT CREATE TRIGGER TO betagroup;
+GRANT CREATE PROCEDURE TO betagroup;
+
+-- (Opcional) Si deseas crear en otros esquemas
+-- GRANT CREATE ANY SEQUENCE TO betagroup;
+-- GRANT CREATE ANY TRIGGER TO betagroup;
+
 
 
 /*Crear un nuevo tablespace*/
@@ -38,62 +45,136 @@ CREATE TABLE USUARIO (
   FECHA_REGISTRO DATE DEFAULT SYSDATE
 );
 
+
+
+
+
+
+
 -- ------------------------------------------------- PROCEDIMIENTOS ALMACENADOS ---------------------------------------------------------------------
 
--- Función para encriptar la contraseña
-
+-- 1. Función para encriptar la contraseña usando SHA-256
 CREATE OR REPLACE FUNCTION HASH_PASSWORD(p_pass VARCHAR2) RETURN VARCHAR2 IS
 BEGIN
-  RETURN RAWTOHEX(DBMS_CRYPTO.HASH(UTL_I18N.STRING_TO_RAW(p_pass, 'AL32UTF8'), DBMS_CRYPTO.HASH_SH256));
+  -- Convierte la contraseña a un hash SHA-256 y lo devuelve en hexadecimal
+  RETURN RAWTOHEX(
+    DBMS_CRYPTO.HASH(
+      UTL_I18N.STRING_TO_RAW(p_pass, 'AL32UTF8'), -- convierte el texto en bytes
+      DBMS_CRYPTO.HASH_SH256                      -- aplica el algoritmo SHA-256
+    )
+  );
 END;
 /
 
--- Función para validar el login 
+-- 2. Procedimiento para validar si el login es correcto
 CREATE OR REPLACE PROCEDURE VALIDAR_LOGIN (
-    p_correo IN VARCHAR2,
-    p_pass IN VARCHAR2,
-    p_resultado OUT NUMBER,
-    p_id_usuario OUT NUMBER,
-    p_nombre OUT VARCHAR2,
-    p_rol OUT VARCHAR2
+    p_correo IN VARCHAR2,         -- correo que ingresa el usuario
+    p_pass IN VARCHAR2,           -- contraseña que ingresa el usuario
+    p_resultado OUT NUMBER,       -- 1 = login correcto, 0 = incorrecto
+    p_id_usuario OUT NUMBER,      -- se devuelve el ID del usuario si es correcto
+    p_nombre OUT VARCHAR2,        -- se devuelve el nombre del usuario
+    p_rol OUT VARCHAR2            -- se devuelve el rol (ej: admin o vendedor)
 ) IS
-    v_hash VARCHAR2(64);
+    v_hash VARCHAR2(64);          -- variable para almacenar el hash de la contraseña
 BEGIN
+    -- Hasheamos la contraseña ingresada para compararla con la guardada
     v_hash := HASH_PASSWORD(p_pass);
 
+    -- Buscamos un usuario que tenga ese correo y contraseña
     SELECT id_usuario, nombre_usuario, rol
     INTO p_id_usuario, p_nombre, p_rol
     FROM USUARIO
     WHERE correo = p_correo AND contrasena = v_hash;
 
-    p_resultado := 1; -- login válido
+    -- Si encontró el usuario, el login es válido
+    p_resultado := 1;
 
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
-        p_resultado := 0; -- login inválido
+        -- Si no se encontró, el login es inválido
+        p_resultado := 0;
 END;
 /
 
+-- 3. Procedimiento que devuelve todos los usuarios usando un cursor
 CREATE OR REPLACE PROCEDURE LISTAR_USUARIOS(p_cursor OUT SYS_REFCURSOR) AS
 BEGIN
+    -- Abrimos el cursor con los datos de todos los usuarios
     OPEN p_cursor FOR
         SELECT ID_USUARIO, NOMBRE_USUARIO, TELEFONO, CORREO, ROL, FECHA_REGISTRO
         FROM USUARIO;
 END;
 /
 
+-- 4. Procedimiento PL/SQL para crear automáticamente una secuencia y un trigger
+-- que permiten autoincrementar el ID de cualquier tabla que indiquemos
 
--- -------------------------- DATOS Y PRUEBAS ------------------------------------------------------ 
+CREATE OR REPLACE PROCEDURE CREAR_AUTOINCREMENTO (
+    p_tabla       IN VARCHAR2,       -- nombre de la tabla (ej: 'USUARIO')
+    p_campo_id    IN VARCHAR2        -- nombre del campo ID (ej: 'ID_USUARIO')
+) AS
+    v_seq_name    VARCHAR2(100);     -- nombre que se usará para la secuencia
+    v_trigger_name VARCHAR2(100);    -- nombre que se usará para el trigger
+BEGIN
+    -- Construimos los nombres de la secuencia y del trigger en base al nombre de la tabla
+    v_seq_name := 'SEQ_ID_' || UPPER(p_tabla);
+    v_trigger_name := 'TRG_AUTOINC_' || UPPER(p_tabla);
 
-INSERT INTO USUARIO (ID_USUARIO, NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL)
-VALUES (1, 'admin', HASH_PASSWORD('a'), '', 'admin@gmail.com', 1);
+    -- Intentamos eliminar la secuencia anterior (si ya existía), para evitar errores
+    EXECUTE IMMEDIATE '
+        BEGIN
+            EXECUTE IMMEDIATE ''DROP SEQUENCE ' || v_seq_name || ''';
+        EXCEPTION
+            WHEN OTHERS THEN NULL; -- Si no existe, no pasa nada
+        END;';
 
-INSERT INTO USUARIO (ID_USUARIO, NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL)
-VALUES (2, 'Vendedor 1', HASH_PASSWORD('a'), '', 'vendedor@gmail.com', 0);
+    -- Creamos la nueva secuencia desde 1, que se usará para generar los IDs
+    EXECUTE IMMEDIATE '
+        CREATE SEQUENCE ' || v_seq_name || '
+        START WITH 1
+        INCREMENT BY 1
+        NOCACHE
+        NOCYCLE';
 
+    -- Creamos el trigger que se ejecuta automáticamente antes de cada INSERT
+    -- Si no se indica un ID, el trigger asigna uno usando la secuencia
+    EXECUTE IMMEDIATE '
+        CREATE OR REPLACE TRIGGER ' || v_trigger_name || '
+        BEFORE INSERT ON ' || p_tabla || '
+        FOR EACH ROW
+        WHEN (NEW.' || p_campo_id || ' IS NULL)
+        BEGIN
+            SELECT ' || v_seq_name || '.NEXTVAL INTO :NEW.' || p_campo_id || ' FROM DUAL;
+        END;';
+END;
+/
+
+-- -------------------------- DATOS Y PRUEBAS ------------------------------------------------------
+
+-- Llamamos al procedimiento para crear la secuencia y trigger para la tabla USUARIO
+BEGIN
+    CREAR_AUTOINCREMENTO('USUARIO', 'ID_USUARIO');
+END;
+/
+
+-- Insertamos datos en la tabla USUARIO
+-- No se especifica ID_USUARIO porque se genera automáticamente por el trigger
+-- La contraseña se guarda encriptada con HASH_PASSWORD
+
+INSERT INTO USUARIO (NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL)
+VALUES ('admin', HASH_PASSWORD('a'), '', 'admin@gmail.com', 1);
+
+INSERT INTO USUARIO (NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL)
+VALUES ('Vendedor 1', HASH_PASSWORD('a'), '', 'vendedor@gmail.com', 0);
+
+-- Mostramos los usuarios insertados (veremos el hash, no la contraseña original)
 SELECT NOMBRE_USUARIO, CONTRASENA FROM USUARIO;
+
+-- Confirmamos los cambios
 COMMIT;
 
+-- Si necesitas borrar todos los usuarios para hacer pruebas de nuevo, puedes usar esta línea:
+-- DELETE FROM USUARIO;
 
 
 
