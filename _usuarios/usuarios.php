@@ -80,7 +80,7 @@ if (isset($_POST['submitted'])) {
         oci_bind_by_name($stmt, ":contrasena", $contrasena);
     }
 
-    echo $sql;
+    
     // Asignamos los valores a los campos del SQL
     oci_bind_by_name($stmt, ":nombre", $nombre);
     oci_bind_by_name($stmt, ":telefono", $telefono);
