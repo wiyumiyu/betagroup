@@ -11,18 +11,17 @@ $ii = "123"; // de ejemplo, no se usa
 $rr1 = "A";  // de ejemplo, no se usa
 $linkAceptar = "#";
 
-$del =  "";
+$del = "";
 $edt = "";
 $edtVer = "";
 
 // Si en la URL hay un valor ?edt=, lo guardamos en la variable $edt para editar ese usuario
-if(isset($_GET['edt'])){
-    $edt = $_GET['edt']; 
-    
+if (isset($_GET['edt'])) {
+    $edt = $_GET['edt'];
 }
 
 // Si en la URL hay un valor ?del=, lo guardamos en $del para confirmar eliminación
-if(isset($_GET['del'])){
+if (isset($_GET['del'])) {
     $del = $_GET['del'];
 }
 
@@ -30,7 +29,7 @@ if(isset($_GET['del'])){
 if (isset($_GET['del2'])) {
     $del2 = $_GET['del2'];
 
-    $sql = "DELETE FROM USUARIO WHERE ID_USUARIO = :id";
+    $sql = "BEGIN eliminar_usuario(:id); END;";
     $stmt = oci_parse($conn, $sql);
     oci_bind_by_name($stmt, ":id", $del2);
 
@@ -55,7 +54,7 @@ if (isset($_POST['submitted'])) {
     $rol = trim($_POST["rol"]);
 
     // Si se escribió una contraseña nueva, la agregamos al SQL con una función HASH
-    if($contrasena != ""){
+    if ($contrasena != "") {
         $sql_part = ", CONTRASENA = HASH_PASSWORD(:contrasena)";
     } else {
         $sql_part = "";
@@ -64,23 +63,26 @@ if (isset($_POST['submitted'])) {
     // Si vino un 'id' oculto, significa que estamos actualizando un usuario existente
     if (isset($_GET['edt'])) {
         $id = $_GET['edt'];
-        $sql = "UPDATE USUARIO SET NOMBRE_USUARIO = :nombre $sql_part, 
-                TELEFONO = :telefono, CORREO = :correo, ROL = :rol WHERE ID_USUARIO = :id";
-        $stmt = oci_parse($conn, $sql);
-        oci_bind_by_name($stmt, ":id", $id);
-        
-        if($contrasena != "" ){
+
+        if ($contrasena != "") {
+            $sql = "BEGIN actualizar_usuario(:id, :nombre, :contrasena, :telefono, :correo, :rol); END;";
+            $stmt = oci_parse($conn, $sql);
             oci_bind_by_name($stmt, ":contrasena", $contrasena);
+        }else{
+            $sql = "BEGIN actualizar_usuario_sc(:id, :nombre,  :telefono, :correo, :rol); END;";
+            $stmt = oci_parse($conn, $sql);
+            
+
         }
+        oci_bind_by_name($stmt, ":id", $id);
     } else {
         // Si no vino ID, estamos insertando un nuevo usuario
-        $sql = "INSERT INTO USUARIO (NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL)
-                VALUES (:nombre, HASH_PASSWORD(:contrasena), :telefono, :correo, :rol)";
+        $sql = "BEGIN insertar_usuario(:nombre, :contrasena, :telefono, :correo, :rol); END;";
         $stmt = oci_parse($conn, $sql);
         oci_bind_by_name($stmt, ":contrasena", $contrasena);
     }
 
-    
+
     // Asignamos los valores a los campos del SQL
     oci_bind_by_name($stmt, ":nombre", $nombre);
     oci_bind_by_name($stmt, ":telefono", $telefono);
@@ -89,7 +91,7 @@ if (isset($_POST['submitted'])) {
 
     // Ejecutamos la acción y redirigimos
     if (oci_execute($stmt)) {
-       echo "<script>window.location='usuarios.php';</script>";
+        echo "<script>window.location='usuarios.php';</script>";
     } else {
         $e = oci_error($stmt);
         echo "Error: " . $e['message'];
@@ -129,37 +131,37 @@ if (isset($_POST['submitted'])) {
         </tr>
     </thead>
     <tbody>
-        <?php
-        // Se llama al procedimiento almacenado para listar los usuarios
-        $sql = "BEGIN LISTAR_USUARIOS(:cursor); END;";
-        $stid = oci_parse($conn, $sql);
-        $cursor = oci_new_cursor($conn);
-        oci_bind_by_name($stid, ":cursor", $cursor, -1, OCI_B_CURSOR);
-        oci_execute($stid);
-        oci_execute($cursor);
+<?php
+// Se llama al procedimiento almacenado para listar los usuarios
+$sql = "BEGIN LISTAR_USUARIOS(:cursor); END;";
+$stid = oci_parse($conn, $sql);
+$cursor = oci_new_cursor($conn);
+oci_bind_by_name($stid, ":cursor", $cursor, -1, OCI_B_CURSOR);
+oci_execute($stid);
+oci_execute($cursor);
 
-        // Recorremos cada usuario y lo mostramos en una fila de la tabla
-        while ($row = oci_fetch_assoc($cursor)) {
-            $id = $row['ID_USUARIO'];
-            echo "<tr>";
-            echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['NOMBRE_USUARIO']) . "</td>";
-            echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['TELEFONO'] ?? '') . "</td>";
-            echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['CORREO']) . "</td>";
-            $rolTexto = ($row['ROL'] == 1) ? "Administrador" : "Vendedor";
-            echo "<td style='color: #4B4B4B;'>$rolTexto</td>";
-            echo "<td style='color: #4B4B4B;'>" . date("d-m-Y", strtotime($row['FECHA_REGISTRO'])) . "</td>";
+// Recorremos cada usuario y lo mostramos en una fila de la tabla
+while ($row = oci_fetch_assoc($cursor)) {
+    $id = $row['ID_USUARIO'];
+    echo "<tr>";
+    echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['NOMBRE_USUARIO']) . "</td>";
+    echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['TELEFONO'] ?? '') . "</td>";
+    echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['CORREO']) . "</td>";
+    $rolTexto = ($row['ROL'] == 1) ? "Administrador" : "Vendedor";
+    echo "<td style='color: #4B4B4B;'>$rolTexto</td>";
+    echo "<td style='color: #4B4B4B;'>" . date("d-m-Y", strtotime($row['FECHA_REGISTRO'])) . "</td>";
 
-            // Botones de editar y eliminar
-            echo "<td>
+    // Botones de editar y eliminar
+    echo "<td>
                     <a href='usuarios.php?edt=$id' class='btn btn-default'><i class='entypo-pencil'></i></a>
                     <a href='usuarios.php?del=$id' class='btn btn-danger'><i class='entypo-cancel'></i></a>
                   </td>";
-            echo "</tr>";
-        }
+    echo "</tr>";
+}
 
-        oci_free_statement($stid);
-        oci_free_statement($cursor);
-        ?>
+oci_free_statement($stid);
+oci_free_statement($cursor);
+?>
     </tbody>
 </table>
 
@@ -177,7 +179,8 @@ if (isset($_POST['submitted'])) {
     // Si se hace clic fuera del modal, se cierra
     window.onclick = function (event) {
         const modal = document.getElementById('modal-confirmar');
-        if (event.target == modal) cerrarModal();
+        if (event.target == modal)
+            cerrarModal();
     };
 
     // Si hay un valor 'edt' en PHP, se abre el modal de edición automáticamente
@@ -200,38 +203,38 @@ if (isset($_POST['submitted'])) {
 <!-- ------------------ MODAL PARA FORMULARIO DE USUARIO ---------------------- -->
 <div id="modal-confirmar" class="modalx">
     <div class="modalx-content">
-        <?php
-        // Variables para rellenar el formulario si se está editando
-        $nombre = $telefono = $correo = $contrasena = $rol = "";
-        $seleccionadoA = $seleccionadoV = "";
-        $edt = "";
-        $tipoEdit = "Agregar nuevo";
+<?php
+// Variables para rellenar el formulario si se está editando
+$nombre = $telefono = $correo = $contrasena = $rol = "";
+$seleccionadoA = $seleccionadoV = "";
+$edt = "";
+$tipoEdit = "Agregar nuevo";
 
-        // Si se está editando, cargamos los datos del usuario
-        if (isset($_GET["edt"])) {
-            $edt = $_GET["edt"];
-            $sql = "SELECT NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL FROM USUARIO WHERE ID_USUARIO = :id";
-            $stid = oci_parse($conn, $sql);
-            oci_bind_by_name($stid, ":id", $edt);
-            oci_execute($stid);
-            if ($row = oci_fetch_array($stid, OCI_ASSOC)) {
-                $nombre = htmlspecialchars($row["NOMBRE_USUARIO"]);
-                $telefono = isset($row["TELEFONO"]) ? htmlspecialchars($row["TELEFONO"]) : "";
-                $correo = htmlspecialchars($row["CORREO"]);
-                $rol = $row["ROL"];
-            }
-            oci_free_statement($stid);
-            $seleccionadoV = ($rol == 0) ? "selected" : "";
-            $seleccionadoA = ($rol == 1) ? "selected" : "";
-            $tipoEdit = "Editar";
-             $edtVer = "?edt=$edt";   
-        }
+// Si se está editando, cargamos los datos del usuario
+if (isset($_GET["edt"])) {
+    $edt = $_GET["edt"];
+    $sql = "SELECT NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL FROM USUARIO WHERE ID_USUARIO = :id";
+    $stid = oci_parse($conn, $sql);
+    oci_bind_by_name($stid, ":id", $edt);
+    oci_execute($stid);
+    if ($row = oci_fetch_array($stid, OCI_ASSOC)) {
+        $nombre = htmlspecialchars($row["NOMBRE_USUARIO"]);
+        $telefono = isset($row["TELEFONO"]) ? htmlspecialchars($row["TELEFONO"]) : "";
+        $correo = htmlspecialchars($row["CORREO"]);
+        $rol = $row["ROL"];
+    }
+    oci_free_statement($stid);
+    $seleccionadoV = ($rol == 0) ? "selected" : "";
+    $seleccionadoA = ($rol == 1) ? "selected" : "";
+    $tipoEdit = "Editar";
+    $edtVer = "?edt=$edt";
+}
 
-        echo "<h3 class='modalx-titulo'>$tipoEdit usuario</h3>";
-        ?>
+echo "<h3 class='modalx-titulo'>$tipoEdit usuario</h3>";
+?>
 
         <!-- Formulario para agregar o editar -->
-        <form action="usuarios.php<?php echo $edtVer;?>" method="POST">
+        <form action="usuarios.php<?php echo $edtVer; ?>" method="POST">
             <label for="nombre_usuario">Nombre de Usuario:</label>
             <input type="text" id="nombre_usuario" class="form-control" name="nombre_usuario" value="<?php echo $nombre; ?>">
             <br>
@@ -251,7 +254,7 @@ if (isset($_POST['submitted'])) {
             </select>
             <br>
             <!-- Campo oculto con el ID del usuario si estamos editando -->
-            <?php if (!empty($id)) echo "<input type='hidden' name='id' value='$id'>"; ?>
+<?php if (!empty($id)) echo "<input type='hidden' name='id' value='$id'>"; ?>
             <input type='hidden' name='submitted' value='TRUE' />
             <div class="modalx-footer">
                 <a href='usuarios.php' class="btn-cancelar">Cancelar</a>
@@ -263,14 +266,14 @@ if (isset($_POST['submitted'])) {
 
 <!-- ------------------ MODAL DE CONFIRMACIÓN PARA ELIMINAR ---------------------- -->
 <div id="modal-eliminar" class="modalx">
-  <div class="modalx-content">
-    <h3 class="modalx-titulo">Confirmar eliminación</h3>
-    <p class="modalx-texto">¿Estás seguro de que deseas eliminar este usuario?</p>
-    <div class="modalx-footer">
-      <a href='usuarios.php' class="btn-cancelar">Cancelar</a>
-      <a href='usuarios.php?del2=<?php echo $del; ?>' class="btn-confirmar">Eliminar</a>
+    <div class="modalx-content">
+        <h3 class="modalx-titulo">Confirmar eliminación</h3>
+        <p class="modalx-texto">¿Estás seguro de que deseas eliminar este usuario?</p>
+        <div class="modalx-footer">
+            <a href='usuarios.php' class="btn-cancelar">Cancelar</a>
+            <a href='usuarios.php?del2=<?php echo $del; ?>' class="btn-confirmar">Eliminar</a>
+        </div>
     </div>
-  </div>
 </div>
 
 <!-- Pie de página -->

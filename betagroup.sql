@@ -150,6 +150,92 @@ BEGIN
 END;
 /
 
+-- 5. Procedimiento que inserta un usuario
+
+CREATE OR REPLACE PROCEDURE insertar_usuario (
+
+    p_nombre     IN USUARIO.NOMBRE_USUARIO%TYPE,
+    p_contrasena IN VARCHAR2,
+    p_telefono   IN USUARIO.TELEFONO%TYPE,
+    p_correo     IN USUARIO.CORREO%TYPE,
+    p_rol        IN USUARIO.ROL%TYPE
+) AS
+BEGIN
+
+    INSERT INTO USUARIO (
+        NOMBRE_USUARIO,
+        CONTRASENA,
+        TELEFONO,
+        CORREO,
+        ROL
+    ) VALUES (
+        p_nombre,
+        HASH_PASSWORD(p_contrasena),
+        p_telefono,
+        p_correo,
+        p_rol
+    );
+
+END;
+/
+
+-- 6. Procedimiento para actualizar usuario
+
+CREATE OR REPLACE PROCEDURE actualizar_usuario (
+    p_id_usuario  IN USUARIO.ID_USUARIO%TYPE,
+    p_nombre      IN USUARIO.NOMBRE_USUARIO%TYPE,
+    p_contrasena  IN VARCHAR2, -- Puede venir NULL si no se quiere actualizar
+    p_telefono    IN USUARIO.TELEFONO%TYPE,
+    p_correo      IN USUARIO.CORREO%TYPE,
+    p_rol         IN USUARIO.ROL%TYPE
+) AS
+BEGIN
+    UPDATE USUARIO
+    SET
+        NOMBRE_USUARIO = p_nombre,
+        TELEFONO       = p_telefono,
+        CORREO         = p_correo,
+        ROL            = p_rol,
+        CONTRASENA     = CASE
+                           WHEN p_contrasena IS NOT NULL THEN HASH_PASSWORD(p_contrasena)
+                           ELSE CONTRASENA
+                         END
+    WHERE ID_USUARIO = p_id_usuario;
+END;
+/
+
+
+CREATE OR REPLACE PROCEDURE actualizar_usuario_sc (
+    p_id_usuario  IN USUARIO.ID_USUARIO%TYPE,
+    p_nombre      IN USUARIO.NOMBRE_USUARIO%TYPE,
+
+    p_telefono    IN USUARIO.TELEFONO%TYPE,
+    p_correo      IN USUARIO.CORREO%TYPE,
+    p_rol         IN USUARIO.ROL%TYPE
+) AS
+BEGIN
+    UPDATE USUARIO
+    SET
+        NOMBRE_USUARIO = p_nombre,
+        TELEFONO       = p_telefono,
+        CORREO         = p_correo,
+        ROL            = p_rol
+       
+    WHERE ID_USUARIO = p_id_usuario;
+END;
+/
+-- 7. Procedimiento para eliminar usuario
+
+CREATE OR REPLACE PROCEDURE eliminar_usuario (
+    p_id IN USUARIO.ID_USUARIO%TYPE
+) AS
+BEGIN
+    DELETE FROM USUARIO
+    WHERE ID_USUARIO = p_id;
+END;
+/
+
+
 -- -------------------------- DATOS Y PRUEBAS ------------------------------------------------------
 
 -- Llamamos al procedimiento para crear la secuencia y trigger para la tabla USUARIO
@@ -167,6 +253,8 @@ VALUES ('admin', HASH_PASSWORD('a'), '', 'admin@gmail.com', 1);
 
 INSERT INTO USUARIO (NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL)
 VALUES ('Vendedor 1', HASH_PASSWORD('a'), '', 'vendedor@gmail.com', 0);
+
+
 
 -- Mostramos los usuarios insertados (veremos el hash, no la contraseña original)
 SELECT NOMBRE_USUARIO, CONTRASENA FROM USUARIO;
