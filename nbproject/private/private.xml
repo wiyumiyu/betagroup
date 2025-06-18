@@ -5,10 +5,10 @@
         <group>
             <file>file:/C:/xampp/htdocs/betagroup/includes/barralateral.php</file>
             <file>file:/C:/xampp/htdocs/betagroup/includes/header.html</file>
-            <file>file:/C:/xampp/htdocs/betagroup/includes/perfil.php</file>
             <file>file:/C:/xampp/htdocs/betagroup/data/sample-login-form.php</file>
-            <file>file:/C:/xampp/htdocs/betagroup/includes/funciones.php</file>
             <file>file:/C:/xampp/htdocs/betagroup/_usuarios/usuarios.php</file>
+            <file>file:/C:/xampp/htdocs/betagroup/assets/css-minified/index.html</file>
+            <file>file:/C:/xampp/htdocs/betagroup/assets/css/custom.css</file>
         </group>
     </open-files>
 </project-private>

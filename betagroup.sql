@@ -102,7 +102,8 @@ BEGIN
     -- Abrimos el cursor con los datos de todos los usuarios
     OPEN p_cursor FOR
         SELECT ID_USUARIO, NOMBRE_USUARIO, TELEFONO, CORREO, ROL, FECHA_REGISTRO
-        FROM USUARIO;
+        FROM USUARIO
+    ORDER BY ID_USUARIO;
 END;
 /
 
@@ -180,7 +181,9 @@ COMMIT;
 
 
 
-
+ SELECT NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL 
+                        FROM USUARIO 
+                        WHERE ID_USUARIO = 1
 
 
 
