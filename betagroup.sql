@@ -45,6 +45,21 @@ CREATE TABLE USUARIO (
   FECHA_REGISTRO DATE DEFAULT SYSDATE
 );
 
+-- Crear tabla TIPO_CLINICA
+CREATE TABLE TIPO_CLINICA (
+  ID_TIPO_CLINICA NUMBER PRIMARY KEY,
+  DESCRIPCION VARCHAR2(100) NOT NULL
+);
+
+-- Crear tabla CLIENTE (FK a TIPO_CLINICA)
+CREATE TABLE CLIENTE (
+  ID_USUARIO NUMBER PRIMARY KEY,
+  NOMBRE_CLIENTE VARCHAR2(100) NOT NULL,
+  CORREO VARCHAR2(100) NOT NULL,
+  ID_TIPO_CLINICA NUMBER,
+  CONSTRAINT FK_CLIENTE_TIPO_CLINICA FOREIGN KEY (ID_TIPO_CLINICA)
+    REFERENCES TIPO_CLINICA(ID_TIPO_CLINICA)
+);
 
 
 
@@ -235,6 +250,75 @@ BEGIN
 END;
 /
 
+-- 8. Procedimiento para crear cliente
+
+CREATE OR REPLACE PROCEDURE insertar_cliente (
+    p_id_usuario      IN CLIENTE.ID_USUARIO%TYPE,
+    p_nombre_cliente  IN CLIENTE.NOMBRE_CLIENTE%TYPE,
+    p_correo          IN CLIENTE.CORREO%TYPE,
+    p_id_tipo_clinica IN CLIENTE.ID_TIPO_CLINICA%TYPE
+) AS
+BEGIN
+    INSERT INTO CLIENTE (
+        ID_USUARIO,
+        NOMBRE_CLIENTE,
+        CORREO,
+        ID_TIPO_CLINICA
+    ) VALUES (
+        p_id_usuario,
+        p_nombre_cliente,
+        p_correo,
+        p_id_tipo_clinica
+    );
+END;
+/
+
+-- 9. Procedimiento para actualizar cliente
+
+CREATE OR REPLACE PROCEDURE actualizar_cliente (
+    p_id_usuario      IN CLIENTE.ID_USUARIO%TYPE,
+    p_nombre_cliente  IN CLIENTE.NOMBRE_CLIENTE%TYPE,
+    p_correo          IN CLIENTE.CORREO%TYPE,
+    p_id_tipo_clinica IN CLIENTE.ID_TIPO_CLINICA%TYPE
+) AS
+BEGIN
+    UPDATE CLIENTE
+    SET
+        NOMBRE_CLIENTE  = p_nombre_cliente,
+        CORREO          = p_correo,
+        ID_TIPO_CLINICA = p_id_tipo_clinica
+    WHERE ID_USUARIO = p_id_usuario;
+END;
+/
+
+-- 10. Procedimiento para actualizar cliente
+
+CREATE OR REPLACE PROCEDURE eliminar_cliente (
+    p_id_usuario IN CLIENTE.ID_USUARIO%TYPE
+) AS
+BEGIN
+    DELETE FROM CLIENTE
+    WHERE ID_USUARIO = p_id_usuario;
+END;
+/
+
+-- 11. Procedimiento para actualizar cliente
+
+CREATE OR REPLACE PROCEDURE listar_clientes (
+    p_cursor OUT SYS_REFCURSOR
+) AS
+BEGIN
+    OPEN p_cursor FOR
+        SELECT c.ID_USUARIO,
+               c.NOMBRE_CLIENTE,
+               c.CORREO,
+               tc.DESCRIPCION AS TIPO_CLINICA
+        FROM CLIENTE c
+        LEFT JOIN TIPO_CLINICA tc ON c.ID_TIPO_CLINICA = tc.ID_TIPO_CLINICA;
+END;
+/
+
+
 
 -- -------------------------- DATOS Y PRUEBAS ------------------------------------------------------
 
@@ -254,8 +338,6 @@ VALUES ('admin', HASH_PASSWORD('a'), '', 'admin@gmail.com', 1);
 INSERT INTO USUARIO (NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL)
 VALUES ('Vendedor 1', HASH_PASSWORD('a'), '', 'vendedor@gmail.com', 0);
 
-
-
 -- Mostramos los usuarios insertados (veremos el hash, no la contraseña original)
 SELECT NOMBRE_USUARIO, CONTRASENA FROM USUARIO;
 
@@ -265,13 +347,23 @@ COMMIT;
 -- Si necesitas borrar todos los usuarios para hacer pruebas de nuevo, puedes usar esta línea:
 -- DELETE FROM USUARIO;
 
-
-
-
-
- SELECT NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL 
+SELECT NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL 
                         FROM USUARIO 
                         WHERE ID_USUARIO = 1
+
+--Insertar una clinica
+INSERT INTO TIPO_CLINICA (ID_TIPO_CLINICA, DESCRIPCION)
+VALUES (1, 'Clínica General');
+
+--Insertar un cliente
+INSERT INTO CLIENTE (ID_USUARIO, NOMBRE_CLIENTE, CORREO, ID_TIPO_CLINICA)
+VALUES (1, 'María Jiménez', 'maria.jimenez@gmail.com', 1);
+
+
+
+
+
+ 
 
 
 
