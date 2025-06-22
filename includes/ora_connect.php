@@ -9,7 +9,7 @@ define('ORA_PASSWORD', 'beta123');
 define('ORA_HOST', 'localhost/ORCL'); // Cambiar si usás otro servicio
 
 // Conexión con Oracle:
-$conn = @oci_connect(ORA_USER, ORA_PASSWORD, ORA_HOST);
+$conn = @oci_connect(ORA_USER, ORA_PASSWORD, ORA_HOST,'AL32UTF8');
 
 if (!$conn) {
     $e = oci_error();

@@ -73,7 +73,7 @@ if (isset($_POST['submitted'])) {
   <li class="active"><strong>Lista de Categorias</strong></li>
 </ol>
 <div style="display:flex;justify-content:space-between;align-items:center;">
-  <h2>Lista de Productos</h2>
+  <h2>Lista de Categorías</h2>
   <button onclick="abrirModal()" class="btn btn-success"> Nueva Categoría</button>
 </div>
 <br>

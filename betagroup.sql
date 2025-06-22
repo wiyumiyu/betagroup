@@ -348,8 +348,7 @@ BEGIN
         FROM CLIENTE c
         LEFT JOIN TIPO_CLINICA tc ON c.ID_TIPO_CLINICA = tc.ID_TIPO_CLINICA;
 END;
-/Add commentMore actions
-
+/
 
 -- 13. Procedimiento que devuelve todos los productos usando un cursor
 CREATE OR REPLACE PROCEDURE LISTAR_PRODUCTOS(p_cursor OUT SYS_REFCURSOR) AS
@@ -543,7 +542,7 @@ INSERT INTO TIPO_CLINICA (ID_TIPO_CLINICA, DESCRIPCION)
 VALUES (1, 'Cl?nica General');
 
 --Insertar un cliente
-INSERT INTO CLIENTE (ID_USUARIO, NOMBRE_CLIENTE, CORREO, ID_TIPO_CLINICA)Add commentMore actions
+INSERT INTO CLIENTE (ID_USUARIO, NOMBRE_CLIENTE, CORREO, ID_TIPO_CLINICA)
 VALUES (1, 'Mar?a Jim?nez', 'maria.jimenez@gmail.com', 1);
 
 
