@@ -172,15 +172,15 @@ if ($pc == 0) {
         </li>
 
         <li class="active <?php echo $op_menu04; ?> active">
-            <a href="">
+            <a href="#">
                 <i class="entypo-user-add"></i>
                 <span><font size="3"><strong>Clientes</strong></font></span>
             </a> 
             <ul>
 
                 <li class="active">
-                    <a href="">
-                        <span>Lista de Clientes</span>
+                    <a href="..\_clientes\clientes.php">
+                        <span>Lista de Clientes</span>                        
                     </a>                            
                 </li>     
 

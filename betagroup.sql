@@ -54,6 +54,22 @@ CREATE TABLE PROVEEDOR (
   FECHA_REGISTRO DATE DEFAULT SYSDATE
 );
 
+-- Crear tabla TIPO_CLINICAAdd commentMore actions
+CREATE TABLE TIPO_CLINICA (
+  ID_TIPO_CLINICA NUMBER PRIMARY KEY,
+  DESCRIPCION VARCHAR2(100) NOT NULL
+);
+
+-- Crear tabla CLIENTE (FK a TIPO_CLINICA)
+CREATE TABLE CLIENTE (
+  ID_USUARIO NUMBER PRIMARY KEY,
+  NOMBRE_CLIENTE VARCHAR2(100) NOT NULL,
+  CORREO VARCHAR2(100) NOT NULL,
+  ID_TIPO_CLINICA NUMBER,
+  CONSTRAINT FK_CLIENTE_TIPO_CLINICA FOREIGN KEY (ID_TIPO_CLINICA)
+    REFERENCES TIPO_CLINICA(ID_TIPO_CLINICA)
+);
+
 -- Tabla de TELEFONO_PROVEEDOR
 CREATE TABLE TELEFONO_PROVEEDOR (
   ID_TELEFONO NUMBER PRIMARY KEY,
@@ -266,7 +282,76 @@ BEGIN
 END;
 /
 
--- 9. Procedimiento que devuelve todos los productos usando un cursor
+-- 9. Procedimiento para crear clienteAdd commentMore actions
+
+CREATE OR REPLACE PROCEDURE insertar_cliente (
+    p_id_usuario      IN CLIENTE.ID_USUARIO%TYPE,
+    p_nombre_cliente  IN CLIENTE.NOMBRE_CLIENTE%TYPE,
+    p_correo          IN CLIENTE.CORREO%TYPE,
+    p_id_tipo_clinica IN CLIENTE.ID_TIPO_CLINICA%TYPE
+) AS
+BEGIN
+    INSERT INTO CLIENTE (
+        ID_USUARIO,
+        NOMBRE_CLIENTE,
+        CORREO,
+        ID_TIPO_CLINICA
+    ) VALUES (
+        p_id_usuario,
+        p_nombre_cliente,
+        p_correo,
+        p_id_tipo_clinica
+    );
+END;
+/
+
+-- 10. Procedimiento para actualizar cliente
+
+CREATE OR REPLACE PROCEDURE actualizar_cliente (
+    p_id_usuario      IN CLIENTE.ID_USUARIO%TYPE,
+    p_nombre_cliente  IN CLIENTE.NOMBRE_CLIENTE%TYPE,
+    p_correo          IN CLIENTE.CORREO%TYPE,
+    p_id_tipo_clinica IN CLIENTE.ID_TIPO_CLINICA%TYPE
+) AS
+BEGIN
+    UPDATE CLIENTE
+    SET
+        NOMBRE_CLIENTE  = p_nombre_cliente,
+        CORREO          = p_correo,
+        ID_TIPO_CLINICA = p_id_tipo_clinica
+    WHERE ID_USUARIO = p_id_usuario;
+END;
+/
+
+-- 11. Procedimiento para actualizar cliente
+
+CREATE OR REPLACE PROCEDURE eliminar_cliente (
+    p_id_usuario IN CLIENTE.ID_USUARIO%TYPE
+) AS
+BEGIN
+    DELETE FROM CLIENTE
+    WHERE ID_USUARIO = p_id_usuario;
+END;
+/
+
+-- 12. Procedimiento para actualizar cliente
+
+CREATE OR REPLACE PROCEDURE listar_clientes (
+    p_cursor OUT SYS_REFCURSOR
+) AS
+BEGIN
+    OPEN p_cursor FOR
+        SELECT c.ID_USUARIO,
+               c.NOMBRE_CLIENTE,
+               c.CORREO,
+               tc.DESCRIPCION AS TIPO_CLINICA
+        FROM CLIENTE c
+        LEFT JOIN TIPO_CLINICA tc ON c.ID_TIPO_CLINICA = tc.ID_TIPO_CLINICA;
+END;
+/Add commentMore actions
+
+
+-- 13. Procedimiento que devuelve todos los productos usando un cursor
 CREATE OR REPLACE PROCEDURE LISTAR_PRODUCTOS(p_cursor OUT SYS_REFCURSOR) AS
 BEGIN
     OPEN p_cursor FOR
@@ -284,7 +369,7 @@ BEGIN
 END;
 /
 
--- 10. Procedimiento que inserta un producto
+-- 14. Procedimiento que inserta un producto
 
 CREATE OR REPLACE PROCEDURE insertar_producto (
     p_nombre_producto   IN PRODUCTO.NOMBRE_PRODUCTO%TYPE,
@@ -308,7 +393,7 @@ END;
 /
 
 
--- 11. Procedimiento para actualizar un producto
+-- 15. Procedimiento para actualizar un producto
 
 CREATE OR REPLACE PROCEDURE actualizar_producto (
     p_id_producto       IN PRODUCTO.ID_PRODUCTO%TYPE,
@@ -328,7 +413,7 @@ BEGIN
 END;
 /
 
--- 12. Procedimiento para eliminar un producto
+-- 16. Procedimiento para eliminar un producto
 
 CREATE OR REPLACE PROCEDURE eliminar_producto (
     p_id IN PRODUCTO.ID_PRODUCTO%TYPE
@@ -339,7 +424,7 @@ BEGIN
 END;
 /
 
--- 13. Procedimiento que devuelve todas las categorias 
+-- 17. Procedimiento que devuelve todas las categorias 
 
 CREATE OR REPLACE PROCEDURE LISTAR_CATEGORIAS(p_cursor OUT SYS_REFCURSOR) AS
 BEGIN
@@ -352,7 +437,7 @@ BEGIN
 END;
 /
 
--- 10. Procedimiento que inserta una categoria
+-- 18. Procedimiento que inserta una categoria
 
 CREATE OR REPLACE PROCEDURE insertar_categoria (
     p_nombre_categoria IN CATEGORIA.NOMBRE_CATEGORIA%TYPE
@@ -366,7 +451,7 @@ BEGIN
 END;
 /
 
--- 11. Procedimiento para eliminar una categoria
+-- 19. Procedimiento para eliminar una categoria
 
 CREATE OR REPLACE PROCEDURE eliminar_categoria (
     p_id IN CATEGORIA.ID_CATEGORIA%TYPE
@@ -374,6 +459,22 @@ CREATE OR REPLACE PROCEDURE eliminar_categoria (
 BEGIN
     DELETE FROM CATEGORIA
     WHERE ID_CATEGORIA = p_id;
+END;
+/
+
+-- 20. Procedimiento que devuelve todos los proveedores
+
+CREATE OR REPLACE PROCEDURE LISTAR_PROVEEDORES(p_cursor OUT SYS_REFCURSOR) AS
+BEGIN
+  OPEN p_cursor FOR
+    SELECT 
+      ID_PROVEEDOR,
+      NOMBRE_PROVEEDOR,
+      CORREO,
+      DIRECCION_PROVEEDOR,
+      FECHA_REGISTRO
+    FROM PROVEEDOR
+    ORDER BY ID_PROVEEDOR;
 END;
 /
 
@@ -432,6 +533,18 @@ COMMIT;
  SELECT NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL 
                         FROM USUARIO 
                         WHERE ID_USUARIO = 1
+
+SELECT NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL Add commentMore actions
+                        FROM USUARIO 
+                        WHERE ID_USUARIO = 1
+
+--Insertar una clinica
+INSERT INTO TIPO_CLINICA (ID_TIPO_CLINICA, DESCRIPCION)
+VALUES (1, 'Cl?nica General');
+
+--Insertar un cliente
+INSERT INTO CLIENTE (ID_USUARIO, NOMBRE_CLIENTE, CORREO, ID_TIPO_CLINICA)Add commentMore actions
+VALUES (1, 'Mar?a Jim?nez', 'maria.jimenez@gmail.com', 1);
 
 
 -- 1. Insertar proveedores correctamente (incluye dirección)
