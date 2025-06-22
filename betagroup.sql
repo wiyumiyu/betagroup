@@ -45,10 +45,40 @@ CREATE TABLE USUARIO (
   FECHA_REGISTRO DATE DEFAULT SYSDATE
 );
 
+-- Tabla de PROVEEDOR
+CREATE TABLE PROVEEDOR (
+  ID_PROVEEDOR NUMBER PRIMARY KEY,
+  NOMBRE_PROVEEDOR VARCHAR2(100) NOT NULL,
+  CORREO VARCHAR2(50) NOT NULL,
+  DIRECCION_PROVEEDOR VARCHAR2(100) NOT NULL,
+  FECHA_REGISTRO DATE DEFAULT SYSDATE
+);
 
+-- Tabla de TELEFONO_PROVEEDOR
+CREATE TABLE TELEFONO_PROVEEDOR (
+  ID_TELEFONO NUMBER PRIMARY KEY,
+  TELEFONO VARCHAR2(20) NOT NULL,
+  ID_PROVEEDOR NUMBER NOT NULL,
+  CONSTRAINT FK_TEL_PROV FOREIGN KEY (ID_PROVEEDOR) REFERENCES PROVEEDOR(ID_PROVEEDOR)
+);
 
+-- Tabla de CATEGORIA
+CREATE TABLE CATEGORIA (
+  ID_CATEGORIA NUMBER PRIMARY KEY,
+  NOMBRE_CATEGORIA VARCHAR2(100) NOT NULL
+);
 
-
+-- Tabla de PRODUCTO
+CREATE TABLE PRODUCTO (
+  ID_PRODUCTO NUMBER PRIMARY KEY,
+  NOMBRE_PRODUCTO VARCHAR2(100) NOT NULL,
+  PRECIO NUMBER NOT NULL,
+  FECHA_REGISTRO DATE DEFAULT SYSDATE,
+  ID_PROVEEDOR NUMBER NOT NULL,
+  ID_CATEGORIA NUMBER NOT NULL,
+  CONSTRAINT FK_PROD_PROV FOREIGN KEY (ID_PROVEEDOR) REFERENCES PROVEEDOR(ID_PROVEEDOR),
+  CONSTRAINT FK_PROD_CAT FOREIGN KEY (ID_CATEGORIA) REFERENCES CATEGORIA(ID_CATEGORIA)
+);
 
 
 -- ------------------------------------------------- PROCEDIMIENTOS ALMACENADOS ---------------------------------------------------------------------
@@ -204,6 +234,7 @@ BEGIN
 END;
 /
 
+-- 7. Procedimiento para actualizar usuario sin contraseña
 
 CREATE OR REPLACE PROCEDURE actualizar_usuario_sc (
     p_id_usuario  IN USUARIO.ID_USUARIO%TYPE,
@@ -224,7 +255,7 @@ BEGIN
     WHERE ID_USUARIO = p_id_usuario;
 END;
 /
--- 7. Procedimiento para eliminar usuario
+-- 8. Procedimiento para eliminar usuario
 
 CREATE OR REPLACE PROCEDURE eliminar_usuario (
     p_id IN USUARIO.ID_USUARIO%TYPE
@@ -235,12 +266,144 @@ BEGIN
 END;
 /
 
+-- 9. Procedimiento que devuelve todos los productos usando un cursor
+CREATE OR REPLACE PROCEDURE LISTAR_PRODUCTOS(p_cursor OUT SYS_REFCURSOR) AS
+BEGIN
+    OPEN p_cursor FOR
+        SELECT 
+            P.ID_PRODUCTO,
+            P.NOMBRE_PRODUCTO,
+            P.PRECIO,
+            P.FECHA_REGISTRO,
+            PR.NOMBRE_PROVEEDOR,
+            C.NOMBRE_CATEGORIA
+        FROM PRODUCTO P
+        JOIN PROVEEDOR PR ON P.ID_PROVEEDOR = PR.ID_PROVEEDOR
+        JOIN CATEGORIA C ON P.ID_CATEGORIA = C.ID_CATEGORIA
+        ORDER BY P.ID_PRODUCTO;
+END;
+/
+
+-- 10. Procedimiento que inserta un producto
+
+CREATE OR REPLACE PROCEDURE insertar_producto (
+    p_nombre_producto   IN PRODUCTO.NOMBRE_PRODUCTO%TYPE,
+    p_precio            IN PRODUCTO.PRECIO%TYPE,
+    p_id_proveedor      IN PRODUCTO.ID_PROVEEDOR%TYPE,
+    p_id_categoria      IN PRODUCTO.ID_CATEGORIA%TYPE
+) AS
+BEGIN
+    INSERT INTO PRODUCTO (
+        NOMBRE_PRODUCTO,
+        PRECIO,
+        ID_PROVEEDOR,
+        ID_CATEGORIA
+    ) VALUES (
+        p_nombre_producto,
+        p_precio,
+        p_id_proveedor,
+        p_id_categoria
+    );
+END;
+/
+
+
+-- 11. Procedimiento para actualizar un producto
+
+CREATE OR REPLACE PROCEDURE actualizar_producto (
+    p_id_producto       IN PRODUCTO.ID_PRODUCTO%TYPE,
+    p_nombre_producto   IN PRODUCTO.NOMBRE_PRODUCTO%TYPE,
+    p_precio            IN PRODUCTO.PRECIO%TYPE,
+    p_id_proveedor      IN PRODUCTO.ID_PROVEEDOR%TYPE,
+    p_id_categoria      IN PRODUCTO.ID_CATEGORIA%TYPE
+) AS
+BEGIN
+    UPDATE PRODUCTO
+    SET
+        NOMBRE_PRODUCTO = p_nombre_producto,
+        PRECIO = p_precio,
+        ID_PROVEEDOR = p_id_proveedor,
+        ID_CATEGORIA = p_id_categoria
+    WHERE ID_PRODUCTO = p_id_producto;
+END;
+/
+
+-- 12. Procedimiento para eliminar un producto
+
+CREATE OR REPLACE PROCEDURE eliminar_producto (
+    p_id IN PRODUCTO.ID_PRODUCTO%TYPE
+) AS
+BEGIN
+    DELETE FROM PRODUCTO
+    WHERE ID_PRODUCTO = p_id;
+END;
+/
+
+-- 13. Procedimiento que devuelve todas las categorias 
+
+CREATE OR REPLACE PROCEDURE LISTAR_CATEGORIAS(p_cursor OUT SYS_REFCURSOR) AS
+BEGIN
+    OPEN p_cursor FOR
+        SELECT 
+            C.ID_CATEGORIA,
+            C.NOMBRE_CATEGORIA
+        FROM CATEGORIA C
+        ORDER BY C.ID_CATEGORIA;
+END;
+/
+
+-- 10. Procedimiento que inserta una categoria
+
+CREATE OR REPLACE PROCEDURE insertar_categoria (
+    p_nombre_categoria IN CATEGORIA.NOMBRE_CATEGORIA%TYPE
+) AS
+BEGIN
+    INSERT INTO CATEGORIA (
+        NOMBRE_CATEGORIA
+    ) VALUES (
+        p_nombre_categoria
+    );
+END;
+/
+
+-- 11. Procedimiento para eliminar una categoria
+
+CREATE OR REPLACE PROCEDURE eliminar_categoria (
+    p_id IN CATEGORIA.ID_CATEGORIA%TYPE
+) AS
+BEGIN
+    DELETE FROM CATEGORIA
+    WHERE ID_CATEGORIA = p_id;
+END;
+/
+
+-- -------------------------- TRIGGER ------------------------------------------------------
+
+-- 1. INSERTAR +506 al número
+
+CREATE OR REPLACE TRIGGER TRG_TELEFONO_FORMATO
+BEFORE INSERT ON TELEFONO_PROVEEDOR
+FOR EACH ROW
+BEGIN
+  IF SUBSTR(:NEW.TELEFONO, 1, 4) != '+506' THEN
+    :NEW.TELEFONO := '+506 ' || :NEW.TELEFONO;
+  END IF;
+END;
+
 
 -- -------------------------- DATOS Y PRUEBAS ------------------------------------------------------
 
 -- Llamamos al procedimiento para crear la secuencia y trigger para la tabla USUARIO
 BEGIN
     CREAR_AUTOINCREMENTO('USUARIO', 'ID_USUARIO');
+END;
+/
+
+BEGIN
+    CREAR_AUTOINCREMENTO('PRODUCTO', 'ID_PRODUCTO');
+    CREAR_AUTOINCREMENTO('CATEGORIA', 'ID_CATEGORIA');
+    CREAR_AUTOINCREMENTO('PROVEEDOR', 'ID_PROVEEDOR');
+    CREAR_AUTOINCREMENTO('TELEFONO_PROVEEDOR', 'ID_TELEFONO');
 END;
 /
 
@@ -266,15 +429,43 @@ COMMIT;
 -- DELETE FROM USUARIO;
 
 
-
-
-
  SELECT NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL 
                         FROM USUARIO 
                         WHERE ID_USUARIO = 1
 
 
+-- 1. Insertar proveedores correctamente (incluye dirección)
+INSERT INTO PROVEEDOR (NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR)
+VALUES ('BeautyTech S.A.', 'ventas@beautytech.com', 'San José, Costa Rica');
 
+INSERT INTO PROVEEDOR (NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR)
+VALUES ('Dermalaser CR', 'info@dermalaser.cr', 'Escazú, Costa Rica');
 
+-- 2. Insertar teléfonos (ya existen los proveedores)
+INSERT INTO TELEFONO_PROVEEDOR (TELEFONO, ID_PROVEEDOR)
+VALUES ('89842738', 1);
 
+INSERT INTO TELEFONO_PROVEEDOR (TELEFONO, ID_PROVEEDOR)
+VALUES ('72119988', 2);
 
+-- 3. Insertar categoría
+INSERT INTO CATEGORIA (NOMBRE_CATEGORIA)
+VALUES ('Equipos Estéticos');
+
+-- 4. Insertar productos (ya existen proveedor y categoría)
+INSERT INTO PRODUCTO (NOMBRE_PRODUCTO, PRECIO, ID_PROVEEDOR, ID_CATEGORIA)
+VALUES ('Soprano Titanium (Depilación Láser)', 42000000, 1, 1);
+
+INSERT INTO PRODUCTO (NOMBRE_PRODUCTO, PRECIO, ID_PROVEEDOR, ID_CATEGORIA)
+VALUES ('Multifuncional 6 en 1 con Lipoláser 850mz y EMS', 800000, 2, 1);
+
+SELECT *
+FROM PRODUCTO;
+
+SELECT *
+FROM TELEFONO_PROVEEDOR;
+
+-- Ver procedimiento productos
+VARIABLE rc REFCURSOR;
+EXEC LISTAR_PRODUCTOS(:rc);
+PRINT rc;

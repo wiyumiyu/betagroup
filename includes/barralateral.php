@@ -157,7 +157,7 @@ if ($pc == 0) {
             <ul>
 
                 <li class="active">
-                    <a href="">
+                    <a href='..\_productos\productos.php'>
                         <span>Lista de Productos</span>
                     </a>                            
                 </li>     
