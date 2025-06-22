@@ -163,7 +163,7 @@ if ($pc == 0) {
                 </li>     
 
                 <li class="active">
-                    <a href="">
+                    <a href='..\_productos\categorias.php'>
                         <span>Categorías</span>
                     </a>                            
                 </li>   

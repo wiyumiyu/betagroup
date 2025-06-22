@@ -219,7 +219,7 @@ if (isset($_GET["edt"])) {
     oci_execute($stid);
     if ($row = oci_fetch_array($stid, OCI_ASSOC)) {
         $nombre = htmlspecialchars($row["NOMBRE_USUARIO"]);
-        $telefono = isset($row["TELEFONO"]) ? htmlspecialchars($row["TELEFONO"]) : "";
+        $telefono = disset($row["TELEFONO"]) ? htmlspecialchars($row["TELEFONO"]) : "";
         $correo = htmlspecialchars($row["CORREO"]);
         $rol = $row["ROL"];
     }
