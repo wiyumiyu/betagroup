@@ -185,7 +185,7 @@ if ($pc == 0) {
                 </li>     
 
                 <li class="active">
-                    <a href="">
+                    <a href="..\_tipoClinica\tipoClinica.php">
                         <span>Tipos de Clínica</span>
                     </a>                            
                 </li>   

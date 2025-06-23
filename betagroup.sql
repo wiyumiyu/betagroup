@@ -282,7 +282,7 @@ BEGIN
 END;
 /
 
--- 9. Procedimiento para crear clienteAdd commentMore actions
+-- 9. Procedimiento para crear cliente
 
 CREATE OR REPLACE PROCEDURE insertar_cliente (
     p_id_usuario      IN CLIENTE.ID_USUARIO%TYPE,
@@ -477,6 +477,61 @@ BEGIN
 END;
 /
 
+-- 21. Procedimiento para insertar una clinica nueva
+
+CREATE OR REPLACE PROCEDURE insertar_tipo_clinica (
+    p_id_tipo_clinica IN TIPO_CLINICA.ID_TIPO_CLINICA%TYPE,
+    p_descripcion     IN TIPO_CLINICA.DESCRIPCION%TYPE
+) AS
+BEGIN
+    INSERT INTO TIPO_CLINICA (
+        ID_TIPO_CLINICA,
+        DESCRIPCION
+    ) VALUES (
+        p_id_tipo_clinica,
+        p_descripcion
+    );
+END;
+/
+
+-- 22. Procedimiento para actualizar una clinica
+
+CREATE OR REPLACE PROCEDURE actualizar_tipo_clinica (
+    p_id_tipo_clinica IN TIPO_CLINICA.ID_TIPO_CLINICA%TYPE,
+    p_descripcion     IN TIPO_CLINICA.DESCRIPCION%TYPE
+) AS
+BEGIN
+    UPDATE TIPO_CLINICA
+    SET DESCRIPCION = p_descripcion
+    WHERE ID_TIPO_CLINICA = p_id_tipo_clinica;
+END;
+/
+
+-- 23. Procedimiento para eliminar una clinica
+
+CREATE OR REPLACE PROCEDURE eliminar_tipo_clinica (
+    p_id_tipo_clinica IN TIPO_CLINICA.ID_TIPO_CLINICA%TYPE
+) AS
+BEGIN
+    DELETE FROM TIPO_CLINICA
+    WHERE ID_TIPO_CLINICA = p_id_tipo_clinica;
+END;
+/
+
+-- 24. Procedimiento para listar las clinicas
+
+CREATE OR REPLACE PROCEDURE listar_tipos_clinica (
+    p_cursor OUT SYS_REFCURSOR
+) AS
+BEGIN
+    OPEN p_cursor FOR
+        SELECT ID_TIPO_CLINICA, DESCRIPCION
+        FROM TIPO_CLINICA
+        ORDER BY ID_TIPO_CLINICA;
+END;
+/
+
+
 -- -------------------------- TRIGGER ------------------------------------------------------
 
 -- 1. INSERTAR +506 al número
@@ -539,11 +594,11 @@ SELECT NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL Add commentMore actions
 
 --Insertar una clinica
 INSERT INTO TIPO_CLINICA (ID_TIPO_CLINICA, DESCRIPCION)
-VALUES (1, 'Cl?nica General');
+VALUES (1, 'Clinica General');
 
 --Insertar un cliente
 INSERT INTO CLIENTE (ID_USUARIO, NOMBRE_CLIENTE, CORREO, ID_TIPO_CLINICA)
-VALUES (1, 'Mar?a Jim?nez', 'maria.jimenez@gmail.com', 1);
+VALUES (1, 'Maria Jimenez', 'maria.jimenez@gmail.com', 1);
 
 
 -- 1. Insertar proveedores correctamente (incluye dirección)
@@ -581,3 +636,4 @@ FROM TELEFONO_PROVEEDOR;
 VARIABLE rc REFCURSOR;
 EXEC LISTAR_PRODUCTOS(:rc);
 PRINT rc;
+

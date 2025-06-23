@@ -119,7 +119,8 @@ oci_free_statement($cursor);
 <div id="modal-confirmar" class="modalx">
     <div class="modalx-content">
 <?php
-$nombre_producto = $correo = $tipo = "";
+$nombre_producto = $nombre = $correo = $tipo = "";
+$nombre = $correo = $tipo = "";
 $tipoEdit = "Agregar nuevo";
 $edtVer = "";
 
