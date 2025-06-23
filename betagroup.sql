@@ -477,20 +477,19 @@ BEGIN
 END;
 /
 
+CREATE SEQUENCE seq_tipo_clinica
+START WITH 1
+INCREMENT BY 1
+NOCACHE;
+
 -- 21. Procedimiento para insertar una clinica nueva
 
 CREATE OR REPLACE PROCEDURE insertar_tipo_clinica (
-    p_id_tipo_clinica IN TIPO_CLINICA.ID_TIPO_CLINICA%TYPE,
-    p_descripcion     IN TIPO_CLINICA.DESCRIPCION%TYPE
+    p_descripcion IN TIPO_CLINICA.DESCRIPCION%TYPE
 ) AS
 BEGIN
-    INSERT INTO TIPO_CLINICA (
-        ID_TIPO_CLINICA,
-        DESCRIPCION
-    ) VALUES (
-        p_id_tipo_clinica,
-        p_descripcion
-    );
+    INSERT INTO TIPO_CLINICA (DESCRIPCION)
+    VALUES (p_descripcion);
 END;
 /
 
@@ -545,6 +544,15 @@ BEGIN
   END IF;
 END;
 
+CREATE OR REPLACE TRIGGER trg_tipo_clinica_ai
+BEFORE INSERT ON TIPO_CLINICA
+FOR EACH ROW
+BEGIN
+    IF :NEW.ID_TIPO_CLINICA IS NULL THEN
+        SELECT seq_tipo_clinica.NEXTVAL INTO :NEW.ID_TIPO_CLINICA FROM DUAL;
+    END IF;
+END;
+/
 
 -- -------------------------- DATOS Y PRUEBAS ------------------------------------------------------
 
