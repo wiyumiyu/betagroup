@@ -3,13 +3,24 @@
 CREATE USER betagroup IDENTIFIED BY beta123;
 
 -- Permisos básicos
-GRANT CONNECT, RESOURCE TO betagroup;
-GRANT UNLIMITED TABLESPACE TO betagroup;
+GRANT connect, resource TO betagroup;
+
+GRANT
+    UNLIMITED TABLESPACE
+TO betagroup;
 
 -- Crear objetos necesarios para autoincremento
-GRANT CREATE SEQUENCE TO betagroup;
-GRANT CREATE TRIGGER TO betagroup;
-GRANT CREATE PROCEDURE TO betagroup;
+GRANT
+    CREATE SEQUENCE
+TO betagroup;
+
+GRANT
+    CREATE TRIGGER
+TO betagroup;
+
+GRANT
+    CREATE PROCEDURE
+TO betagroup;
 
 -- (Opcional) Si deseas crear en otros esquemas
 -- GRANT CREATE ANY SEQUENCE TO betagroup;
@@ -20,9 +31,11 @@ GRANT CREATE PROCEDURE TO betagroup;
 /*Crear un nuevo tablespace*/
 
 CREATE TABLESPACE tbs_betagroup
-DATAFILE 'C:\Oracle\oradata\ORCL\tbs_betagroup.dbf' SIZE 50M AUTOEXTEND ON NEXT 10M;
+    DATAFILE 'C:\Oracle\oradata\ORCL\tbs_betagroup.dbf' SIZE 50M
+    AUTOEXTEND ON NEXT 10M;
 
-ALTER USER betagroup DEFAULT TABLESPACE tbs_betagroup;
+ALTER USER betagroup
+    DEFAULT TABLESPACE tbs_betagroup;
 
 commit
 
@@ -95,6 +108,61 @@ CREATE TABLE PRODUCTO (
   CONSTRAINT FK_PROD_PROV FOREIGN KEY (ID_PROVEEDOR) REFERENCES PROVEEDOR(ID_PROVEEDOR),
   CONSTRAINT FK_PROD_CAT FOREIGN KEY (ID_CATEGORIA) REFERENCES CATEGORIA(ID_CATEGORIA)
 );
+
+--    tablas proveedor prueba!   --
+
+--Tabla insertar_proveedor--
+
+CREATE OR REPLACE PROCEDURE insertar_proveedor (
+    p_nombre    IN proveedor.nombre_proveedor%TYPE,
+    p_correo    IN proveedor.correo%TYPE,
+    p_direccion IN proveedor.direccion_proveedor%TYPE
+) AS
+BEGIN
+    INSERT INTO proveedor (
+        nombre_proveedor,
+        correo,
+        direccion_proveedor
+    ) VALUES (
+        p_nombre,
+        p_correo,
+        p_direccion
+    );
+END;
+/
+
+   
+--tabla actualizar proveedor
+
+CREATE OR REPLACE PROCEDURE actualizar_proveedor (
+    p_id_proveedor IN proveedor.id_proveedor%TYPE,
+    p_nombre       IN proveedor.nombre_proveedor%TYPE,
+    p_correo       IN proveedor.correo%TYPE,
+    p_direccion    IN proveedor.direccion_proveedor%TYPE
+) AS
+BEGIN
+    UPDATE proveedor
+    SET
+        nombre_proveedor = p_nombre,
+        correo = p_correo,
+        direccion_proveedor = p_direccion
+    WHERE
+        id_proveedor = p_id_proveedor;
+END;
+/
+
+
+--tabla_eliminar proveedor
+
+CREATE OR REPLACE PROCEDURE eliminar_proveedor (
+    p_id_proveedor IN proveedor.id_proveedor%TYPE
+) AS
+BEGIN
+    DELETE FROM proveedor
+    WHERE id_proveedor = p_id_proveedor;
+END;
+/
+  
 
 
 -- ------------------------------------------------- PROCEDIMIENTOS ALMACENADOS ---------------------------------------------------------------------
@@ -601,44 +669,103 @@ SELECT NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL Add commentMore actions
                         WHERE ID_USUARIO = 1
 
 --Insertar una clinica
-INSERT INTO TIPO_CLINICA (ID_TIPO_CLINICA, DESCRIPCION)
-VALUES (1, 'Clinica General');
+INSERT INTO tipo_clinica (
+    id_tipo_clinica,
+    descripcion
+) VALUES (
+    1,
+    'Clinica General'
+);
 
 --Insertar un cliente
-INSERT INTO CLIENTE (ID_USUARIO, NOMBRE_CLIENTE, CORREO, ID_TIPO_CLINICA)
-VALUES (1, 'Maria Jimenez', 'maria.jimenez@gmail.com', 1);
+INSERT INTO cliente (
+    id_usuario,
+    nombre_cliente,
+    correo,
+    id_tipo_clinica
+) VALUES (
+    1,
+    'Maria Jimenez',
+    'maria.jimenez@gmail.com',
+    1
+);
 
 
 -- 1. Insertar proveedores correctamente (incluye dirección)
-INSERT INTO PROVEEDOR (NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR)
-VALUES ('BeautyTech S.A.', 'ventas@beautytech.com', 'San José, Costa Rica');
+INSERT INTO proveedor (
+    nombre_proveedor,
+    correo,
+    direccion_proveedor
+) VALUES (
+    'BeautyTech S.A.',
+    'ventas@beautytech.com',
+    'San José, Costa Rica'
+);
 
-INSERT INTO PROVEEDOR (NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR)
-VALUES ('Dermalaser CR', 'info@dermalaser.cr', 'Escazú, Costa Rica');
+INSERT INTO proveedor (
+    nombre_proveedor,
+    correo,
+    direccion_proveedor
+) VALUES (
+    'Dermalaser CR',
+    'info@dermalaser.cr',
+    'Escazú, Costa Rica'
+);
 
 -- 2. Insertar teléfonos (ya existen los proveedores)
-INSERT INTO TELEFONO_PROVEEDOR (TELEFONO, ID_PROVEEDOR)
-VALUES ('89842738', 1);
+INSERT INTO telefono_proveedor (
+    telefono,
+    id_proveedor
+) VALUES (
+    '89842738',
+    1
+);
 
-INSERT INTO TELEFONO_PROVEEDOR (TELEFONO, ID_PROVEEDOR)
-VALUES ('72119988', 2);
+INSERT INTO telefono_proveedor (
+    telefono,
+    id_proveedor
+) VALUES (
+    '72119988',
+    2
+);
 
 -- 3. Insertar categoría
-INSERT INTO CATEGORIA (NOMBRE_CATEGORIA)
-VALUES ('Equipos Estéticos');
+INSERT INTO categoria ( nombre_categoria ) VALUES ( 'Equipos Estéticos' );
 
 -- 4. Insertar productos (ya existen proveedor y categoría)
-INSERT INTO PRODUCTO (NOMBRE_PRODUCTO, PRECIO, ID_PROVEEDOR, ID_CATEGORIA)
-VALUES ('Soprano Titanium (Depilación Láser)', 42000000, 1, 1);
+INSERT INTO producto (
+    nombre_producto,
+    precio,
+    id_proveedor,
+    id_categoria
+) VALUES (
+    'Soprano Titanium (Depilación Láser)',
+    42000000,
+    1,
+    1
+);
 
-INSERT INTO PRODUCTO (NOMBRE_PRODUCTO, PRECIO, ID_PROVEEDOR, ID_CATEGORIA)
-VALUES ('Multifuncional 6 en 1 con Lipoláser 850mz y EMS', 800000, 2, 1);
+INSERT INTO producto (
+    nombre_producto,
+    precio,
+    id_proveedor,
+    id_categoria
+) VALUES (
+    'Multifuncional 6 en 1 con Lipoláser 850mz y EMS',
+    800000,
+    2,
+    1
+);
 
-SELECT *
-FROM PRODUCTO;
+SELECT
+    *
+FROM
+    producto;
 
-SELECT *
-FROM TELEFONO_PROVEEDOR;
+SELECT
+    *
+FROM
+    telefono_proveedor;
 
 -- Ver procedimiento productos
 VARIABLE rc REFCURSOR;

@@ -18,7 +18,6 @@ $op_menu05 = "";
 $idusuario = $_SESSION['id_usuario'];
 $rol = $_SESSION['rol'];
 
-
 switch ($op) {
     case 0:
         $op_menu01 = "opened";
@@ -141,7 +140,7 @@ if ($pc == 0) {
             <ul>
 
                 <li class="active">
-                    <a href="">
+                    <a href='..\_proveedores\proveedores.php'>
                         <span>Lista de Proveedores</span>
                     </a>                            
                 </li>          
