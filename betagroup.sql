@@ -1,8 +1,8 @@
--- OJO DESDE AQUÍ SE EMPIEZA A EJECUTAR DESDE EL ESQUEMA ADMIN_SYS
+-- OJO DESDE AQUï¿½ SE EMPIEZA A EJECUTAR DESDE EL ESQUEMA ADMIN_SYS
 
 CREATE USER betagroup IDENTIFIED BY beta123;
 
--- Permisos básicos
+-- Permisos bï¿½sicos
 GRANT connect, resource TO betagroup;
 
 GRANT
@@ -40,7 +40,7 @@ ALTER USER betagroup
 commit
 
 
--- OJO DESDE AQUÍ SE EMPIEZA A EJECUTAR DESDE EL ESQUEMA BETAGROUP
+-- OJO DESDE AQUï¿½ SE EMPIEZA A EJECUTAR DESDE EL ESQUEMA BETAGROUP
 
 -- ------------------------------------------------- TABLAS ---------------------------------------------------------------------
 
@@ -167,10 +167,10 @@ END;
 
 -- ------------------------------------------------- PROCEDIMIENTOS ALMACENADOS ---------------------------------------------------------------------
 
--- 1. Función para encriptar la contraseña usando SHA-256
+-- 1. Funciï¿½n para encriptar la contraseï¿½a usando SHA-256
 CREATE OR REPLACE FUNCTION HASH_PASSWORD(p_pass VARCHAR2) RETURN VARCHAR2 IS
 BEGIN
-  -- Convierte la contraseña a un hash SHA-256 y lo devuelve en hexadecimal
+  -- Convierte la contraseï¿½a a un hash SHA-256 y lo devuelve en hexadecimal
   RETURN RAWTOHEX(
     DBMS_CRYPTO.HASH(
       UTL_I18N.STRING_TO_RAW(p_pass, 'AL32UTF8'), -- convierte el texto en bytes
@@ -183,29 +183,29 @@ END;
 -- 2. Procedimiento para validar si el login es correcto
 CREATE OR REPLACE PROCEDURE VALIDAR_LOGIN (
     p_correo IN VARCHAR2,         -- correo que ingresa el usuario
-    p_pass IN VARCHAR2,           -- contraseña que ingresa el usuario
+    p_pass IN VARCHAR2,           -- contraseï¿½a que ingresa el usuario
     p_resultado OUT NUMBER,       -- 1 = login correcto, 0 = incorrecto
     p_id_usuario OUT NUMBER,      -- se devuelve el ID del usuario si es correcto
     p_nombre OUT VARCHAR2,        -- se devuelve el nombre del usuario
     p_rol OUT VARCHAR2            -- se devuelve el rol (ej: admin o vendedor)
 ) IS
-    v_hash VARCHAR2(64);          -- variable para almacenar el hash de la contraseña
+    v_hash VARCHAR2(64);          -- variable para almacenar el hash de la contraseï¿½a
 BEGIN
-    -- Hasheamos la contraseña ingresada para compararla con la guardada
+    -- Hasheamos la contraseï¿½a ingresada para compararla con la guardada
     v_hash := HASH_PASSWORD(p_pass);
 
-    -- Buscamos un usuario que tenga ese correo y contraseña
+    -- Buscamos un usuario que tenga ese correo y contraseï¿½a
     SELECT id_usuario, nombre_usuario, rol
     INTO p_id_usuario, p_nombre, p_rol
     FROM USUARIO
     WHERE correo = p_correo AND contrasena = v_hash;
 
-    -- Si encontró el usuario, el login es válido
+    -- Si encontrï¿½ el usuario, el login es vï¿½lido
     p_resultado := 1;
 
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
-        -- Si no se encontró, el login es inválido
+        -- Si no se encontrï¿½, el login es invï¿½lido
         p_resultado := 0;
 END;
 /
@@ -221,21 +221,21 @@ BEGIN
 END;
 /
 
--- 4. Procedimiento PL/SQL para crear automáticamente una secuencia y un trigger
+-- 4. Procedimiento PL/SQL para crear automï¿½ticamente una secuencia y un trigger
 -- que permiten autoincrementar el ID de cualquier tabla que indiquemos
 
 CREATE OR REPLACE PROCEDURE CREAR_AUTOINCREMENTO (
     p_tabla       IN VARCHAR2,       -- nombre de la tabla (ej: 'USUARIO')
     p_campo_id    IN VARCHAR2        -- nombre del campo ID (ej: 'ID_USUARIO')
 ) AS
-    v_seq_name    VARCHAR2(100);     -- nombre que se usará para la secuencia
-    v_trigger_name VARCHAR2(100);    -- nombre que se usará para el trigger
+    v_seq_name    VARCHAR2(100);     -- nombre que se usarï¿½ para la secuencia
+    v_trigger_name VARCHAR2(100);    -- nombre que se usarï¿½ para el trigger
 BEGIN
     -- Construimos los nombres de la secuencia y del trigger en base al nombre de la tabla
     v_seq_name := 'SEQ_ID_' || UPPER(p_tabla);
     v_trigger_name := 'TRG_AUTOINC_' || UPPER(p_tabla);
 
-    -- Intentamos eliminar la secuencia anterior (si ya existía), para evitar errores
+    -- Intentamos eliminar la secuencia anterior (si ya existï¿½a), para evitar errores
     EXECUTE IMMEDIATE '
         BEGIN
             EXECUTE IMMEDIATE ''DROP SEQUENCE ' || v_seq_name || ''';
@@ -243,7 +243,7 @@ BEGIN
             WHEN OTHERS THEN NULL; -- Si no existe, no pasa nada
         END;';
 
-    -- Creamos la nueva secuencia desde 1, que se usará para generar los IDs
+    -- Creamos la nueva secuencia desde 1, que se usarï¿½ para generar los IDs
     EXECUTE IMMEDIATE '
         CREATE SEQUENCE ' || v_seq_name || '
         START WITH 1
@@ -251,7 +251,7 @@ BEGIN
         NOCACHE
         NOCYCLE';
 
-    -- Creamos el trigger que se ejecuta automáticamente antes de cada INSERT
+    -- Creamos el trigger que se ejecuta automï¿½ticamente antes de cada INSERT
     -- Si no se indica un ID, el trigger asigna uno usando la secuencia
     EXECUTE IMMEDIATE '
         CREATE OR REPLACE TRIGGER ' || v_trigger_name || '
@@ -318,7 +318,7 @@ BEGIN
 END;
 /
 
--- 7. Procedimiento para actualizar usuario sin contraseña
+-- 7. Procedimiento para actualizar usuario sin contraseï¿½a
 
 CREATE OR REPLACE PROCEDURE actualizar_usuario_sc (
     p_id_usuario  IN USUARIO.ID_USUARIO%TYPE,
@@ -599,9 +599,63 @@ END;
 /
 
 
+-- 25. Procedimiento para insertar_proveedor --
+
+CREATE OR REPLACE PROCEDURE insertar_proveedor (
+    p_nombre    IN proveedor.nombre_proveedor%TYPE,
+    p_correo    IN proveedor.correo%TYPE,
+    p_direccion IN proveedor.direccion_proveedor%TYPE
+) AS
+BEGIN
+    INSERT INTO proveedor (
+        nombre_proveedor,
+        correo,
+        direccion_proveedor
+    ) VALUES (
+        p_nombre,
+        p_correo,
+        p_direccion
+    );
+END;
+/
+
+   
+-- 26. procedimiento para actualizar proveedor
+
+CREATE OR REPLACE PROCEDURE actualizar_proveedor (
+    p_id_proveedor IN proveedor.id_proveedor%TYPE,
+    p_nombre       IN proveedor.nombre_proveedor%TYPE,
+    p_correo       IN proveedor.correo%TYPE,
+    p_direccion    IN proveedor.direccion_proveedor%TYPE
+) AS
+BEGIN
+    UPDATE proveedor
+    SET
+        nombre_proveedor = p_nombre,
+        correo = p_correo,
+        direccion_proveedor = p_direccion
+    WHERE
+        id_proveedor = p_id_proveedor;
+END;
+/
+
+
+--27. procedimiento para eliminar proveedor
+
+CREATE OR REPLACE PROCEDURE eliminar_proveedor (
+    p_id_proveedor IN proveedor.id_proveedor%TYPE
+) AS
+BEGIN
+    DELETE FROM proveedor
+    WHERE id_proveedor = p_id_proveedor;
+END;
+/
+  
+
+
 -- -------------------------- TRIGGER ------------------------------------------------------
 
--- 1. INSERTAR +506 al número
+-- 1. INSERTAR +506 al nï¿½mero
 
 CREATE OR REPLACE TRIGGER TRG_TELEFONO_FORMATO
 BEFORE INSERT ON TELEFONO_PROVEEDOR
@@ -639,8 +693,8 @@ END;
 /
 
 -- Insertamos datos en la tabla USUARIO
--- No se especifica ID_USUARIO porque se genera automáticamente por el trigger
--- La contraseña se guarda encriptada con HASH_PASSWORD
+-- No se especifica ID_USUARIO porque se genera automï¿½ticamente por el trigger
+-- La contraseï¿½a se guarda encriptada con HASH_PASSWORD
 
 INSERT INTO USUARIO (NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL)
 VALUES ('admin', HASH_PASSWORD('a'), '', 'admin@gmail.com', 1);
@@ -650,13 +704,13 @@ VALUES ('Vendedor 1', HASH_PASSWORD('a'), '', 'vendedor@gmail.com', 0);
 
 
 
--- Mostramos los usuarios insertados (veremos el hash, no la contraseña original)
+-- Mostramos los usuarios insertados (veremos el hash, no la contraseï¿½a original)
 SELECT NOMBRE_USUARIO, CONTRASENA FROM USUARIO;
 
 -- Confirmamos los cambios
 COMMIT;
 
--- Si necesitas borrar todos los usuarios para hacer pruebas de nuevo, puedes usar esta línea:
+-- Si necesitas borrar todos los usuarios para hacer pruebas de nuevo, puedes usar esta lï¿½nea:
 -- DELETE FROM USUARIO;
 
 
@@ -691,7 +745,7 @@ INSERT INTO cliente (
 );
 
 
--- 1. Insertar proveedores correctamente (incluye dirección)
+-- 1. Insertar proveedores correctamente (incluye direcciï¿½n)
 INSERT INTO proveedor (
     nombre_proveedor,
     correo,
@@ -699,7 +753,7 @@ INSERT INTO proveedor (
 ) VALUES (
     'BeautyTech S.A.',
     'ventas@beautytech.com',
-    'San José, Costa Rica'
+    'San Josï¿½, Costa Rica'
 );
 
 INSERT INTO proveedor (
@@ -709,10 +763,10 @@ INSERT INTO proveedor (
 ) VALUES (
     'Dermalaser CR',
     'info@dermalaser.cr',
-    'Escazú, Costa Rica'
+    'Escazï¿½, Costa Rica'
 );
 
--- 2. Insertar teléfonos (ya existen los proveedores)
+-- 2. Insertar telï¿½fonos (ya existen los proveedores)
 INSERT INTO telefono_proveedor (
     telefono,
     id_proveedor
@@ -729,17 +783,17 @@ INSERT INTO telefono_proveedor (
     2
 );
 
--- 3. Insertar categoría
-INSERT INTO categoria ( nombre_categoria ) VALUES ( 'Equipos Estéticos' );
+-- 3. Insertar categorï¿½a
+INSERT INTO categoria ( nombre_categoria ) VALUES ( 'Equipos Estï¿½ticos' );
 
--- 4. Insertar productos (ya existen proveedor y categoría)
+-- 4. Insertar productos (ya existen proveedor y categorï¿½a)
 INSERT INTO producto (
     nombre_producto,
     precio,
     id_proveedor,
     id_categoria
 ) VALUES (
-    'Soprano Titanium (Depilación Láser)',
+    'Soprano Titanium (Depilaciï¿½n Lï¿½ser)',
     42000000,
     1,
     1
@@ -751,7 +805,7 @@ INSERT INTO producto (
     id_proveedor,
     id_categoria
 ) VALUES (
-    'Multifuncional 6 en 1 con Lipoláser 850mz y EMS',
+    'Multifuncional 6 en 1 con Lipolï¿½ser 850mz y EMS',
     800000,
     2,
     1
