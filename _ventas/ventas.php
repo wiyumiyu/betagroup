@@ -49,59 +49,60 @@ if (isset($_GET['del2'])) {
 
 // Si el formulario fue enviado (para agregar o actualizar un usuario)
 if (isset($_POST['submitted'])) {
-    // Capturamos los datos del formulario
-    $nombre = trim($_POST["nombre_usuario"]);
-    $contrasena = trim($_POST["contrasena"]);
-    $telefono = trim($_POST["telefono"]);
-    $correo = trim($_POST["correo"]);
-    $rol = trim($_POST["rol"]);
+    // Datos principales de la venta
+    $numero     = trim($_POST['numero']);
+    $impuestos  = trim($_POST['impuestos']);
+    $id_cliente = trim($_POST['cliente']);
+    $id_usuario = $_SESSION['id_usuario'];  // desde sesión
+    $idVenta    = null; // ID que será retornado
 
-    // Si se escribió una contraseña nueva, la agregamos al SQL con una función HASH
-    if ($contrasena != "") {
-        $sql_part = ", CONTRASENA = HASH_PASSWORD(:contrasena)";
-    } else {
-        $sql_part = "";
+    // 1. Insertar venta llamando al procedimiento
+    $sqlVenta = "BEGIN insertar_venta(:numero, :impuestos, :id_cliente, :id_usuario, :id_venta); END;";
+    $stmtVenta = oci_parse($conn, $sqlVenta);
+
+    oci_bind_by_name($stmtVenta, ":numero", $numero);
+    oci_bind_by_name($stmtVenta, ":impuestos", $impuestos);
+    oci_bind_by_name($stmtVenta, ":id_cliente", $id_cliente);
+    oci_bind_by_name($stmtVenta, ":id_usuario", $id_usuario);
+    oci_bind_by_name($stmtVenta, ":id_venta", $idVenta, 10);
+
+    if (!oci_execute($stmtVenta)) {
+        $e = oci_error($stmtVenta);
+        echo "Error al insertar la venta: " . $e['message'];
+        exit;
     }
+    oci_free_statement($stmtVenta);
 
-    // Si vino un 'id' oculto, significa que estamos actualizando un usuario existente
-    if (isset($_GET['edt'])) {
-        $id = $_GET['edt'];
+    // 2. Insertar detalles con procedimiento
+    $productos   = $_POST['producto'] ?? [];
+    $cantidades  = $_POST['cantidad'] ?? [];
+    $precios     = $_POST['precio_unitario'] ?? [];
+    $descuentos  = $_POST['descuento'] ?? [];
 
-        if ($contrasena != "") {
-            $sql = "BEGIN actualizar_usuario(:id, :nombre, :contrasena, :telefono, :correo, :rol); END;";
-            $stmt = oci_parse($conn, $sql);
-            oci_bind_by_name($stmt, ":contrasena", $contrasena);
-        }else{
-            $sql = "BEGIN actualizar_usuario_sc(:id, :nombre,  :telefono, :correo, :rol); END;";
-            $stmt = oci_parse($conn, $sql);
-            
-
+    for ($i = 0; $i < count($productos); $i++) {
+        if ($productos[$i] === '' || $cantidades[$i] === '' || $precios[$i] === '') {
+            continue;
         }
-        oci_bind_by_name($stmt, ":id", $id);
-    } else {
-        // Si no vino ID, estamos insertando un nuevo usuario
-        $sql = "BEGIN insertar_usuario(:nombre, :contrasena, :telefono, :correo, :rol); END;";
-        $stmt = oci_parse($conn, $sql);
-        oci_bind_by_name($stmt, ":contrasena", $contrasena);
+
+        $sqlDet = "BEGIN insertar_venta_detalle(:cantidad, :precio, :descuento, :producto, :id_venta); END;";
+        $stmtDet = oci_parse($conn, $sqlDet);
+
+        oci_bind_by_name($stmtDet, ":cantidad", $cantidades[$i]);
+        oci_bind_by_name($stmtDet, ":precio", $precios[$i]);
+        oci_bind_by_name($stmtDet, ":descuento", $descuentos[$i]);
+        oci_bind_by_name($stmtDet, ":producto", $productos[$i]);
+        oci_bind_by_name($stmtDet, ":id_venta", $idVenta);
+
+        if (!oci_execute($stmtDet)) {
+            $e = oci_error($stmtDet);
+            echo "Error al insertar detalle #" . ($i + 1) . ": " . $e['message'];
+            exit;
+        }
+
+        oci_free_statement($stmtDet);
     }
 
-
-    // Asignamos los valores a los campos del SQL
-    oci_bind_by_name($stmt, ":nombre", $nombre);
-    oci_bind_by_name($stmt, ":telefono", $telefono);
-    oci_bind_by_name($stmt, ":correo", $correo);
-    oci_bind_by_name($stmt, ":rol", $rol);
-
-    // Ejecutamos la acción y redirigimos
-    if (oci_execute($stmt)) {
-        echo "<script>window.location='usuarios.php';</script>";
-    } else {
-        $e = oci_error($stmt);
-        echo "Error: " . $e['message'];
-    }
-
-    oci_free_statement($stmt);
-    oci_close($conn);
+    echo "<script>alert('Venta registrada correctamente'); window.location='ventas.php';</script>";
 }
 ?>
 
@@ -134,36 +135,36 @@ if (isset($_POST['submitted'])) {
         </tr>
     </thead>
     <tbody>
-<?php
+        <?php
 // Se llama al procedimiento almacenado para listar LAS VENTAS
-$sql = "BEGIN LISTAR_VENTAS(:cursor); END;";
-$stid = oci_parse($conn, $sql);
-$cursor = oci_new_cursor($conn);
-oci_bind_by_name($stid, ":cursor", $cursor, -1, OCI_B_CURSOR);
-oci_execute($stid);
-oci_execute($cursor);
+        $sql = "BEGIN LISTAR_VENTAS(:cursor); END;";
+        $stid = oci_parse($conn, $sql);
+        $cursor = oci_new_cursor($conn);
+        oci_bind_by_name($stid, ":cursor", $cursor, -1, OCI_B_CURSOR);
+        oci_execute($stid);
+        oci_execute($cursor);
 
 // Recorremos cada venta y la mostramos en una fila de la tabla
-while ($row = oci_fetch_assoc($cursor)) {
-    $id = $row['ID_VENTA'];
-    echo "<tr>";
-    echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['NUMERO']) . "</td>";
-    echo "<td style='color: #4B4B4B;'>" . date("d-m-Y", strtotime($row['FECHA'])) . "</td>";
-    echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['IMPUESTOS']) . "</td>";
-    echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['NOMBRE_CLIENTE']) . "</td>";
-    echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['NOMBRE_USUARIO']) . "</td>";
+        while ($row = oci_fetch_assoc($cursor)) {
+            $id = $row['ID_VENTA'];
+            echo "<tr>";
+            echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['NUMERO']) . "</td>";
+            echo "<td style='color: #4B4B4B;'>" . date("d-m-Y", strtotime($row['FECHA'])) . "</td>";
+            echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['IMPUESTOS']) . "</td>";
+            echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['NOMBRE_CLIENTE']) . "</td>";
+            echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['NOMBRE_USUARIO']) . "</td>";
 
-    // Botones de editar y eliminar
-    echo "<td>
+            // Botones de editar y eliminar
+            echo "<td>
                     <a href='ventas.php?op=$op&edt=$id' class='btn btn-default'><i class='entypo-pencil'></i></a>
                     <a href='ventas.php?op=$op&del=$id' class='btn btn-danger'><i class='entypo-cancel'></i></a>
                   </td>";
-    echo "</tr>";
-}
+            echo "</tr>";
+        }
 
-oci_free_statement($stid);
-oci_free_statement($cursor);
-?>
+        oci_free_statement($stid);
+        oci_free_statement($cursor);
+        ?>
     </tbody>
 </table>
 
@@ -200,107 +201,189 @@ oci_free_statement($cursor);
             document.getElementById('modal-eliminar').style.display = 'block';
         }
     });
+
+    // Esta función se activa al presionar el botón "Agregar"
+    function agregarFila() {
+        const productoSelect = document.querySelector('#tablaDetalle select');
+        const cantidad = document.getElementById('cantidad').value;
+        const precio = document.getElementById('precio_unitario').value;
+        const descuento = document.getElementById('descuento').value;
+        const idProducto = productoSelect.value;
+        const nombreProducto = productoSelect.options[productoSelect.selectedIndex].text;
+
+        if (!idProducto || !cantidad || !precio) {
+            alert("Por favor complete producto, cantidad y precio.");
+            return;
+        }
+
+        // Crear fila visual con inputs ocultos para envío por POST
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+    <td>
+      ${nombreProducto}
+      <input type="hidden" name="producto[]" value="${idProducto}">
+    </td>
+    <td>
+      ${cantidad}
+      <input type="hidden" name="cantidad[]" value="${cantidad}">
+    </td>
+    <td>
+      ${precio}
+      <input type="hidden" name="precio_unitario[]" value="${precio}">
+    </td>
+    <td>
+      ${descuento || '0'}
+      <input type="hidden" name="descuento[]" value="${descuento || 0}">
+    </td>
+    <td>
+      <button type="button" class="btn btn-danger" onclick="this.closest('tr').remove()">X</button>
+    </td>
+  `;
+
+        document.getElementById('detalleFactura').appendChild(tr);
+
+        // Limpiar campos
+        productoSelect.selectedIndex = 0;
+        document.getElementById('cantidad').value = '';
+        document.getElementById('precio_unitario').value = '';
+        document.getElementById('descuento').value = '';
+        recalcularTotales();
+    }
+// Elimina la fila correspondiente
+    function eliminarFila(boton) {
+        boton.closest("tr").remove();
+        recalcularTotales();
+    }
+
+// Calcula y actualiza los totales
+    function recalcularTotales() {
+        let subtotal = 0;
+        let descuentoTotal = 0;
+
+        const filas = document.querySelectorAll("#detalleFactura tr");
+
+        filas.forEach(fila => {
+            const cantidad = parseFloat(fila.children[1].textContent) || 0;
+            const precio = parseFloat(fila.children[2].textContent) || 0;
+            const descuentoStr = fila.children[3].textContent || '0%';
+            const descuento = parseFloat(descuentoStr.replace('%', '')) || 0;
+
+            const totalProducto = cantidad * precio;
+            subtotal += totalProducto;
+            descuentoTotal += totalProducto * (descuento / 100);
+        });
+
+        const impuestos = parseFloat(document.getElementById("impuestos").value) || 0;
+        const impuestosTotal = (subtotal - descuentoTotal) * (impuestos / 100);
+        const totalFinal = subtotal - descuentoTotal + impuestosTotal;
+
+        document.getElementById("subtotal").textContent = subtotal.toFixed(2);
+        document.getElementById("descuento_total").textContent = descuentoTotal.toFixed(2);
+        document.getElementById("impuestos_total").textContent = impuestosTotal.toFixed(2);
+        document.getElementById("total").textContent = totalFinal.toFixed(2);
+    }
+
+
 </script>
 
 <!-- ------------------ MODAL PARA FORMULARIO DE USUARIO ---------------------- -->
 <div id="modal-confirmar" class="modalx modalx_venta">
     <div class="modalx-content">
-<?php
+        <?php
 // Variables para rellenar el formulario si se está editando
-$nombre = $telefono = $correo = $contrasena = $rol = "";
-$seleccionadoA = $seleccionadoV = "";
-$edt = "";
-$tipoEdit = "Nueva Venta";
+        $nombre = $telefono = $correo = $contrasena = $rol = "";
+        $seleccionadoA = $seleccionadoV = "";
+        $edt = "";
+        $tipoEdit = "Nueva Venta";
 
 // llenar select de clientes
 
 
-$selectClientes = llenarSelect("sel_clientes", "ID_CLIENTE", "NOMBRE_CLIENTE", "BEGIN listar_clientes(:cursor); END;",$conn);
-$selectProductos = llenarSelect("sel_productos", "ID_PRODUCTO", "NOMBRE_PRODUCTO", "BEGIN listar_productos(:cursor); END;",$conn);
-
-
+        $selectClientes = llenarSelect("sel_clientes", "ID_CLIENTE", "NOMBRE_CLIENTE", "BEGIN listar_clientes(:cursor); END;", $conn);
+        $selectProductos = llenarSelect("sel_productos", "ID_PRODUCTO", "NOMBRE_PRODUCTO", "BEGIN listar_productos(:cursor); END;", $conn);
 
 // Si se está editando, cargamos los datos del usuario
-if (isset($_GET["edt"])) {
- 
-    $edt = $_GET["edt"];
-    $sql = "SELECT NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL FROM USUARIO WHERE ID_USUARIO = :id";
-    $stid = oci_parse($conn, $sql);
-    oci_bind_by_name($stid, ":id", $edt);
-    oci_execute($stid);
-    if ($row = oci_fetch_array($stid, OCI_ASSOC)) {
-        $nombre = htmlspecialchars($row["NOMBRE_USUARIO"]);
-        $telefono = disset($row["TELEFONO"]) ? htmlspecialchars($row["TELEFONO"]) : "";
-        $correo = htmlspecialchars($row["CORREO"]);
-        $rol = $row["ROL"];
-    }
-    oci_free_statement($stid);
-    $seleccionadoV = ($rol == 0) ? "selected" : "";
-    $seleccionadoA = ($rol == 1) ? "selected" : "";
-    $tipoEdit = "Editar";
-    $edtVer = "&edt=$edt";
-}
+        if (isset($_GET["edt"])) {
 
-echo "<h3 class='modalx-titulo'>$tipoEdit</h3>";
-?>
+            $edt = $_GET["edt"];
+            $sql = "SELECT NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL FROM USUARIO WHERE ID_USUARIO = :id";
+            $stid = oci_parse($conn, $sql);
+            oci_bind_by_name($stid, ":id", $edt);
+            oci_execute($stid);
+            if ($row = oci_fetch_array($stid, OCI_ASSOC)) {
+                $nombre = htmlspecialchars($row["NOMBRE_USUARIO"]);
+                $telefono = disset($row["TELEFONO"]) ? htmlspecialchars($row["TELEFONO"]) : "";
+                $correo = htmlspecialchars($row["CORREO"]);
+                $rol = $row["ROL"];
+            }
+            oci_free_statement($stid);
+            $seleccionadoV = ($rol == 0) ? "selected" : "";
+            $seleccionadoA = ($rol == 1) ? "selected" : "";
+            $tipoEdit = "Editar";
+            $edtVer = "&edt=$edt";
+        }
 
-       <form action="ventas.php<?php echo "?op=$op" . $edtVer; ?>" method="POST" id="formFactura">
-    <!-- Encabezado de factura -->
-    
-    <div style="display: flex; gap: 20px;">
-        <div class="form-group" style="flex: 1;">
-            <label for="numero">Número:</label>
-            <input type="number" id="numero" name="numero" class="form-control" value="0">
-        </div>
-        <div class="form-group" style="flex: 1;">
-            <label for="impuestos">Impuestos (%):</label>
-            <input type="number" id="impuestos" name="impuestos" class="form-control" value="13">
-        </div>
-    </div>
+        echo "<h3 class='modalx-titulo'>$tipoEdit</h3>";
+        ?>
 
-    <div class="form-group">
-        <label for="cliente">Cliente:</label>
-        <?php echo $selectClientes;?>
-    </div>
+        <form action="ventas.php" method="POST" id="formFactura">
+            <!-- Encabezado de factura -->
+            <div style="display: flex; gap: 20px;">
+                <div class="form-group" style="flex: 1;">
+                    <label for="numero">Número:</label>
+                    <input type="number" id="numero" name="numero" class="form-control" value="0" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label for="impuestos">Impuestos (%):</label>
+                    <input type="number" id="impuestos" name="impuestos" class="form-control" value="13" required>
+                </div>
+            </div>
 
-    <!-- Detalle de productos -->
-    <h4>Agregar detalle</h4>
-    <table class="table" id="tablaDetalle">
-        <thead>
-            <tr>
-                <th>
-                  <?php echo $selectProductos;?>
-                </th>
-                <th><input type="number" id="cantidad" placeholder="Cantidad" class="form-control"></th>
-                <th><input type="number" id="precio_unitario" placeholder="Precio Unitario" class="form-control"></th>
-                <th><input type="number" id="descuento" placeholder="Descuento" class="form-control"></th>
-                <th><button type="button" class="btn btn-primary" onclick="agregarFila()">Agregar</button></th>
-            </tr>
-        </thead>
-        <tbody id="detalleFactura">
-            <tr>
-                <td>Producto ejemplo</td>
-                <td>5</td>
-                <td>5000</td>
-                <td>10%</td>
-                <td><button type="button" class="btn btn-danger" onclick="eliminarFila(this)">X</button></td>
-            </tr>
-        </tbody>
-    </table>
+            <div class="form-group mt-3">
+                <label for="cliente">Cliente:</label>
+                <?php echo $selectClientes; ?>
+            </div>
 
-    <!-- Totales -->
-    <div style="text-align: right; margin-top: 20px;">
-        <p>Subtotal: <span id="subtotal">0.00</span></p>
-        <p>Descuento Total: <span id="descuento_total">0.00</span></p>
-        <p>Impuestos Totales: <span id="impuestos_total">0.00</span></p>
-        <p><strong>Total: <span id="total">0.00</span></strong></p>
-    </div>
+            <!-- Tabla de detalles -->
+            <h4 class="mt-4">Agregar Detalle</h4>
+            <table class="table" id="tablaDetalle">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Descuento</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="detalleFactura">
+                    <!-- Las filas se agregarán dinámicamente -->
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td><?php echo str_replace('name="producto"', 'id="producto"', $selectProductos); ?></td>
+                        <td><input type="number" id="cantidad" class="form-control" placeholder="Cantidad"></td>
+                        <td><input type="number" id="precio_unitario" class="form-control" placeholder="Precio Unitario"></td>
+                        <td><input type="number" id="descuento" class="form-control" placeholder="Descuento"></td>
+                        <td><button type="button" class="btn btn-primary" onclick="agregarFila()">Agregar</button></td>
+                    </tr>
+                </tfoot>
+            </table>
 
-    <!-- Botón de finalizar -->
-    <div class="modal-footer">
-        <button type="submit" class="btn btn-success">Terminar Factura</button>
-    </div>
-</form>
+            <!-- Totales visuales (puedes mejorarlos con JS si quieres) -->
+            <div style="text-align: right; margin-top: 20px;">
+                <p>Subtotal: <span id="subtotal">0.00</span></p>
+                <p>Descuento Total: <span id="descuento_total">0.00</span></p>
+                <p>Impuestos Totales: <span id="impuestos_total">0.00</span></p>
+                <p><strong>Total: <span id="total">0.00</span></strong></p>
+            </div>
+
+            <input type="hidden" name="submitted" value="TRUE">
+
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-success">Agregar Factura</button>
+            </div>
+        </form>
     </div>
 </div>
 
