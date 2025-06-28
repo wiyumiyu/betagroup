@@ -126,7 +126,7 @@ $edtVer = "";
 
 if (isset($_GET["edt"])) {
     $id = $_GET["edt"];
-    $sql = "SELECT NOMBRE_CLIENTE, CORREO, ID_TIPO_CLINICA FROM CLIENTE WHERE ID_USUARIO = :id";
+    $sql = "SELECT NOMBRE_CLIENTE, CORREO, ID_TIPO_CLINICA FROM CLIENTE WHERE ID_CLIENTE = :id";
     $stid = oci_parse($conn, $sql);
     oci_bind_by_name($stid, ":id", $id);
     oci_execute($stid);
