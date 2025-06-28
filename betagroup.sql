@@ -378,19 +378,19 @@ END;
 -- 9. Procedimiento para crear cliente
 
 CREATE OR REPLACE PROCEDURE insertar_cliente (
-    p_id_usuario      IN CLIENTE.ID_USUARIO%TYPE,
+    p_id_cliente     IN CLIENTE.ID_CLIENTE%TYPE,
     p_nombre_cliente  IN CLIENTE.NOMBRE_CLIENTE%TYPE,
     p_correo          IN CLIENTE.CORREO%TYPE,
     p_id_tipo_clinica IN CLIENTE.ID_TIPO_CLINICA%TYPE
 ) AS
 BEGIN
     INSERT INTO CLIENTE (
-        ID_USUARIO,
+        ID_CLIENTE,
         NOMBRE_CLIENTE,
         CORREO,
         ID_TIPO_CLINICA
     ) VALUES (
-        p_id_usuario,
+        p_id_cliente,
         p_nombre_cliente,
         p_correo,
         p_id_tipo_clinica
@@ -401,7 +401,7 @@ END;
 -- 10. Procedimiento para actualizar cliente
 
 CREATE OR REPLACE PROCEDURE actualizar_cliente (
-    p_id_usuario      IN CLIENTE.ID_USUARIO%TYPE,
+    p_id_cliente    IN CLIENTE.ID_cliente%TYPE,
     p_nombre_cliente  IN CLIENTE.NOMBRE_CLIENTE%TYPE,
     p_correo          IN CLIENTE.CORREO%TYPE,
     p_id_tipo_clinica IN CLIENTE.ID_TIPO_CLINICA%TYPE
@@ -412,18 +412,18 @@ BEGIN
         NOMBRE_CLIENTE  = p_nombre_cliente,
         CORREO          = p_correo,
         ID_TIPO_CLINICA = p_id_tipo_clinica
-    WHERE ID_USUARIO = p_id_usuario;
+    WHERE ID_CLIENTE = p_id_cliente;
 END;
 /
 
 -- 11. Procedimiento para actualizar cliente
 
 CREATE OR REPLACE PROCEDURE eliminar_cliente (
-    p_id_usuario IN CLIENTE.ID_USUARIO%TYPE
+    p_id_cliente IN CLIENTE.ID_CLIENTE%TYPE
 ) AS
 BEGIN
     DELETE FROM CLIENTE
-    WHERE ID_USUARIO = p_id_usuario;
+    WHERE ID_CLIENTE = p_id_cliente;
 END;
 /
 
