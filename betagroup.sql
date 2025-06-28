@@ -75,7 +75,6 @@ CREATE TABLE TIPO_CLINICA (
 
 -- Crear tabla CLIENTE (FK a TIPO_CLINICA)
 CREATE TABLE CLIENTE (
-  ID_USUARIO NUMBER PRIMARY KEY,
   ID_CLIENTE NUMBER PRIMARY KEY,
   NOMBRE_CLIENTE VARCHAR2(100) NOT NULL,
   CORREO VARCHAR2(100) NOT NULL,
@@ -435,7 +434,6 @@ CREATE OR REPLACE PROCEDURE listar_clientes (
 ) AS
 BEGIN
     OPEN p_cursor FOR
-        SELECT c.ID_USUARIO,
         SELECT c.ID_CLIENTE,
                c.NOMBRE_CLIENTE,
                c.CORREO,
@@ -788,7 +786,6 @@ COMMIT;
                         FROM USUARIO 
                         WHERE ID_USUARIO = 1
 
-SELECT NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL Add commentMore actions
 SELECT NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL 
                         FROM USUARIO 
                         WHERE ID_USUARIO = 1
@@ -804,7 +801,6 @@ INSERT INTO tipo_clinica (
 
 --Insertar un cliente
 INSERT INTO cliente (
-    id_usuario,
     id_cliente,
     nombre_cliente,
     correo,

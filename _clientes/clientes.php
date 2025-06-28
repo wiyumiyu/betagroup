@@ -98,7 +98,6 @@ oci_execute($stid);
 oci_execute($cursor);
 
 while ($row = oci_fetch_assoc($cursor)) {
-    $id = $row['ID_USUARIO'];
     $id = $row['ID_CLIENTE'];
     echo "<tr>";
     echo "<td>" . htmlspecialchars($row['NOMBRE_CLIENTE']) . "</td>";
