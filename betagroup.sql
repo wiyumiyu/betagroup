@@ -67,7 +67,7 @@ CREATE TABLE PROVEEDOR (
   FECHA_REGISTRO DATE DEFAULT SYSDATE
 );
 
--- Crear tabla TIPO_CLINICAAdd commentMore actions
+-- Crear tabla TIPO_CLINICA
 CREATE TABLE TIPO_CLINICA (
   ID_TIPO_CLINICA NUMBER PRIMARY KEY,
   DESCRIPCION VARCHAR2(100) NOT NULL
@@ -133,62 +133,6 @@ CREATE TABLE VENTA_DETALLE (
   CONSTRAINT FK_VEDE_PROD FOREIGN KEY (ID_PRODUCTO) REFERENCES PRODUCTO(ID_PRODUCTO)
   
 );
-
---    tablas proveedor prueba!   --
-
---Tabla insertar_proveedor--
-
-CREATE OR REPLACE PROCEDURE insertar_proveedor (
-    p_nombre    IN proveedor.nombre_proveedor%TYPE,
-    p_correo    IN proveedor.correo%TYPE,
-    p_direccion IN proveedor.direccion_proveedor%TYPE
-) AS
-BEGIN
-    INSERT INTO proveedor (
-        nombre_proveedor,
-        correo,
-        direccion_proveedor
-    ) VALUES (
-        p_nombre,
-        p_correo,
-        p_direccion
-    );
-END;
-/
-
-   
---tabla actualizar proveedor
-
-CREATE OR REPLACE PROCEDURE actualizar_proveedor (
-    p_id_proveedor IN proveedor.id_proveedor%TYPE,
-    p_nombre       IN proveedor.nombre_proveedor%TYPE,
-    p_correo       IN proveedor.correo%TYPE,
-    p_direccion    IN proveedor.direccion_proveedor%TYPE
-) AS
-BEGIN
-    UPDATE proveedor
-    SET
-        nombre_proveedor = p_nombre,
-        correo = p_correo,
-        direccion_proveedor = p_direccion
-    WHERE
-        id_proveedor = p_id_proveedor;
-END;
-/
-
-
---tabla_eliminar proveedor
-
-CREATE OR REPLACE PROCEDURE eliminar_proveedor (
-    p_id_proveedor IN proveedor.id_proveedor%TYPE
-) AS
-BEGIN
-    DELETE FROM proveedor
-    WHERE id_proveedor = p_id_proveedor;
-END;
-/
-  
-
 
 -- ------------------------------------------------- PROCEDIMIENTOS ALMACENADOS ---------------------------------------------------------------------
 
@@ -554,7 +498,61 @@ BEGIN
 END;
 /
 
--- 20. Procedimiento que devuelve todos los proveedores
+-- 
+CREATE SEQUENCE seq_tipo_clinica
+START WITH 1
+INCREMENT BY 1
+NOCACHE;
+/
+-- 20. Procedimiento para insertar una clinica nueva
+
+CREATE OR REPLACE PROCEDURE insertar_tipo_clinica (
+    p_descripcion IN TIPO_CLINICA.DESCRIPCION%TYPE
+) AS
+BEGIN
+    INSERT INTO TIPO_CLINICA (DESCRIPCION)
+    VALUES (p_descripcion);
+END;
+/
+
+-- 21. Procedimiento para actualizar una clinica
+
+CREATE OR REPLACE PROCEDURE actualizar_tipo_clinica (
+    p_id_tipo_clinica IN TIPO_CLINICA.ID_TIPO_CLINICA%TYPE,
+    p_descripcion     IN TIPO_CLINICA.DESCRIPCION%TYPE
+) AS
+BEGIN
+    UPDATE TIPO_CLINICA
+    SET DESCRIPCION = p_descripcion
+    WHERE ID_TIPO_CLINICA = p_id_tipo_clinica;
+END;
+/
+
+-- 22. Procedimiento para eliminar una clinica
+
+CREATE OR REPLACE PROCEDURE eliminar_tipo_clinica (
+    p_id_tipo_clinica IN TIPO_CLINICA.ID_TIPO_CLINICA%TYPE
+) AS
+BEGIN
+    DELETE FROM TIPO_CLINICA
+    WHERE ID_TIPO_CLINICA = p_id_tipo_clinica;
+END;
+/
+
+-- 23. Procedimiento para listar las clinicas
+
+CREATE OR REPLACE PROCEDURE listar_tipos_clinica (
+    p_cursor OUT SYS_REFCURSOR
+) AS
+BEGIN
+    OPEN p_cursor FOR
+        SELECT ID_TIPO_CLINICA, DESCRIPCION
+        FROM TIPO_CLINICA
+        ORDER BY ID_TIPO_CLINICA;
+END;
+/
+
+-- 24. Procedimiento que devuelve todos los proveedores
 
 CREATE OR REPLACE PROCEDURE LISTAR_PROVEEDORES(p_cursor OUT SYS_REFCURSOR) AS
 BEGIN
@@ -570,62 +568,6 @@ BEGIN
 END;
 /
 
-CREATE SEQUENCE seq_tipo_clinica
-START WITH 1
-INCREMENT BY 1
-NOCACHE;
-/
--- 21. Procedimiento para insertar una clinica nueva
-
-CREATE OR REPLACE PROCEDURE insertar_tipo_clinica (
-    p_descripcion IN TIPO_CLINICA.DESCRIPCION%TYPE
-) AS
-BEGIN
-    INSERT INTO TIPO_CLINICA (DESCRIPCION)
-    VALUES (p_descripcion);
-END;
-/
-
--- 22. Procedimiento para actualizar una clinica
-
-CREATE OR REPLACE PROCEDURE actualizar_tipo_clinica (
-    p_id_tipo_clinica IN TIPO_CLINICA.ID_TIPO_CLINICA%TYPE,
-    p_descripcion     IN TIPO_CLINICA.DESCRIPCION%TYPE
-) AS
-BEGIN
-    UPDATE TIPO_CLINICA
-    SET DESCRIPCION = p_descripcion
-    WHERE ID_TIPO_CLINICA = p_id_tipo_clinica;
-END;
-/
-
--- 23. Procedimiento para eliminar una clinica
-
-CREATE OR REPLACE PROCEDURE eliminar_tipo_clinica (
-    p_id_tipo_clinica IN TIPO_CLINICA.ID_TIPO_CLINICA%TYPE
-) AS
-BEGIN
-    DELETE FROM TIPO_CLINICA
-    WHERE ID_TIPO_CLINICA = p_id_tipo_clinica;
-END;
-/
-
--- 24. Procedimiento para listar las clinicas
-
-CREATE OR REPLACE PROCEDURE listar_tipos_clinica (
-    p_cursor OUT SYS_REFCURSOR
-) AS
-BEGIN
-    OPEN p_cursor FOR
-        SELECT ID_TIPO_CLINICA, DESCRIPCION
-        FROM TIPO_CLINICA
-        ORDER BY ID_TIPO_CLINICA;
-END;
-/
-
--- 25. Procedimiento para eliminar una VENTA
-
-<<<<<<< Updated upstream
 -- 25. Procedimiento para insertar_proveedor --
 
 CREATE OR REPLACE PROCEDURE insertar_proveedor (
@@ -645,7 +587,6 @@ BEGIN
     );
 END;
 /
-
    
 -- 26. procedimiento para actualizar proveedor
 
@@ -667,7 +608,7 @@ END;
 /
 
 
---27. procedimiento para eliminar proveedor
+--27. procedimiento para eliminar proveedor   
 
 CREATE OR REPLACE PROCEDURE eliminar_proveedor (
     p_id_proveedor IN proveedor.id_proveedor%TYPE
@@ -678,9 +619,7 @@ BEGIN
 END;
 /
   
-
-
-=======
+-- 27.  -----------------------------------------------------------------
 CREATE OR REPLACE PROCEDURE eliminar_venta (
     p_id IN VENTA.ID_VENTA%TYPE
 ) AS
@@ -713,7 +652,7 @@ BEGIN
     ORDER BY VENTA.NUMERO;
 END;
 /
->>>>>>> Stashed changes
+
 -- -------------------------- TRIGGER ------------------------------------------------------
 
 -- 1. INSERTAR +506 al nï¿½mero
@@ -759,7 +698,6 @@ BEGIN
 END;
 /
 
-
 -- Insertamos datos en la tabla USUARIO
 -- No se especifica ID_USUARIO porque se genera automï¿½ticamente por el trigger
 -- La contraseï¿½a se guarda encriptada con HASH_PASSWORD
@@ -770,162 +708,54 @@ VALUES ('admin', HASH_PASSWORD('a'), '', 'admin@gmail.com', 1);
 INSERT INTO USUARIO (NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL)
 VALUES ('Vendedor 1', HASH_PASSWORD('a'), '', 'vendedor@gmail.com', 0);
 
-
-
 -- Mostramos los usuarios insertados (veremos el hash, no la contraseï¿½a original)
 SELECT NOMBRE_USUARIO, CONTRASENA FROM USUARIO;
 
--- Confirmamos los cambios
-COMMIT;
-
--- Si necesitas borrar todos los usuarios para hacer pruebas de nuevo, puedes usar esta lï¿½nea:
--- DELETE FROM USUARIO;
-
-
- SELECT NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL 
-                        FROM USUARIO 
-                        WHERE ID_USUARIO = 1
-
-SELECT NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL 
-                        FROM USUARIO 
-                        WHERE ID_USUARIO = 1
 
 --Insertar una clinica
-INSERT INTO tipo_clinica (
-    id_tipo_clinica,
-    descripcion
-) VALUES (
-    1,
-    'Clinica General'
-);
+INSERT INTO TIPO_CLINICA (ID_TIPO_CLINICA, DESCRIPCION)
+VALUES (1, 'Cl?nica General');
 
 --Insertar un cliente
-INSERT INTO cliente (
-    id_cliente,
-    nombre_cliente,
-    correo,
-    id_tipo_clinica
-) VALUES (
-    1,
-    'Maria Jimenez',
-    'maria.jimenez@gmail.com',
-    1
-);
+INSERT INTO CLIENTE (ID_USUARIO, NOMBRE_CLIENTE, CORREO, ID_TIPO_CLINICA)
+VALUES (1, 'María Jiménez', 'maria.jimenez@gmail.com', 1);
 
 
--- 1. Insertar proveedores correctamente (incluye direcciï¿½n)
-INSERT INTO proveedor (
-    nombre_proveedor,
-    correo,
-    direccion_proveedor
-) VALUES (
-    'BeautyTech S.A.',
-    'ventas@beautytech.com',
-    'San Josï¿½, Costa Rica'
-);
+-- 1. Insertar proveedores correctamente (incluye dirección)
+INSERT INTO PROVEEDOR (NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR)
+VALUES ('BeautyTech S.A.', 'ventas@beautytech.com', 'San José, Costa Rica');
 
-INSERT INTO proveedor (
-    nombre_proveedor,
-    correo,
-    direccion_proveedor
-) VALUES (
-    'Dermalaser CR',
-    'info@dermalaser.cr',
-    'Escazï¿½, Costa Rica'
-);
+INSERT INTO PROVEEDOR (NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR)
+VALUES ('Dermalaser CR', 'info@dermalaser.cr', 'Escazú, Costa Rica');
 
--- 2. Insertar telï¿½fonos (ya existen los proveedores)
-INSERT INTO telefono_proveedor (
-    telefono,
-    id_proveedor
-) VALUES (
-    '89842738',
-    1
-);
+-- 2. Insertar teléfonos (ya existen los proveedores)
+INSERT INTO TELEFONO_PROVEEDOR (TELEFONO, ID_PROVEEDOR)
+VALUES ('89842738', 1);
 
-INSERT INTO telefono_proveedor (
-    telefono,
-    id_proveedor
-) VALUES (
-    '72119988',
-    2
-);
+INSERT INTO TELEFONO_PROVEEDOR (TELEFONO, ID_PROVEEDOR)
+VALUES ('72119988', 2);
 
--- 3. Insertar categorï¿½a
-INSERT INTO categoria ( nombre_categoria ) VALUES ( 'Equipos Estï¿½ticos' );
+-- 3. Insertar categoría
+INSERT INTO CATEGORIA (NOMBRE_CATEGORIA)
+VALUES ('Equipos Estéticos');
 
--- 4. Insertar productos (ya existen proveedor y categorï¿½a)
-INSERT INTO producto (
-    nombre_producto,
-    precio,
-    id_proveedor,
-    id_categoria
-) VALUES (
-    'Soprano Titanium (Depilaciï¿½n Lï¿½ser)',
-    42000000,
-    1,
-    1
-);
+-- 4. Insertar productos (ya existen proveedor y categoría)
+INSERT INTO PRODUCTO (NOMBRE_PRODUCTO, PRECIO, ID_PROVEEDOR, ID_CATEGORIA)
+VALUES ('Soprano Titanium (Depilación Láser)', 42000000, 1, 1);
 
+INSERT INTO PRODUCTO (NOMBRE_PRODUCTO, PRECIO, ID_PROVEEDOR, ID_CATEGORIA)
+VALUES ('Multifuncional 6 en 1 con Lipoláser 850mz y EMS', 800000, 2, 1);
 
-INSERT INTO producto (
-    nombre_producto,
-    precio,
-    id_proveedor,
-    id_categoria
-) VALUES (
-    'Multifuncional 6 en 1 con Lipolï¿½ser 850mz y EMS',
-    800000,
-    2,
-    1
-);
+SELECT *
+FROM PRODUCTO;
 
-
-SELECT
-    *
-FROM
-    producto;
-
-SELECT
-    *
-FROM
-    telefono_proveedor;
+SELECT *
+FROM TELEFONO_PROVEEDOR;
 
 -- Ver procedimiento productos
 VARIABLE rc REFCURSOR;
 EXEC LISTAR_PRODUCTOS(:rc);
 PRINT rc;
 
-insert into venta(
-  NUMERO, 
-  IMPUESTOS,
-  ID_CLIENTE,
-  ID_USUARIO
-)VALUES (111,0.13,1,1);
 
-COMMIT;
-
-/*
--- Tabla de VENTAS
-CREATE TABLE VENTA (
-  ID_VENTA NUMBER PRIMARY KEY,
-  NUMERO NUMBER DEFAULT 0, 
-  FECHA DATE DEFAULT SYSDATE,
-  IMPUESTOS NUMBER DEFAULT 0,
-  ID_CLIENTE NUMBER NOT NULL,
-  ID_USUARIO NUMBER NOT NULL
-  CONSTRAINT FK_VENT_CLIE FOREIGN KEY (ID_CLIENTE) REFERENCES CLIENTE(ID_CLIENTE),
-  CONSTRAINT FK_VENT_USUA FOREIGN KEY (ID_USUARIO) REFERENCES USUARIO(ID_USUARIO)
-);
-
--- Tabla de VENTA_DETALLES
-CREATE TABLE VENTA_DETALLE (
-  ID_VENTA_DETALLE NUMBER PRIMARY KEY,
-  CANTIDAD NUMBER DEFAULT 0,
-  PRECIO_UNITARIO NUMBER DEFAULT 0,
-  DESCUENTO NUMBER DEFAULT 0,
-  ID_PRODUCTO NUMBER NOT NULL
-  CONSTRAINT FK_VEDE_PROD FOREIGN KEY (ID_PRODUCTO) REFERENCES PRODUCTO(ID_PRODUCTO),
-  
-);*/
 
