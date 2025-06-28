@@ -9,11 +9,16 @@ if (isset($_GET['pc'])) {
     $pc = $_GET['pc'];
 }
 
+
+
 $op_menu01 = "";
 $op_menu02 = "";
 $op_menu03 = "";
 $op_menu04 = "";
 $op_menu05 = "";
+
+$idmenu = 0;
+
 
 $idusuario = $_SESSION['id_usuario'];
 $rol = $_SESSION['rol'];
@@ -21,6 +26,7 @@ $rol = $_SESSION['rol'];
 switch ($op) {
     case 0:
         $op_menu01 = "opened";
+        $idmenu = 1;
         break;
     case 1:
         $op_menu02 = "opened";
@@ -104,14 +110,14 @@ if ($pc == 0) {
                         </li>-->
         <?php
         if ($rol == 1) {
-            echo "           <li class='active $op_menu01 active'>
+            echo "           <li class='active root-level has-sub $op_menu01 active'>
                 <a href='index.html'>
                     <i class='entypo-users'></i>
                     <span><font size='3'><strong>Usuarios</strong></font></span>
                 </a>
                 <ul>
                                      <li class='active'>
-                                            <a href='..\_usuarios\usuarios.php'>
+                                            <a href='..\_usuarios\usuarios.php?op=0'>
                                                 <span>Lista de Usuarios</span>
                                             </a>                            
                                         </li>          
@@ -140,7 +146,7 @@ if ($pc == 0) {
             <ul>
 
                 <li class="active">
-                    <a href='..\_proveedores\proveedores.php'>
+                    <?php echo "<a href='../_proveedores/proveedores.php?op=1'>"; ?>
                         <span>Lista de Proveedores</span>
                     </a>                            
                 </li>          
@@ -156,13 +162,15 @@ if ($pc == 0) {
             <ul>
 
                 <li class="active">
-                    <a href='..\_productos\productos.php'>
+                    
+                        <?php echo "<a href='../_productos/productos.php?op=2'>"; ?>
                         <span>Lista de Productos</span>
                     </a>                            
                 </li>     
 
                 <li class="active">
-                    <a href='..\_productos\categorias.php'>
+                    
+                    <?php echo "<a href='../_productos/categorias.php?op=2'>"; ?>    
                         <span>Categorías</span>
                     </a>                            
                 </li>   
@@ -178,13 +186,15 @@ if ($pc == 0) {
             <ul>
 
                 <li class="active">
-                    <a href="..\_clientes\clientes.php">
+                    
+                        <?php echo "<a href='../_clientes/clientes.php?op=3'> "; ?>    
                         <span>Lista de Clientes</span>                        
                     </a>                            
                 </li>     
 
                 <li class="active">
-                    <a href="..\_tipoClinica\tipoClinica.php">
+                    
+                    <?php echo "<a href='../_tipoClinica/tipoClinica.php?op=3'>"; ?>     
                         <span>Tipos de Clínica</span>
                     </a>                            
                 </li>   
@@ -198,10 +208,15 @@ if ($pc == 0) {
                 <span><font size="3"><strong>Ventas</strong></font></span>
             </a> 
             <ul>
-
+                <li class="active">
+                    
+                    <?php echo "<a href='../_ventas/ventas.php?op=4'>"; ?>       
+                        <span>Lista de Ventas</span>
+                    </a>                            
+                </li>  
                 <li class="active">
                     <a href="">
-                        <span>Reporte de Ventas</span>
+                        <span>Reporte de Ventas  </span>
                     </a>                            
                 </li>     
 

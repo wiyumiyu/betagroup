@@ -38,6 +38,8 @@ if ($r && $resultado == 1) {
 oci_free_statement($stid);
 oci_close($conn);
 
+
+
 // Resultado final
 $resp['login_status'] = $login_status;
 $resp['submitted_data'] = $_POST; // Solo para depurar

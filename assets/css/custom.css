@@ -19,6 +19,14 @@
   background-color: rgba(0,0,0,0.6);
 }
 
+/* Modal para factura con ancho extendido */
+.modalx_venta .modalx-content {
+  max-width: 900px;
+  width: 95%;
+  padding: 40px 30px;
+}
+
+
 .modalx-content {
   background-color: #fff;
   margin: auto;
