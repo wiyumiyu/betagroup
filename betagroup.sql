@@ -85,8 +85,6 @@ CREATE TABLE CLIENTE (
     REFERENCES TIPO_CLINICA(ID_TIPO_CLINICA)
 );
 
-
-
 -- Tabla de TELEFONO_PROVEEDOR
 CREATE TABLE TELEFONO_PROVEEDOR (
   ID_TELEFONO NUMBER PRIMARY KEY,
@@ -721,6 +719,7 @@ CREATE TABLE VENTA_DETALLE (
 
 -- -------------------------- VISTAS ------------------------------------------------------
 
+--Vista de Usuarios Deshabilitados
 CREATE OR REPLACE VIEW V_USUARIOS_DESHABILITADOS AS
 SELECT 
     ID_USUARIO,
@@ -733,6 +732,21 @@ FROM
     USUARIO
 WHERE 
     ESTADO = 0;
+
+-- Vista de clientes filtrados por Tipo_Clinica
+CREATE OR REPLACE VIEW V_CLIENTES_CON_TIPO_CLINICA AS
+SELECT
+    C.ID_CLIENTE,
+    C.NOMBRE_CLIENTE,
+    C.CORREO,
+    C.ID_TIPO_CLINICA,
+    TC.DESCRIPCION AS TIPO_CLINICA
+FROM
+    CLIENTE C
+JOIN
+    TIPO_CLINICA TC ON C.ID_TIPO_CLINICA = TC.ID_TIPO_CLINICA;
+
+
 
 -- -------------------------- TRIGGER ------------------------------------------------------
 

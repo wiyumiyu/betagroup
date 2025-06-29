@@ -72,6 +72,10 @@ if (isset($_POST['submitted'])) {
     <li class="active"><strong>Lista de Clientes</strong></li>
 </ol>
 
+<?php
+include("tabs.php");
+?>
+
 <div style="display: flex; justify-content: space-between; align-items: center;">
     <h2 style="margin: 0;">Lista de Clientes</h2>
     <button onclick="abrirModal()" class="btn btn-success">Nuevo Cliente</button>
