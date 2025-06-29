@@ -138,6 +138,10 @@ if (isset($_POST['submitted'])) {
     <li class="active"><strong>Ventas</strong></li>
 </ol>
 
+<?php
+include("tabs.php");
+?>
+
 <!-- Título y botón para nuevo usuario -->
 <div style="display: flex; justify-content: space-between; align-items: center;">
     <h2 style="margin: 0;">Lista de Ventas</h2>

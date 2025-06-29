@@ -659,6 +659,7 @@ BEGIN
 END;
 /
 
+
 -- 31. Procedimiento que inserta una venta
 CREATE OR REPLACE PROCEDURE insertar_venta (
     p_numero     IN VENTA.NUMERO%TYPE,
@@ -690,19 +691,20 @@ CREATE OR REPLACE PROCEDURE insertar_venta_detalle (
     p_id_venta       IN VENTA_DETALLE.ID_VENTA%TYPE
 ) AS
 BEGIN
-    INSERT INTO VENTA_DETALLES (
+    INSERT INTO VENTA_DETALLE (
         CANTIDAD,
         PRECIO_UNITARIO,
         DESCUENTO,
-        ID_PRODUCTO
+        ID_PRODUCTO,
+        ID_VENTA
     ) VALUES (
-        p_numero,
-        p_impuestos,
-        p_id_cliente,
-        p_id_usuario
+        p_cantidad,
+        p_precio_unitario,
+        p_descuento,
+        p_id_producto,
+        p_id_venta
     );
 END;
-/
 
 /*
 -- Tabla de VENTA_DETALLES
@@ -719,7 +721,7 @@ CREATE TABLE VENTA_DETALLE (
 
 -- -------------------------- VISTAS ------------------------------------------------------
 
---Vista de Usuarios Deshabilitados
+-- 1. Vista de Usuarios Deshabilitados
 CREATE OR REPLACE VIEW V_USUARIOS_DESHABILITADOS AS
 SELECT 
     ID_USUARIO,
@@ -733,7 +735,7 @@ FROM
 WHERE 
     ESTADO = 0;
 
--- Vista de clientes filtrados por Tipo_Clinica
+-- 2. Vista de clientes filtrados por Tipo_Clinica
 CREATE OR REPLACE VIEW V_CLIENTES_CON_TIPO_CLINICA AS
 SELECT
     C.ID_CLIENTE,
@@ -746,6 +748,23 @@ FROM
 JOIN
     TIPO_CLINICA TC ON C.ID_TIPO_CLINICA = TC.ID_TIPO_CLINICA;
 
+-- 3. Vista de cantidad de compras efectuadas por cliente
+CREATE OR REPLACE VIEW V_CANTIDAD_VENTAS_POR_CLIENTE AS
+SELECT
+    C.ID_CLIENTE,
+    C.NOMBRE_CLIENTE,
+    COUNT(V.ID_VENTA) AS CANTIDAD_VENTAS
+FROM
+    CLIENTE C
+JOIN
+    VENTA V ON C.ID_CLIENTE = V.ID_CLIENTE
+GROUP BY
+    C.ID_CLIENTE,
+    C.NOMBRE_CLIENTE
+HAVING
+    COUNT(V.ID_VENTA) >= 1
+ORDER BY
+    C.NOMBRE_CLIENTE;
 
 
 -- -------------------------- TRIGGER ------------------------------------------------------
@@ -862,6 +881,20 @@ FROM TELEFONO_PROVEEDOR;
 VARIABLE rc REFCURSOR;
 EXEC LISTAR_PRODUCTOS(:rc);
 PRINT rc;
+
+INSERT INTO VENTA (ID_VENTA, NUMERO, FECHA, IMPUESTOS, ID_CLIENTE, ID_USUARIO)
+VALUES (1, 1001, SYSDATE, 13, 1, 1);
+
+INSERT INTO VENTA (ID_VENTA, NUMERO, FECHA, IMPUESTOS, ID_CLIENTE, ID_USUARIO)
+VALUES (2, 1002, SYSDATE, 20, 1, 1);
+
+INSERT INTO VENTA (ID_VENTA, NUMERO, FECHA, IMPUESTOS, ID_CLIENTE, ID_USUARIO)
+VALUES (3, 1003, SYSDATE, 10, 1, 2);
+
+INSERT INTO VENTA (ID_VENTA, NUMERO, FECHA, IMPUESTOS, ID_CLIENTE, ID_USUARIO)
+VALUES (4, 1004, SYSDATE, 15, 2, 2);
+
+commit;
 
 
 
