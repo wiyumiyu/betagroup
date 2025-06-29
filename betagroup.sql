@@ -2,7 +2,7 @@
 
 CREATE USER betagroup IDENTIFIED BY beta123;
 
--- Permisos bï¿½sicos
+-- Permisos basicos
 GRANT connect, resource TO betagroup;
 
 GRANT
@@ -44,19 +44,21 @@ commit
 
 -- ------------------------------------------------- TABLAS ---------------------------------------------------------------------
 
-/*
-Crear tabla inicial (USUARIOS)
+/* Crear tabla inicial (USUARIOS) */
 
-*/
+DROP TABLE USUARIO CASCADE CONSTRAINTS;
+
 CREATE TABLE USUARIO (
   ID_USUARIO NUMBER PRIMARY KEY,
   NOMBRE_USUARIO VARCHAR2(100) NOT NULL,
   CONTRASENA VARCHAR2(100) NOT NULL,
   TELEFONO VARCHAR2(20),
-  CORREO VARCHAR(50) NOT NULL,
+  CORREO VARCHAR2(50) NOT NULL,
   ROL NUMBER,
-  FECHA_REGISTRO DATE DEFAULT SYSDATE
+  FECHA_REGISTRO DATE DEFAULT SYSDATE,
+  ESTADO NUMBER(1) DEFAULT 1 -- 1 = habilitado, 0 = deshabilitado
 );
+
 
 -- Tabla de PROVEEDOR
 CREATE TABLE PROVEEDOR (
@@ -131,7 +133,7 @@ CREATE TABLE VENTA_DETALLE (
   DESCUENTO NUMBER DEFAULT 0,
   ID_PRODUCTO NUMBER NOT NULL,
   ID_VENTA NUMBER NOT NULL,
-  CONSTRAINT FK_VEDE_PROD FOREIGN KEY (ID_PRODUCTO) REFERENCES PRODUCTO(ID_PRODUCTO)
+  CONSTRAINT FK_VEDE_PROD FOREIGN KEY (ID_PRODUCTO) REFERENCES PRODUCTO(ID_PRODUCTO),
   CONSTRAINT FK_VEDE_VENT FOREIGN KEY (ID_VENTA) REFERENCES VENTA(ID_VENTA)
   
 );
@@ -153,44 +155,45 @@ END;
 
 -- 2. Procedimiento para validar si el login es correcto
 CREATE OR REPLACE PROCEDURE VALIDAR_LOGIN (
-    p_correo IN VARCHAR2,         -- correo que ingresa el usuario
-    p_pass IN VARCHAR2,           -- contraseï¿½a que ingresa el usuario
-    p_resultado OUT NUMBER,       -- 1 = login correcto, 0 = incorrecto
-    p_id_usuario OUT NUMBER,      -- se devuelve el ID del usuario si es correcto
-    p_nombre OUT VARCHAR2,        -- se devuelve el nombre del usuario
-    p_rol OUT VARCHAR2            -- se devuelve el rol (ej: admin o vendedor)
+    p_correo       IN  VARCHAR2,
+    p_pass         IN  VARCHAR2,
+    p_resultado    OUT NUMBER,
+    p_id_usuario   OUT NUMBER,
+    p_nombre       OUT VARCHAR2,
+    p_rol          OUT VARCHAR2
 ) IS
-    v_hash VARCHAR2(64);          -- variable para almacenar el hash de la contraseï¿½a
+    v_hash VARCHAR2(64);
 BEGIN
-    -- Hasheamos la contraseï¿½a ingresada para compararla con la guardada
+    -- Hash de la contraseña ingresada
     v_hash := HASH_PASSWORD(p_pass);
 
-    -- Buscamos un usuario que tenga ese correo y contraseï¿½a
+    -- Validar credenciales y estado
     SELECT id_usuario, nombre_usuario, rol
     INTO p_id_usuario, p_nombre, p_rol
     FROM USUARIO
-    WHERE correo = p_correo AND contrasena = v_hash;
+    WHERE correo = p_correo
+      AND contrasena = v_hash
+      AND estado = 1;  -- Solo usuarios habilitados
 
-    -- Si encontrï¿½ el usuario, el login es vï¿½lido
-    p_resultado := 1;
+    p_resultado := 1; -- login válido
 
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
-        -- Si no se encontrï¿½, el login es invï¿½lido
-        p_resultado := 0;
+        p_resultado := 0; -- login inválido o usuario deshabilitado
 END;
 /
 
 -- 3. Procedimiento que devuelve todos los usuarios usando un cursor
 CREATE OR REPLACE PROCEDURE LISTAR_USUARIOS(p_cursor OUT SYS_REFCURSOR) AS
 BEGIN
-    -- Abrimos el cursor con los datos de todos los usuarios
     OPEN p_cursor FOR
-        SELECT ID_USUARIO, NOMBRE_USUARIO, TELEFONO, CORREO, ROL, FECHA_REGISTRO
+        SELECT ID_USUARIO, NOMBRE_USUARIO, TELEFONO, CORREO, ROL, FECHA_REGISTRO, ESTADO
         FROM USUARIO
-    ORDER BY ID_USUARIO;
+        WHERE ESTADO = 1
+        ORDER BY ID_USUARIO;
 END;
 /
+
 
 -- 4. Procedimiento PL/SQL para crear automï¿½ticamente una secuencia y un trigger
 -- que permiten autoincrementar el ID de cualquier tabla que indiquemos
@@ -238,7 +241,6 @@ END;
 -- 5. Procedimiento que inserta un usuario
 
 CREATE OR REPLACE PROCEDURE insertar_usuario (
-
     p_nombre     IN USUARIO.NOMBRE_USUARIO%TYPE,
     p_contrasena IN VARCHAR2,
     p_telefono   IN USUARIO.TELEFONO%TYPE,
@@ -246,23 +248,24 @@ CREATE OR REPLACE PROCEDURE insertar_usuario (
     p_rol        IN USUARIO.ROL%TYPE
 ) AS
 BEGIN
-
     INSERT INTO USUARIO (
         NOMBRE_USUARIO,
         CONTRASENA,
         TELEFONO,
         CORREO,
-        ROL
+        ROL,
+        ESTADO
     ) VALUES (
         p_nombre,
         HASH_PASSWORD(p_contrasena),
         p_telefono,
         p_correo,
-        p_rol
+        p_rol,
+        1 -- Habilitado por defecto
     );
-
 END;
 /
+
 
 -- 6. Procedimiento para actualizar usuario
 
@@ -272,7 +275,8 @@ CREATE OR REPLACE PROCEDURE actualizar_usuario (
     p_contrasena  IN VARCHAR2, -- Puede venir NULL si no se quiere actualizar
     p_telefono    IN USUARIO.TELEFONO%TYPE,
     p_correo      IN USUARIO.CORREO%TYPE,
-    p_rol         IN USUARIO.ROL%TYPE
+    p_rol         IN USUARIO.ROL%TYPE,
+    p_estado      IN USUARIO.ESTADO%TYPE
 ) AS
 BEGIN
     UPDATE USUARIO
@@ -281,6 +285,7 @@ BEGIN
         TELEFONO       = p_telefono,
         CORREO         = p_correo,
         ROL            = p_rol,
+        ESTADO         = p_estado,
         CONTRASENA     = CASE
                            WHEN p_contrasena IS NOT NULL THEN HASH_PASSWORD(p_contrasena)
                            ELSE CONTRASENA
@@ -289,15 +294,15 @@ BEGIN
 END;
 /
 
--- 7. Procedimiento para actualizar usuario sin contraseï¿½a
 
+-- 7. Procedimiento para actualizar usuario sin contraseï¿½a
 CREATE OR REPLACE PROCEDURE actualizar_usuario_sc (
     p_id_usuario  IN USUARIO.ID_USUARIO%TYPE,
     p_nombre      IN USUARIO.NOMBRE_USUARIO%TYPE,
-
     p_telefono    IN USUARIO.TELEFONO%TYPE,
     p_correo      IN USUARIO.CORREO%TYPE,
-    p_rol         IN USUARIO.ROL%TYPE
+    p_rol         IN USUARIO.ROL%TYPE,
+    p_estado      IN USUARIO.ESTADO%TYPE
 ) AS
 BEGIN
     UPDATE USUARIO
@@ -305,11 +310,12 @@ BEGIN
         NOMBRE_USUARIO = p_nombre,
         TELEFONO       = p_telefono,
         CORREO         = p_correo,
-        ROL            = p_rol
-       
+        ROL            = p_rol,
+        ESTADO         = p_estado
     WHERE ID_USUARIO = p_id_usuario;
 END;
 /
+
 -- 8. Procedimiento para eliminar usuario
 
 CREATE OR REPLACE PROCEDURE eliminar_usuario (
@@ -324,25 +330,23 @@ END;
 -- 9. Procedimiento para crear cliente
 
 CREATE OR REPLACE PROCEDURE insertar_cliente (
-    p_id_cliente     IN CLIENTE.ID_CLIENTE%TYPE,
     p_nombre_cliente  IN CLIENTE.NOMBRE_CLIENTE%TYPE,
     p_correo          IN CLIENTE.CORREO%TYPE,
     p_id_tipo_clinica IN CLIENTE.ID_TIPO_CLINICA%TYPE
 ) AS
 BEGIN
     INSERT INTO CLIENTE (
-        ID_CLIENTE,
         NOMBRE_CLIENTE,
         CORREO,
         ID_TIPO_CLINICA
     ) VALUES (
-        p_id_cliente,
         p_nombre_cliente,
         p_correo,
         p_id_tipo_clinica
     );
 END;
 /
+
 
 -- 10. Procedimiento para actualizar cliente
 
@@ -385,9 +389,11 @@ BEGIN
                c.CORREO,
                tc.DESCRIPCION AS TIPO_CLINICA
         FROM CLIENTE c
-        LEFT JOIN TIPO_CLINICA tc ON c.ID_TIPO_CLINICA = tc.ID_TIPO_CLINICA;
+        LEFT JOIN TIPO_CLINICA tc ON c.ID_TIPO_CLINICA = tc.ID_TIPO_CLINICA
+        ORDER BY c.ID_CLIENTE;
 END;
 /
+
 
 -- 13. Procedimiento que devuelve todos los productos usando un cursor
 CREATE OR REPLACE PROCEDURE LISTAR_PRODUCTOS(p_cursor OUT SYS_REFCURSOR) AS
@@ -712,6 +718,22 @@ CREATE TABLE VENTA_DETALLE (
   
 );
 */
+
+-- -------------------------- VISTAS ------------------------------------------------------
+
+CREATE OR REPLACE VIEW V_USUARIOS_DESHABILITADOS AS
+SELECT 
+    ID_USUARIO,
+    NOMBRE_USUARIO,
+    TELEFONO,
+    CORREO,
+    ROL,
+    FECHA_REGISTRO
+FROM 
+    USUARIO
+WHERE 
+    ESTADO = 0;
+
 -- -------------------------- TRIGGER ------------------------------------------------------
 
 -- 1. INSERTAR +506 al nï¿½mero
@@ -752,6 +774,11 @@ END;
 /
 
 BEGIN
+    CREAR_AUTOINCREMENTO('CLIENTE', 'ID_CLIENTE');
+END;
+/
+
+BEGIN
     CREAR_AUTOINCREMENTO('VENTA', 'ID_VENTA');
     CREAR_AUTOINCREMENTO('VENTA_DETALLE', 'ID_VENTA_DETALLE');
 END;
@@ -761,11 +788,17 @@ END;
 -- No se especifica ID_USUARIO porque se genera automï¿½ticamente por el trigger
 -- La contraseï¿½a se guarda encriptada con HASH_PASSWORD
 
-INSERT INTO USUARIO (NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL)
-VALUES ('admin', HASH_PASSWORD('a'), '', 'admin@gmail.com', 1);
+INSERT INTO USUARIO (NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL, ESTADO) 
+VALUES ('admin', HASH_PASSWORD('a'), '', 'admin@gmail.com', 1, 1);
 
-INSERT INTO USUARIO (NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL)
-VALUES ('Vendedor 1', HASH_PASSWORD('a'), '', 'vendedor@gmail.com', 0);
+INSERT INTO USUARIO (NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL, ESTADO)
+VALUES ('Vendedor 1', HASH_PASSWORD('a'), '', 'vendedor@gmail.com', 0, 1);
+
+INSERT INTO USUARIO (NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL, ESTADO)
+VALUES ('Vendedor 2', HASH_PASSWORD('a'), '', 'vendedor2@gmail.com', 0, 0);
+
+INSERT INTO USUARIO (NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL, ESTADO) 
+VALUES ('admin 2', HASH_PASSWORD('a'), '', 'admin2@gmail.com', 1, 0);
 
 -- Mostramos los usuarios insertados (veremos el hash, no la contraseï¿½a original)
 SELECT NOMBRE_USUARIO, CONTRASENA FROM USUARIO;

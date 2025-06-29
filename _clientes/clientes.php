@@ -44,10 +44,9 @@ if (isset($_POST['submitted'])) {
         $stmt = oci_parse($conn, $sql);
         oci_bind_by_name($stmt, ":id", $id);
     } else {
-        $sql = "BEGIN insertar_cliente(:id, :nombre, :correo, :tipo); END;";
+        // Ya no se pasa ID, lo asigna el trigger automáticamente
+        $sql = "BEGIN insertar_cliente(:nombre, :correo, :tipo); END;";
         $stmt = oci_parse($conn, $sql);
-        $nuevo_id = rand(1000, 9999);
-        oci_bind_by_name($stmt, ":id", $nuevo_id);
     }
 
     oci_bind_by_name($stmt, ":nombre", $nombre);
@@ -119,7 +118,6 @@ oci_free_statement($cursor);
 <div id="modal-confirmar" class="modalx">
     <div class="modalx-content">
 <?php
-$nombre_producto = $nombre = $correo = $tipo = "";
 $nombre = $correo = $tipo = "";
 $tipoEdit = "Agregar nuevo";
 $edtVer = "";

@@ -25,10 +25,10 @@ switch ($tab) {
 <br>
 <ul class="nav nav-tabs bordered">
   <li class="tab-pane <?php echo $t_lista; ?>">
-    <a class="nav-link <?php echo $t_lista; ?>" aria-current="page" href="productos.php?op=2&ta=0">Lista de Productos</a>
+    <a class="nav-link <?php echo $t_lista; ?>" aria-current="page" href="usuarios.php?op=2&ta=0">Lista de Usuarios</a>
   </li>
   <li class="tab-pane  <?php echo $t_vista1; ?>">
-    <a class="nav-link" <?php echo $t_vista1; ?> href="vista1.php?op=2&ta=1">Link</a>
+    <a class="nav-link" <?php echo $t_vista1; ?> href="usuariosDeshabilitados.php?op=2&ta=1">Vista de Usuarios Deshabilitados</a>
   </li>
   <li class="tab-pane <?php echo $t_vista2; ?>">
     <a class="nav-link" <?php echo $t_vista2; ?>" href="#">Link</a>

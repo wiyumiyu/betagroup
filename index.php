@@ -1,4 +1,3 @@
-
 <?php
 # Script 18.8 - login.php
 $page_title = 'BETAGROUP';
@@ -158,7 +157,7 @@ $url = '_dashboard/escritorio.php'; // Define the URL.
 
                     <div class="form-login-error">
                         <h3>Inicio de Sesión Inválido</h3>
-                        <p>El <strong>Usuario</strong> o la <strong>contraseña</strong> es invalido.</p>
+                        <p>El <strong>Usuario</strong> o la <strong>contraseña</strong> es invalido; o bien, su usuario ha sido <strong>deshabilitado</strong></p>
                     </div>
 
                     <form method="post" role="form" id="form_login" >
