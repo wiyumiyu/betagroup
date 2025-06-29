@@ -44,7 +44,6 @@ if (isset($_POST['submitted'])) {
         $stmt = oci_parse($conn, $sql);
         oci_bind_by_name($stmt, ":id", $id);
     } else {
-        // Ya no se pasa ID, lo asigna el trigger automáticamente
         $sql = "BEGIN insertar_cliente(:nombre, :correo, :tipo); END;";
         $stmt = oci_parse($conn, $sql);
     }
