@@ -16,6 +16,7 @@ $op_menu02 = "";
 $op_menu03 = "";
 $op_menu04 = "";
 $op_menu05 = "";
+$op_menu06 = "";
 
 $idmenu = 0;
 
@@ -40,7 +41,9 @@ switch ($op) {
     case 4:
         $op_menu05 = "opened";
         break;
-
+    case 5:
+        $op_menu06 = "opened";
+        break;
     default:
         echo "error";
 }
@@ -222,6 +225,30 @@ if ($pc == 0) {
 
             </ul>
         </li>
+        
+        <li class="active <?php echo $op_menu06; ?> active">
+            <a href="#">
+                <i class="entypo-user-add"></i>
+                <span><font size="3"><strong>Vistas</strong></font></span>
+            </a> 
+            <ul>
+
+                <li class="active">
+                    
+                        <?php echo "<a href=''> "; ?>    
+                        <span>Vista 1</span>                        
+                    </a>                            
+                </li>     
+
+                <li class="active">
+                    
+                    <?php echo "<a href=''>"; ?>     
+                        <span>Vista2</span>
+                    </a>                            
+                </li>   
+
+            </ul>
+        </li>        
 
     </ul>
 </div>	

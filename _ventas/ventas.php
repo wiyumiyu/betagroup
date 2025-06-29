@@ -49,22 +49,23 @@ if (isset($_GET['del2'])) {
 
 // Si el formulario fue enviado (para agregar o actualizar un usuario)
 if (isset($_POST['submitted'])) {
-    // Datos principales de la venta
+    // 1. Datos principales de la venta
     $numero     = trim($_POST['numero']);
     $impuestos  = trim($_POST['impuestos']);
     $id_cliente = trim($_POST['cliente']);
-    $id_usuario = $_SESSION['id_usuario'];  // desde sesión
-    $idVenta    = null; // ID que será retornado
+    $id_usuario = $_SESSION['id_usuario'];  // El usuario actual autenticado
+    
+   // echo "<pre>ID Cliente recibido: "; print_r($_POST['cliente']); echo "</pre>";
 
-    // 1. Insertar venta llamando al procedimiento
-    $sqlVenta = "BEGIN insertar_venta(:numero, :impuestos, :id_cliente, :id_usuario, :id_venta); END;";
+
+    // 2. Insertar venta usando el procedimiento almacenado
+    $sqlVenta = "BEGIN insertar_venta(:numero, :impuestos, :id_cliente, :id_usuario); END;";
     $stmtVenta = oci_parse($conn, $sqlVenta);
 
     oci_bind_by_name($stmtVenta, ":numero", $numero);
     oci_bind_by_name($stmtVenta, ":impuestos", $impuestos);
     oci_bind_by_name($stmtVenta, ":id_cliente", $id_cliente);
     oci_bind_by_name($stmtVenta, ":id_usuario", $id_usuario);
-    oci_bind_by_name($stmtVenta, ":id_venta", $idVenta, 10);
 
     if (!oci_execute($stmtVenta)) {
         $e = oci_error($stmtVenta);
@@ -73,16 +74,33 @@ if (isset($_POST['submitted'])) {
     }
     oci_free_statement($stmtVenta);
 
-    // 2. Insertar detalles con procedimiento
+    // 3. Recuperar el ID_VENTA generado automáticamente (vía CURRVAL)
+    $sqlGetId = "SELECT SEQ_ID_VENTA.CURRVAL AS ID FROM DUAL";
+    $stmtId = oci_parse($conn, $sqlGetId);
+    oci_execute($stmtId);
+    $row = oci_fetch_assoc($stmtId);
+    oci_free_statement($stmtId);
+
+    if (!$row || !isset($row['ID'])) {
+        echo "No se pudo recuperar el ID de la venta.";
+        exit;
+    }
+
+    $idVenta = $row['ID'];
+    echo "<pre>ID Venta: " . $idVenta ; echo "</pre>";
+
+    // 4. Insertar los detalles de la venta
     $productos   = $_POST['producto'] ?? [];
     $cantidades  = $_POST['cantidad'] ?? [];
     $precios     = $_POST['precio_unitario'] ?? [];
     $descuentos  = $_POST['descuento'] ?? [];
 
-    for ($i = 0; $i < count($productos); $i++) {
-        if ($productos[$i] === '' || $cantidades[$i] === '' || $precios[$i] === '') {
-            continue;
-        }
+    $filas = min(count($productos), count($cantidades), count($precios)); // Por seguridad
+
+    for ($i = 0; $i < $filas; $i++) {
+//        if ($productos[$i] === '' || $cantidades[$i] === '' || $precios[$i] === '') {
+//            continue;
+//        }
 
         $sqlDet = "BEGIN insertar_venta_detalle(:cantidad, :precio, :descuento, :producto, :id_venta); END;";
         $stmtDet = oci_parse($conn, $sqlDet);
@@ -102,6 +120,7 @@ if (isset($_POST['submitted'])) {
         oci_free_statement($stmtDet);
     }
 
+    // 5. Confirmación
     echo "<script>alert('Venta registrada correctamente'); window.location='ventas.php';</script>";
 }
 ?>
@@ -228,13 +247,14 @@ if (isset($_POST['submitted'])) {
       <input type="hidden" name="cantidad[]" value="${cantidad}">
     </td>
     <td>
+      ${descuento || '0'}
+      <input type="hidden" name="descuento[]" value="${descuento || 0}">
+    </td>          
+    <td>
       ${precio}
       <input type="hidden" name="precio_unitario[]" value="${precio}">
     </td>
-    <td>
-      ${descuento || '0'}
-      <input type="hidden" name="descuento[]" value="${descuento || 0}">
-    </td>
+
     <td>
       <button type="button" class="btn btn-danger" onclick="this.closest('tr').remove()">X</button>
     </td>
@@ -263,10 +283,11 @@ if (isset($_POST['submitted'])) {
         const filas = document.querySelectorAll("#detalleFactura tr");
 
         filas.forEach(fila => {
-            const cantidad = parseFloat(fila.children[1].textContent) || 0;
-            const precio = parseFloat(fila.children[2].textContent) || 0;
-            const descuentoStr = fila.children[3].textContent || '0%';
-            const descuento = parseFloat(descuentoStr.replace('%', '')) || 0;
+            const cantidad = parseFloat(fila.children[1].textContent) || 0;         // Cantidad
+            const descuentoStr = fila.children[2].textContent || '0';               // Descuento
+            const precio = parseFloat(fila.children[3].textContent) || 0;           // Precio unitario
+
+            const descuento = parseFloat(descuentoStr.replace('%', '').replace(',', '.')) || 0;
 
             const totalProducto = cantidad * precio;
             subtotal += totalProducto;
@@ -283,6 +304,21 @@ if (isset($_POST['submitted'])) {
         document.getElementById("total").textContent = totalFinal.toFixed(2);
     }
 
+    // esto funciona para el select de productos en ventas
+    document.addEventListener('DOMContentLoaded', function () {
+        const productoSelect = document.getElementById("producto");
+        const precioInput = document.getElementById("precio_unitario");
+
+        // Cada vez que se selecciona un producto
+        productoSelect.addEventListener("change", function () {
+            const precio = this.options[this.selectedIndex].getAttribute("data-precio");
+            if (precio) {
+                precioInput.value = precio;
+            } else {
+                precioInput.value = "";
+            }
+        });
+    });
 
 </script>
 
@@ -299,29 +335,51 @@ if (isset($_POST['submitted'])) {
 // llenar select de clientes
 
 
-        $selectClientes = llenarSelect("sel_clientes", "ID_CLIENTE", "NOMBRE_CLIENTE", "BEGIN listar_clientes(:cursor); END;", $conn);
-        $selectProductos = llenarSelect("sel_productos", "ID_PRODUCTO", "NOMBRE_PRODUCTO", "BEGIN listar_productos(:cursor); END;", $conn);
+        $selectClientes = llenarSelect("cliente", "ID_CLIENTE", "NOMBRE_CLIENTE", "BEGIN listar_clientes(:cursor); END;", $conn);
+        $selectProductos = '<select class="form-select" name="producto" id="producto" required>';
+
+// Abrimos cursor desde el procedimiento LISTAR_PRODUCTOS
+        $sql = "BEGIN LISTAR_PRODUCTOS(:cursor); END;";
+        $stmt = oci_parse($conn, $sql);
+        $cursor = oci_new_cursor($conn);
+        oci_bind_by_name($stmt, ":cursor", $cursor, -1, OCI_B_CURSOR);
+        oci_execute($stmt);
+        oci_execute($cursor);
+        $selectProductos .= "<option value=-1>-- Seleccione --</option>";
+// Recorremos los productos
+        while ($row = oci_fetch_assoc($cursor)) {
+            $id = $row['ID_PRODUCTO'];
+            $nombre = htmlspecialchars($row['NOMBRE_PRODUCTO']);
+            $precio = $row['PRECIO'];
+
+            $selectProductos .= "<option value=\"$id\" data-precio=\"$precio\">$nombre</option>";
+        }
+
+        $selectProductos .= '</select>';
+
+        oci_free_statement($stmt);
+        oci_free_statement($cursor);
 
 // Si se está editando, cargamos los datos del usuario
-        if (isset($_GET["edt"])) {
-
-            $edt = $_GET["edt"];
-            $sql = "SELECT NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL FROM USUARIO WHERE ID_USUARIO = :id";
-            $stid = oci_parse($conn, $sql);
-            oci_bind_by_name($stid, ":id", $edt);
-            oci_execute($stid);
-            if ($row = oci_fetch_array($stid, OCI_ASSOC)) {
-                $nombre = htmlspecialchars($row["NOMBRE_USUARIO"]);
-                $telefono = disset($row["TELEFONO"]) ? htmlspecialchars($row["TELEFONO"]) : "";
-                $correo = htmlspecialchars($row["CORREO"]);
-                $rol = $row["ROL"];
-            }
-            oci_free_statement($stid);
-            $seleccionadoV = ($rol == 0) ? "selected" : "";
-            $seleccionadoA = ($rol == 1) ? "selected" : "";
-            $tipoEdit = "Editar";
-            $edtVer = "&edt=$edt";
-        }
+//        if (isset($_GET["edt"])) {
+//
+//            $edt = $_GET["edt"];
+//            $sql = "SELECT NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL FROM USUARIO WHERE ID_USUARIO = :id";
+//            $stid = oci_parse($conn, $sql);
+//            oci_bind_by_name($stid, ":id", $edt);
+//            oci_execute($stid);
+//            if ($row = oci_fetch_array($stid, OCI_ASSOC)) {
+//                $nombre = htmlspecialchars($row["NOMBRE_USUARIO"]);
+//                $telefono = disset($row["TELEFONO"]) ? htmlspecialchars($row["TELEFONO"]) : "";
+//                $correo = htmlspecialchars($row["CORREO"]);
+//                $rol = $row["ROL"];
+//            }
+//            oci_free_statement($stid);
+//            $seleccionadoV = ($rol == 0) ? "selected" : "";
+//            $seleccionadoA = ($rol == 1) ? "selected" : "";
+//            $tipoEdit = "Editar";
+//            $edtVer = "&edt=$edt";
+//        }
 
         echo "<h3 class='modalx-titulo'>$tipoEdit</h3>";
         ?>
@@ -351,8 +409,8 @@ if (isset($_POST['submitted'])) {
                     <tr>
                         <th>Producto</th>
                         <th>Cantidad</th>
-                        <th>Precio Unitario</th>
                         <th>Descuento</th>
+                        <th>Precio Unitario</th>
                         <th>Acción</th>
                     </tr>
                 </thead>
@@ -363,8 +421,8 @@ if (isset($_POST['submitted'])) {
                     <tr>
                         <td><?php echo str_replace('name="producto"', 'id="producto"', $selectProductos); ?></td>
                         <td><input type="number" id="cantidad" class="form-control" placeholder="Cantidad"></td>
-                        <td><input type="number" id="precio_unitario" class="form-control" placeholder="Precio Unitario"></td>
                         <td><input type="number" id="descuento" class="form-control" placeholder="Descuento"></td>
+                        <td><input type="number" readonly id="precio_unitario" class="form-control" placeholder="Precio Unitario"></td>                        
                         <td><button type="button" class="btn btn-primary" onclick="agregarFila()">Agregar</button></td>
                     </tr>
                 </tfoot>

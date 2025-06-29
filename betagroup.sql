@@ -130,7 +130,9 @@ CREATE TABLE VENTA_DETALLE (
   PRECIO_UNITARIO NUMBER DEFAULT 0,
   DESCUENTO NUMBER DEFAULT 0,
   ID_PRODUCTO NUMBER NOT NULL,
+  ID_VENTA NUMBER NOT NULL,
   CONSTRAINT FK_VEDE_PROD FOREIGN KEY (ID_PRODUCTO) REFERENCES PRODUCTO(ID_PRODUCTO)
+  CONSTRAINT FK_VEDE_VENT FOREIGN KEY (ID_VENTA) REFERENCES VENTA(ID_VENTA)
   
 );
 
@@ -619,7 +621,7 @@ BEGIN
 END;
 /
   
--- 27.  -----------------------------------------------------------------
+-- 28.  -----------------------------------------------------------------
 CREATE OR REPLACE PROCEDURE eliminar_venta (
     p_id IN VENTA.ID_VENTA%TYPE
 ) AS
@@ -629,7 +631,7 @@ BEGIN
 END;
 /
 
--- 26. Procedimiento para eliminar una VENTA_DETALLE
+-- 29. Procedimiento para eliminar una VENTA_DETALLE
 
 CREATE OR REPLACE PROCEDURE eliminar_venta_detalle (
     p_id IN VENTA_DETALLE.ID_VENTA_DETALLE%TYPE
@@ -640,7 +642,7 @@ BEGIN
 END;
 /
 
--- 27. Procedimiento que devuelve todas las ventas usando un cursor
+-- 30. Procedimiento que devuelve todas las ventas usando un cursor
 CREATE OR REPLACE PROCEDURE LISTAR_VENTAS(p_cursor OUT SYS_REFCURSOR) AS
 BEGIN
     -- Abrimos el cursor con los datos de todos las ventas
@@ -653,6 +655,63 @@ BEGIN
 END;
 /
 
+-- 31. Procedimiento que inserta una venta
+CREATE OR REPLACE PROCEDURE insertar_venta (
+    p_numero     IN VENTA.NUMERO%TYPE,
+    p_impuestos  IN VENTA.IMPUESTOS%TYPE,
+    p_id_cliente IN VENTA.ID_CLIENTE%TYPE,
+    p_id_usuario IN VENTA.ID_USUARIO%TYPE
+) AS
+BEGIN
+    INSERT INTO VENTA (
+        NUMERO,
+        IMPUESTOS,
+        ID_CLIENTE,
+        ID_USUARIO
+    ) VALUES (
+        p_numero,
+        p_impuestos,
+        p_id_cliente,
+        p_id_usuario
+    );
+END;
+/
+
+-- 31. Procedimiento que inserta una venta
+CREATE OR REPLACE PROCEDURE insertar_venta_detalle (
+    p_cantidad       IN VENTA_DETALLE.CANTIDAD%TYPE,
+    p_precio_unitario IN VENTA_DETALLE.PRECIO_UNITARIO%TYPE,
+    p_descuento      IN VENTA_DETALLE.DESCUENTO%TYPE,
+    p_id_producto    IN VENTA_DETALLE.ID_PRODUCTO%TYPE,
+    p_id_venta       IN VENTA_DETALLE.ID_VENTA%TYPE
+) AS
+BEGIN
+    INSERT INTO VENTA_DETALLES (
+        CANTIDAD,
+        PRECIO_UNITARIO,
+        DESCUENTO,
+        ID_PRODUCTO
+    ) VALUES (
+        p_numero,
+        p_impuestos,
+        p_id_cliente,
+        p_id_usuario
+    );
+END;
+/
+
+/*
+-- Tabla de VENTA_DETALLES
+CREATE TABLE VENTA_DETALLE (
+  ID_VENTA_DETALLE NUMBER PRIMARY KEY,
+  CANTIDAD NUMBER DEFAULT 0,
+  PRECIO_UNITARIO NUMBER DEFAULT 0,
+  DESCUENTO NUMBER DEFAULT 0,
+  ID_PRODUCTO NUMBER NOT NULL,
+  CONSTRAINT FK_VEDE_PROD FOREIGN KEY (ID_PRODUCTO) REFERENCES PRODUCTO(ID_PRODUCTO)
+  
+);
+*/
 -- -------------------------- TRIGGER ------------------------------------------------------
 
 -- 1. INSERTAR +506 al n�mero
