@@ -1,11 +1,13 @@
 
- <!-- Footer -->
+        </div>
+        
+         <!-- Footer -->
             <footer class="main">
 
 
                 2025 <strong>Grupo N</strong> Proyecto <a href="" target="_blank">U. Fidélitas</a>
 
-            </footer>	        </div>
+            </footer>	
         
         </div>
 
@@ -47,6 +49,8 @@
     <script src="../assets/js/datatables/lodash.min.js"></script>
     <script src="../assets/js/datatables/responsive/js/datatables.responsive.js"></script>
     <script src="../assets/js/select2/select2.min.js"></script>    
+    
+    
     
     
     

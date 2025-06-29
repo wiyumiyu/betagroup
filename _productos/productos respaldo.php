@@ -102,7 +102,10 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
     <li class="active"><strong>Lista de Productos</strong></li>
 </ol>
 
-<?php include("tabs.php"); ?>
+<?php
+include("tabs.php");
+?>
+
 
 
 <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -147,6 +150,10 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
         oci_free_statement($stid);
         oci_free_statement($cursor);
         ?>
+
+        </div>
+
+
     </tbody>
 </table>
 
@@ -212,8 +219,6 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
     </div>
 </div>
 
-
-
 <!-- SCRIPTS PARA MODALES -->
 <script>
     function abrirModal() {
@@ -241,17 +246,6 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
             document.getElementById('modal-eliminar').style.display = 'block';
         }
     });
-
-//    var triggerTabList = [].slice.call(document.querySelectorAll('#myTab a'))
-//    triggerTabList.forEach(function (triggerEl) {
-//        var tabTrigger = new bootstrap.Tab(triggerEl)
-//
-//        triggerEl.addEventListener('click', function (event) {
-//            event.preventDefault()
-//            tabTrigger.show()
-//        })
-//    })
-
 </script>
 
 <?php include("../includes/footer.php"); ?>

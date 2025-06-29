@@ -87,7 +87,7 @@ if (isset($_POST['submitted'])) {
     }
 
     $idVenta = $row['ID'];
-    echo "<pre>ID Venta: " . $idVenta ; echo "</pre>";
+   
 
     // 4. Insertar los detalles de la venta
     $productos   = $_POST['producto'] ?? [];
@@ -98,13 +98,15 @@ if (isset($_POST['submitted'])) {
     $filas = min(count($productos), count($cantidades), count($precios)); // Por seguridad
 
     for ($i = 0; $i < $filas; $i++) {
-//        if ($productos[$i] === '' || $cantidades[$i] === '' || $precios[$i] === '') {
-//            continue;
-//        }
+        if ($productos[$i] === '' || $cantidades[$i] === '' || $precios[$i] === '') {
+            continue;
+        }
 
         $sqlDet = "BEGIN insertar_venta_detalle(:cantidad, :precio, :descuento, :producto, :id_venta); END;";
         $stmtDet = oci_parse($conn, $sqlDet);
 
+
+        
         oci_bind_by_name($stmtDet, ":cantidad", $cantidades[$i]);
         oci_bind_by_name($stmtDet, ":precio", $precios[$i]);
         oci_bind_by_name($stmtDet, ":descuento", $descuentos[$i]);
@@ -120,8 +122,10 @@ if (isset($_POST['submitted'])) {
         oci_free_statement($stmtDet);
     }
 
-    // 5. Confirmación
-    echo "<script>alert('Venta registrada correctamente'); window.location='ventas.php';</script>";
+     //5. Confirmación
+    echo "<script>//alert('Venta registrada correctamente'); 
+            window.location='ventas.php';</script>";
+    
 }
 ?>
 
