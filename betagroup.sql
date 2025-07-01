@@ -1,32 +1,21 @@
--- OJO DESDE AQUï¿½ SE EMPIEZA A EJECUTAR DESDE EL ESQUEMA ADMIN_SYS
+-- OJO: Eliminación de datos de BETAGROUP desde ADMIN SYS
+DROP USER betagroup CASCADE;
+DROP TABLESPACE tbs_betagroup INCLUDING CONTENTS AND DATAFILES;
 
+-- EJECUTAR COMO ADMIN_SYS
 CREATE USER betagroup IDENTIFIED BY beta123;
 
--- Permisos basicos
-GRANT connect, resource TO betagroup;
+GRANT CONNECT, RESOURCE TO betagroup;
+GRANT UNLIMITED TABLESPACE TO betagroup;
 
-GRANT
-    UNLIMITED TABLESPACE
-TO betagroup;
+-- Permisos para programación PL/SQL
+GRANT CREATE PROCEDURE TO betagroup;
+GRANT CREATE TRIGGER TO betagroup;
+GRANT CREATE SEQUENCE TO betagroup;
+GRANT CREATE VIEW TO betagroup;
 
--- Crear objetos necesarios para autoincremento
-GRANT
-    CREATE SEQUENCE
-TO betagroup;
-
-GRANT
-    CREATE TRIGGER
-TO betagroup;
-
-GRANT
-    CREATE PROCEDURE
-TO betagroup;
-
--- (Opcional) Si deseas crear en otros esquemas
--- GRANT CREATE ANY SEQUENCE TO betagroup;
--- GRANT CREATE ANY TRIGGER TO betagroup;
-
-
+-- Permiso para usar funciones criptográficas
+GRANT EXECUTE ON DBMS_CRYPTO TO betagroup;
 
 /*Crear un nuevo tablespace*/
 
@@ -40,14 +29,11 @@ ALTER USER betagroup
 commit
 
 
--- OJO DESDE AQUï¿½ SE EMPIEZA A EJECUTAR DESDE EL ESQUEMA BETAGROUP
+-- OJO DESDE AQUÍ SE EMPIEZA A EJECUTAR DESDE EL ESQUEMA BETAGROUP
 
 -- ------------------------------------------------- TABLAS ---------------------------------------------------------------------
 
 /* Crear tabla inicial (USUARIOS) */
-
-DROP TABLE USUARIO CASCADE CONSTRAINTS;
-
 CREATE TABLE USUARIO (
   ID_USUARIO NUMBER PRIMARY KEY,
   NOMBRE_USUARIO VARCHAR2(100) NOT NULL,
@@ -345,7 +331,6 @@ BEGIN
 END;
 /
 
-
 -- 10. Procedimiento para actualizar cliente
 
 CREATE OR REPLACE PROCEDURE actualizar_cliente (
@@ -392,8 +377,55 @@ BEGIN
 END;
 /
 
+-- 13. Procedimiento para insertar una clinica nueva
 
--- 13. Procedimiento que devuelve todos los productos usando un cursor
+CREATE OR REPLACE PROCEDURE insertar_tipo_clinica (
+    p_descripcion IN TIPO_CLINICA.DESCRIPCION%TYPE
+) AS
+BEGIN
+    INSERT INTO TIPO_CLINICA (DESCRIPCION)
+    VALUES (p_descripcion);
+END;
+/
+
+-- 14. Procedimiento para actualizar una clinica
+
+CREATE OR REPLACE PROCEDURE actualizar_tipo_clinica (
+    p_id_tipo_clinica IN TIPO_CLINICA.ID_TIPO_CLINICA%TYPE,
+    p_descripcion     IN TIPO_CLINICA.DESCRIPCION%TYPE
+) AS
+BEGIN
+    UPDATE TIPO_CLINICA
+    SET DESCRIPCION = p_descripcion
+    WHERE ID_TIPO_CLINICA = p_id_tipo_clinica;
+END;
+/
+
+-- 15. Procedimiento para eliminar una clinica
+
+CREATE OR REPLACE PROCEDURE eliminar_tipo_clinica (
+    p_id_tipo_clinica IN TIPO_CLINICA.ID_TIPO_CLINICA%TYPE
+) AS
+BEGIN
+    DELETE FROM TIPO_CLINICA
+    WHERE ID_TIPO_CLINICA = p_id_tipo_clinica;
+END;
+/
+
+-- 16. Procedimiento para listar las clinicas
+
+CREATE OR REPLACE PROCEDURE listar_tipos_clinica (
+    p_cursor OUT SYS_REFCURSOR
+) AS
+BEGIN
+    OPEN p_cursor FOR
+        SELECT ID_TIPO_CLINICA, DESCRIPCION
+        FROM TIPO_CLINICA
+        ORDER BY ID_TIPO_CLINICA;
+END;
+/
+
+-- 17. Procedimiento que devuelve todos los productos usando un cursor
 CREATE OR REPLACE PROCEDURE LISTAR_PRODUCTOS(p_cursor OUT SYS_REFCURSOR) AS
 BEGIN
     OPEN p_cursor FOR
@@ -411,7 +443,7 @@ BEGIN
 END;
 /
 
--- 14. Procedimiento que inserta un producto
+-- 18. Procedimiento que inserta un producto
 
 CREATE OR REPLACE PROCEDURE insertar_producto (
     p_nombre_producto   IN PRODUCTO.NOMBRE_PRODUCTO%TYPE,
@@ -435,7 +467,7 @@ END;
 /
 
 
--- 15. Procedimiento para actualizar un producto
+-- 19. Procedimiento para actualizar un producto
 
 CREATE OR REPLACE PROCEDURE actualizar_producto (
     p_id_producto       IN PRODUCTO.ID_PRODUCTO%TYPE,
@@ -455,7 +487,7 @@ BEGIN
 END;
 /
 
--- 16. Procedimiento para eliminar un producto
+-- 20. Procedimiento para eliminar un producto
 
 CREATE OR REPLACE PROCEDURE eliminar_producto (
     p_id IN PRODUCTO.ID_PRODUCTO%TYPE
@@ -466,7 +498,7 @@ BEGIN
 END;
 /
 
--- 17. Procedimiento que devuelve todas las categorias 
+-- 21. Procedimiento que devuelve todas las categorias 
 
 CREATE OR REPLACE PROCEDURE LISTAR_CATEGORIAS(p_cursor OUT SYS_REFCURSOR) AS
 BEGIN
@@ -479,7 +511,7 @@ BEGIN
 END;
 /
 
--- 18. Procedimiento que inserta una categoria
+-- 22. Procedimiento que inserta una categoria
 
 CREATE OR REPLACE PROCEDURE insertar_categoria (
     p_nombre_categoria IN CATEGORIA.NOMBRE_CATEGORIA%TYPE
@@ -493,7 +525,7 @@ BEGIN
 END;
 /
 
--- 19. Procedimiento para eliminar una categoria
+-- 23. Procedimiento para eliminar una categoria
 
 CREATE OR REPLACE PROCEDURE eliminar_categoria (
     p_id IN CATEGORIA.ID_CATEGORIA%TYPE
@@ -501,60 +533,6 @@ CREATE OR REPLACE PROCEDURE eliminar_categoria (
 BEGIN
     DELETE FROM CATEGORIA
     WHERE ID_CATEGORIA = p_id;
-END;
-/
-
--- 
-CREATE SEQUENCE seq_tipo_clinica
-START WITH 1
-INCREMENT BY 1
-NOCACHE;
-/
--- 20. Procedimiento para insertar una clinica nueva
-
-CREATE OR REPLACE PROCEDURE insertar_tipo_clinica (
-    p_descripcion IN TIPO_CLINICA.DESCRIPCION%TYPE
-) AS
-BEGIN
-    INSERT INTO TIPO_CLINICA (DESCRIPCION)
-    VALUES (p_descripcion);
-END;
-/
-
--- 21. Procedimiento para actualizar una clinica
-
-CREATE OR REPLACE PROCEDURE actualizar_tipo_clinica (
-    p_id_tipo_clinica IN TIPO_CLINICA.ID_TIPO_CLINICA%TYPE,
-    p_descripcion     IN TIPO_CLINICA.DESCRIPCION%TYPE
-) AS
-BEGIN
-    UPDATE TIPO_CLINICA
-    SET DESCRIPCION = p_descripcion
-    WHERE ID_TIPO_CLINICA = p_id_tipo_clinica;
-END;
-/
-
--- 22. Procedimiento para eliminar una clinica
-
-CREATE OR REPLACE PROCEDURE eliminar_tipo_clinica (
-    p_id_tipo_clinica IN TIPO_CLINICA.ID_TIPO_CLINICA%TYPE
-) AS
-BEGIN
-    DELETE FROM TIPO_CLINICA
-    WHERE ID_TIPO_CLINICA = p_id_tipo_clinica;
-END;
-/
-
--- 23. Procedimiento para listar las clinicas
-
-CREATE OR REPLACE PROCEDURE listar_tipos_clinica (
-    p_cursor OUT SYS_REFCURSOR
-) AS
-BEGIN
-    OPEN p_cursor FOR
-        SELECT ID_TIPO_CLINICA, DESCRIPCION
-        FROM TIPO_CLINICA
-        ORDER BY ID_TIPO_CLINICA;
 END;
 /
 
@@ -779,15 +757,6 @@ BEGIN
     :NEW.TELEFONO := '+506 ' || :NEW.TELEFONO;
   END IF;
 END;
-
-CREATE OR REPLACE TRIGGER trg_tipo_clinica_ai
-BEFORE INSERT ON TIPO_CLINICA
-FOR EACH ROW
-BEGIN
-    IF :NEW.ID_TIPO_CLINICA IS NULL THEN
-        SELECT seq_tipo_clinica.NEXTVAL INTO :NEW.ID_TIPO_CLINICA FROM DUAL;
-    END IF;
-END;
 /
 
 -- -------------------------- DATOS Y PRUEBAS ------------------------------------------------------
@@ -795,23 +764,12 @@ END;
 -- Llamamos al procedimiento para crear la secuencia y trigger para la tabla USUARIO
 BEGIN
     CREAR_AUTOINCREMENTO('USUARIO', 'ID_USUARIO');
-END;
-/
-
-BEGIN
     CREAR_AUTOINCREMENTO('PRODUCTO', 'ID_PRODUCTO');
     CREAR_AUTOINCREMENTO('CATEGORIA', 'ID_CATEGORIA');
     CREAR_AUTOINCREMENTO('PROVEEDOR', 'ID_PROVEEDOR');
     CREAR_AUTOINCREMENTO('TELEFONO_PROVEEDOR', 'ID_TELEFONO');
-END;
-/
-
-BEGIN
     CREAR_AUTOINCREMENTO('CLIENTE', 'ID_CLIENTE');
-END;
-/
-
-BEGIN
+    CREAR_AUTOINCREMENTO('TIPO_CLINICA', 'ID_TIPO_CLINICA');
     CREAR_AUTOINCREMENTO('VENTA', 'ID_VENTA');
     CREAR_AUTOINCREMENTO('VENTA_DETALLE', 'ID_VENTA_DETALLE');
 END;
@@ -836,14 +794,13 @@ VALUES ('admin 2', HASH_PASSWORD('a'), '', 'admin2@gmail.com', 1, 0);
 -- Mostramos los usuarios insertados (veremos el hash, no la contraseï¿½a original)
 SELECT NOMBRE_USUARIO, CONTRASENA FROM USUARIO;
 
-
 --Insertar una clinica
-INSERT INTO TIPO_CLINICA (ID_TIPO_CLINICA, DESCRIPCION)
-VALUES (1, 'Cl?nica General');
+INSERT INTO TIPO_CLINICA (DESCRIPCION)
+VALUES ('Clínica General');
 
 --Insertar un cliente
-INSERT INTO CLIENTE (ID_USUARIO, NOMBRE_CLIENTE, CORREO, ID_TIPO_CLINICA)
-VALUES (1, 'María Jiménez', 'maria.jimenez@gmail.com', 1);
+INSERT INTO CLIENTE (NOMBRE_CLIENTE, CORREO, ID_TIPO_CLINICA)
+VALUES ('María Jiménez', 'maria.jimenez@gmail.com', 1);
 
 
 -- 1. Insertar proveedores correctamente (incluye dirección)
