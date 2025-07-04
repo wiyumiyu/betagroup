@@ -691,7 +691,7 @@ BEGIN
         p_id_venta
     );
 END;
-
+/
 
 -- 33. Procedimiento que devuelve el numero mayor de las ventas
 CREATE OR REPLACE PROCEDURE OBTENER_MAX_NUMERO_VENTA (
