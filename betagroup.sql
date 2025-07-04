@@ -706,6 +706,51 @@ END;
 /
 
 
+-- 34. Procedimiento que devuelve una venta a partir de un id
+CREATE OR REPLACE PROCEDURE OBTENER_VENTA (
+    p_id_venta   IN  VENTA.ID_VENTA%TYPE,
+    p_numero     OUT VENTA.NUMERO%TYPE,
+    p_impuestos  OUT VENTA.IMPUESTOS%TYPE,
+    p_id_cliente OUT VENTA.ID_CLIENTE%TYPE
+) AS
+BEGIN
+    SELECT NUMERO, IMPUESTOS, ID_CLIENTE
+    INTO   p_numero, p_impuestos, p_id_cliente
+    FROM   VENTA
+    WHERE  ID_VENTA = p_id_venta;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        p_numero     := NULL;
+        p_impuestos  := NULL;
+        p_id_cliente := NULL;
+    WHEN OTHERS THEN
+        RAISE;
+END;
+/
+
+
+--35. procedimiento que devuelve el detalle de una venta
+CREATE OR REPLACE PROCEDURE LISTAR_DETALLES_VENTA (
+    p_id_venta IN VENTA_DETALLE.ID_VENTA%TYPE,
+    p_cursor OUT SYS_REFCURSOR
+)
+AS
+BEGIN
+    OPEN p_cursor FOR
+        SELECT 
+            vd.ID_PRODUCTO,
+            p.NOMBRE_PRODUCTO,
+            vd.CANTIDAD,
+            vd.DESCUENTO,
+            vd.PRECIO_UNITARIO
+        FROM VENTA_DETALLE vd
+        JOIN PRODUCTO p ON vd.ID_PRODUCTO = p.ID_PRODUCTO
+        WHERE vd.ID_VENTA = p_id_venta;
+END;
+/
+
+
+
 -- -------------------------- VISTAS ------------------------------------------------------
 
 -- 1. Vista de Usuarios Deshabilitados
@@ -798,6 +843,8 @@ BEGIN
     CREAR_AUTOINCREMENTO('VENTA_DETALLE', 'ID_VENTA_DETALLE');
 END;
 /
+
+
 
 -- Insertamos datos en la tabla USUARIO
 -- No se especifica ID_USUARIO porque se genera autom�ticamente por el trigger
@@ -893,14 +940,14 @@ VARIABLE rc REFCURSOR;
 EXEC LISTAR_PRODUCTOS(:rc);
 PRINT rc;
 
-INSERT INTO VENTA (ID_VENTA, NUMERO, FECHA, IMPUESTOS, ID_CLIENTE, ID_USUARIO)
-VALUES (1, 1001, SYSDATE, 13, 1, 1);
+INSERT INTO VENTA (NUMERO, FECHA, IMPUESTOS, ID_CLIENTE, ID_USUARIO)
+VALUES ( 1001, SYSDATE, 13, 1, 1);
 
-INSERT INTO VENTA (ID_VENTA, NUMERO, FECHA, IMPUESTOS, ID_CLIENTE, ID_USUARIO)
-VALUES (2, 1002, SYSDATE, 20, 1, 1);
+INSERT INTO VENTA (NUMERO, FECHA, IMPUESTOS, ID_CLIENTE, ID_USUARIO)
+VALUES ( 1002, SYSDATE, 20, 1, 1);
 
-INSERT INTO VENTA (ID_VENTA, NUMERO, FECHA, IMPUESTOS, ID_CLIENTE, ID_USUARIO)
-VALUES (3, 1003, SYSDATE, 10, 1, 2);
+INSERT INTO VENTA (NUMERO, FECHA, IMPUESTOS, ID_CLIENTE, ID_USUARIO)
+VALUES ( 1003, SYSDATE, 10, 1, 2);
 
 
 commit;
