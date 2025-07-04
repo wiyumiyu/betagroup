@@ -13,13 +13,13 @@ $linkAceptar = "#";
 
 $op = 0;
 $del = "";
-$edt = "";
+//$edt = "";
 $edtVer = "";
 
 // Si en la URL hay un valor ?edt=, lo guardamos en la variable $edt para editar ese usuario
-if (isset($_GET['edt'])) {
-    $edt = $_GET['edt'];
-}
+//if (isset($_GET['edt'])) {
+//    $edt = $_GET['edt'];
+//}
 if (isset($_GET['op'])) {
     $op = $_GET['op'];
 }
@@ -50,14 +50,11 @@ if (isset($_GET['del2'])) {
 // Si el formulario fue enviado (para agregar o actualizar un usuario)
 if (isset($_POST['submitted'])) {
     // 1. Datos principales de la venta
-    $numero     = trim($_POST['numero']);
-    $impuestos  = trim($_POST['impuestos']);
+    $numero = trim($_POST['numero']);
+    $impuestos = trim($_POST['impuestos']);
     $id_cliente = trim($_POST['cliente']);
     $id_usuario = $_SESSION['id_usuario'];  // El usuario actual autenticado
-    
-   // echo "<pre>ID Cliente recibido: "; print_r($_POST['cliente']); echo "</pre>";
-
-
+    // echo "<pre>ID Cliente recibido: "; print_r($_POST['cliente']); echo "</pre>";
     // 2. Insertar venta usando el procedimiento almacenado
     $sqlVenta = "BEGIN insertar_venta(:numero, :impuestos, :id_cliente, :id_usuario); END;";
     $stmtVenta = oci_parse($conn, $sqlVenta);
@@ -87,13 +84,12 @@ if (isset($_POST['submitted'])) {
     }
 
     $idVenta = $row['ID'];
-   
 
     // 4. Insertar los detalles de la venta
-    $productos   = $_POST['producto'] ?? [];
-    $cantidades  = $_POST['cantidad'] ?? [];
-    $precios     = $_POST['precio_unitario'] ?? [];
-    $descuentos  = $_POST['descuento'] ?? [];
+    $productos = $_POST['producto'] ?? [];
+    $cantidades = $_POST['cantidad'] ?? [];
+    $precios = $_POST['precio_unitario'] ?? [];
+    $descuentos = $_POST['descuento'] ?? [];
 
     $filas = min(count($productos), count($cantidades), count($precios)); // Por seguridad
 
@@ -105,8 +101,6 @@ if (isset($_POST['submitted'])) {
         $sqlDet = "BEGIN insertar_venta_detalle(:cantidad, :precio, :descuento, :producto, :id_venta); END;";
         $stmtDet = oci_parse($conn, $sqlDet);
 
-
-        
         oci_bind_by_name($stmtDet, ":cantidad", $cantidades[$i]);
         oci_bind_by_name($stmtDet, ":precio", $precios[$i]);
         oci_bind_by_name($stmtDet, ":descuento", $descuentos[$i]);
@@ -122,10 +116,9 @@ if (isset($_POST['submitted'])) {
         oci_free_statement($stmtDet);
     }
 
-     //5. Confirmación
+    //5. Confirmación
     echo "<script>//alert('Venta registrada correctamente'); 
             window.location='ventas.php';</script>";
-    
 }
 ?>
 
@@ -213,13 +206,7 @@ include("tabs.php");
             cerrarModal();
     };
 
-    // Si hay un valor 'edt' en PHP, se abre el modal de edición automáticamente
-    $(window).on('load', function () {
-        var edt = '<?php echo $edt; ?>';
-        if (edt != "") {
-            document.getElementById('modal-confirmar').style.display = 'block';
-        }
-    });
+
 
     // Si hay un valor 'del' en PHP, se abre el modal de confirmación para eliminar
     $(window).on('load', function () {
@@ -264,7 +251,7 @@ include("tabs.php");
     </td>
 
     <td>
-      <button type="button" class="btn btn-danger" onclick="this.closest('tr').remove()">X</button>
+      <button type="button" class="btn btn-danger" onclick="eliminarFila(this)">X</button>
     </td>
   `;
 
@@ -339,13 +326,7 @@ include("tabs.php");
         $seleccionadoA = $seleccionadoV = "";
         $edt = "";
         $tipoEdit = "Nueva Venta";
-
-// llenar select de clientes
-
-
-        $selectClientes = llenarSelect("cliente", "ID_CLIENTE", "NOMBRE_CLIENTE", "BEGIN listar_clientes(:cursor); END;", $conn);
-        $selectProductos = '<select class="form-select" name="producto" id="producto" required>';
-
+        //$cliente_seleccionado = 0;
 // Abrimos cursor desde el procedimiento LISTAR_PRODUCTOS
         $sql = "BEGIN LISTAR_PRODUCTOS(:cursor); END;";
         $stmt = oci_parse($conn, $sql);
@@ -353,6 +334,7 @@ include("tabs.php");
         oci_bind_by_name($stmt, ":cursor", $cursor, -1, OCI_B_CURSOR);
         oci_execute($stmt);
         oci_execute($cursor);
+        $selectProductos = '<select class="form-select" name="producto" id="producto" required>';
         $selectProductos .= "<option value=-1>-- Seleccione --</option>";
 // Recorremos los productos
         while ($row = oci_fetch_assoc($cursor)) {
@@ -368,28 +350,67 @@ include("tabs.php");
         oci_free_statement($stmt);
         oci_free_statement($cursor);
 
+        $sql = "BEGIN OBTENER_MAX_NUMERO_VENTA(:max_numero); END;";
+        $stmt = oci_parse($conn, $sql);
+        oci_bind_by_name($stmt, ":max_numero", $maxNumero, 10);
+        oci_execute($stmt);
+        
+        echo "zzz " . $maxNumero;
+
+        
+
 // Si se está editando, cargamos los datos del usuario
 //        if (isset($_GET["edt"])) {
+//            $tipoEdit = "Editar Venta";
+//            $venta_id = $_GET["edt"];
+//            // Obtener datos de la venta
+//            $sql = "BEGIN OBTENER_VENTA(:id_venta, :numero, :impuestos, :id_cliente); END;";
+//            $stmt = oci_parse($conn, $sql);
 //
-//            $edt = $_GET["edt"];
-//            $sql = "SELECT NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL FROM USUARIO WHERE ID_USUARIO = :id";
-//            $stid = oci_parse($conn, $sql);
-//            oci_bind_by_name($stid, ":id", $edt);
-//            oci_execute($stid);
-//            if ($row = oci_fetch_array($stid, OCI_ASSOC)) {
-//                $nombre = htmlspecialchars($row["NOMBRE_USUARIO"]);
-//                $telefono = disset($row["TELEFONO"]) ? htmlspecialchars($row["TELEFONO"]) : "";
-//                $correo = htmlspecialchars($row["CORREO"]);
-//                $rol = $row["ROL"];
+//            // Parámetros IN y OUT
+//            oci_bind_by_name($stmt, ":id_venta", $venta_id); // IN
+//            oci_bind_by_name($stmt, ":numero", $numero, 32); // OUT
+//            oci_bind_by_name($stmt, ":impuestos", $impuestos, 32); // OUT
+//            oci_bind_by_name($stmt, ":id_cliente", $id_cliente, 32); // OUT
+//
+//            if (!oci_execute($stmt)) {
+//                $e = oci_error($stmt);
+//                echo "Error al ejecutar el procedimiento: " . $e['message'];
 //            }
-//            oci_free_statement($stid);
-//            $seleccionadoV = ($rol == 0) ? "selected" : "";
-//            $seleccionadoA = ($rol == 1) ? "selected" : "";
-//            $tipoEdit = "Editar";
-//            $edtVer = "&edt=$edt";
+//            $cliente_seleccionado = $id_cliente;
+//
+//            // Conexión y preparación
+//            $sqlDetalle = "BEGIN LISTAR_DETALLES_VENTA(:id_venta, :cursor); END;";
+//            $stmtDetalle = oci_parse($conn, $sqlDetalle);
+//
+//            // Crear cursor de salida
+//            $cursorDetalle = oci_new_cursor($conn);
+//
+//            // Bind de parámetros
+//            oci_bind_by_name($stmtDetalle, ":id_venta", $venta_id);
+//            oci_bind_by_name($stmtDetalle, ":cursor", $cursorDetalle, -1, OCI_B_CURSOR);
+//
+//            // Ejecutar procedimiento y cursor
+//            oci_execute($stmtDetalle);
+//            oci_execute($cursorDetalle);
+//
+//            // Leer resultados
+//            $detalles = [];
+//            while ($row = oci_fetch_assoc($cursorDetalle)) {
+//                $detalles[] = $row;
+//            }
+//            
+//            // Liberar recursos
+//            oci_free_statement($stmtDetalle);
+//            oci_free_statement($cursorDetalle);
 //        }
 
         echo "<h3 class='modalx-titulo'>$tipoEdit</h3>";
+
+// llenar select de clientes
+
+
+        $selectClientes = llenarSelect("cliente", "ID_CLIENTE", "NOMBRE_CLIENTE", 0, "BEGIN listar_clientes(:cursor); END;", $conn);
         ?>
 
         <form action="ventas.php" method="POST" id="formFactura">
@@ -397,7 +418,7 @@ include("tabs.php");
             <div style="display: flex; gap: 20px;">
                 <div class="form-group" style="flex: 1;">
                     <label for="numero">Número:</label>
-                    <input type="number" id="numero" name="numero" class="form-control" value="0" required>
+                    <input type="number" id="numero" name="numero" class="form-control" value="<?php $maxNumero ?>" required>
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label for="impuestos">Impuestos (%):</label>
@@ -407,7 +428,7 @@ include("tabs.php");
 
             <div class="form-group mt-3">
                 <label for="cliente">Cliente:</label>
-                <?php echo $selectClientes; ?>
+<?php echo $selectClientes; ?>
             </div>
 
             <!-- Tabla de detalles -->
@@ -424,6 +445,8 @@ include("tabs.php");
                 </thead>
                 <tbody id="detalleFactura">
                     <!-- Las filas se agregarán dinámicamente -->
+
+
                 </tbody>
                 <tfoot>
                     <tr>

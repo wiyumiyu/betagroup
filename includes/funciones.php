@@ -1,6 +1,6 @@
 <?php
 
-function llenarSelect($name, $id_tabla, $col_tabla, $sqlproc, $conn) {
+function llenarSelect($name, $id_tabla, $col_tabla, $seleccionado, $sqlproc, $conn) {
 
     $sel = "";
     $stid = oci_parse($conn, $sqlproc);
@@ -8,11 +8,17 @@ function llenarSelect($name, $id_tabla, $col_tabla, $sqlproc, $conn) {
     oci_bind_by_name($stid, ":cursor", $cursor, -1, OCI_B_CURSOR);
     oci_execute($stid);
     oci_execute($cursor);
+        $selected = "";
     $sel = "<option value=-1>-- Seleccione --</option>";
     while ($row = oci_fetch_assoc($cursor)) {
         $id = $row[$id_tabla];
 
-        $sel .= "<option value=$id>" . htmlspecialchars($row[$col_tabla]) . "</option>";
+        $selected = "";
+        if($seleccionado  == $id){
+            $selected = "selected";
+        }        
+        
+        $sel .= "<option $selected value=$id>" . htmlspecialchars($row[$col_tabla]) . "</option>";
     }
 
     $sel = "<select id='$name' name='$name' class='form-control'>$sel</select>";
