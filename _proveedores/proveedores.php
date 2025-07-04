@@ -1,31 +1,24 @@
 <?php
-// ------------------ INICIO DEL CÓDIGO ----------------------
-// Estos archivos son como piezas de LEGO que se repiten en todas las páginas
-// Incluyen el encabezado del sitio, el menú lateral y funciones útiles
 include ('../includes/header.html');
 include("../includes/barralateral.php");
 include ('../includes/funciones.php');
 
-// Variables vacías que usamos para saber si se quiere editar o eliminar algo
-$ii = "123"; // de ejemplo, no se usa
-$rr1 = "A";  // de ejemplo, no se usa
+$ii = "123";
+$rr1 = "A";
 $linkAceptar = "#";
 
 $del = "";
 $edt = "";
 $edtVer = "";
 
-// Si en la URL hay un valor ?edt=, lo guardamos en la variable $edt para editar ese usuario
 if (isset($_GET['edt'])) {
     $edt = $_GET['edt'];
 }
 
-// Si en la URL hay un valor ?del=, lo guardamos en $del para confirmar eliminación
 if (isset($_GET['del'])) {
     $del = $_GET['del'];
 }
 
-// Si se confirma la eliminación con ?del2=, eliminamos el usuario de la base de datos
 if (isset($_GET['del2'])) {
     $del2 = $_GET['del2'];
 
@@ -34,7 +27,6 @@ if (isset($_GET['del2'])) {
     oci_bind_by_name($stmt, ":id", $del2);
 
     if (oci_execute($stmt)) {
-        // Si se eliminó correctamente, recargamos la página
         echo "<script>window.location.href = 'proveedores.php';</script>";
     } else {
         $e = oci_error($stmt);
@@ -44,25 +36,26 @@ if (isset($_GET['del2'])) {
     oci_free_statement($stmt);
 }
 
-
 if (isset($_POST['submitted'])) {
     $nombre_proveedor = trim($_POST["nombre_proveedor"]);
     $correo = trim($_POST["correo"]);
     $direccion = trim($_POST["direccion"]);
+    $estado = $_POST["estado"];
 
     if (isset($_GET['edt'])) {
         $id = $_GET['edt'];
-        $sql = "BEGIN actualizar_proveedor(:id, :nombre, :correo, :direccion); END;";
+        $sql = "BEGIN actualizar_proveedor(:id, :nombre, :correo, :direccion, :estado); END;";
         $stmt = oci_parse($conn, $sql);
         oci_bind_by_name($stmt, ":id", $id);
     } else {
-        $sql = "BEGIN insertar_proveedor(:nombre, :correo, :direccion); END;";
+        $sql = "BEGIN insertar_proveedor(:nombre, :correo, :direccion, :estado); END;";
         $stmt = oci_parse($conn, $sql);
     }
 
     oci_bind_by_name($stmt, ":nombre", $nombre_proveedor);
     oci_bind_by_name($stmt, ":correo", $correo);
     oci_bind_by_name($stmt, ":direccion", $direccion);
+    oci_bind_by_name($stmt, ":estado", $estado);
 
     if (oci_execute($stmt)) {
         echo "<script>window.location.href='proveedores.php?op=3&pc=1';</script>";
@@ -74,8 +67,6 @@ if (isset($_POST['submitted'])) {
     oci_free_statement($stmt);
     oci_close($conn);
 }
-
-// --------------------------- Funcion Cargar Select ----------------------------------
 
 function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
     $stid = oci_parse($conn, "BEGIN $proc(:cursor); END;");
@@ -99,6 +90,8 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
   <li><a href="../_dashboard/escritorio.php"><i class="entypo-home"></i>Home</a></li>
   <li class="active"><strong>Lista de Proveedores</strong></li>
 </ol>
+
+<?php include("tabs.php"); ?>
 <div style="display:flex;justify-content:space-between;align-items:center;">
   <h2>Lista de Proveedores</h2>
   <button onclick="abrirModal()" class="btn btn-success"> Nuevo Proveedor</button>
@@ -148,12 +141,13 @@ oci_free_statement($cursor);
   <div class="modalx-content">
 <?php
 $nombre_proveedor = $correo = $direccion = "";
+$estado = 1;
 $tipoEdit = "Agregar nuevo";
 $edtVer = "";
 
 if (isset($_GET["edt"])) {
     $id = $_GET["edt"];
-    $sql = "SELECT NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR FROM PROVEEDOR WHERE ID_PROVEEDOR = :id";
+    $sql = "SELECT NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR, ESTADO FROM PROVEEDOR WHERE ID_PROVEEDOR = :id";
     $stid = oci_parse($conn, $sql);
     oci_bind_by_name($stid, ":id", $id);
     oci_execute($stid);
@@ -161,6 +155,7 @@ if (isset($_GET["edt"])) {
         $nombre_proveedor = htmlspecialchars($row["NOMBRE_PROVEEDOR"]);
         $correo = htmlspecialchars($row["CORREO"]);
         $direccion = htmlspecialchars($row["DIRECCION_PROVEEDOR"]);
+        $estado = $row["ESTADO"];
     }
     oci_free_statement($stid);
     $tipoEdit = "Editar";
@@ -179,6 +174,12 @@ echo "<h3 class='modalx-titulo'>$tipoEdit proveedor</h3>";
         <label for="direccion">Dirección:</label>
         <input type="text" id="direccion" class="form-control" name="direccion" value="<?php echo $direccion; ?>" required>
         <br>
+        <label for="estado">Estado:</label>
+        <select name="estado" class="form-control" required>
+            <option value="1" <?php if ($estado == 1) echo 'selected'; ?>>Habilitado</option>
+            <option value="0" <?php if ($estado == 0) echo 'selected'; ?>>Deshabilitado</option>
+        </select>
+        <br>
         <input type="hidden" name="submitted" value="TRUE" />
         <div class="modalx-footer">
             <a href='proveedores.php' class="btn-cancelar">Cancelar</a>
@@ -187,7 +188,6 @@ echo "<h3 class='modalx-titulo'>$tipoEdit proveedor</h3>";
     </form>
   </div>
 </div>
-
 
 <!-- MODAL DE CONFIRMACIÓN PARA ELIMINAR -->
 <div id="modal-eliminar" class="modalx">

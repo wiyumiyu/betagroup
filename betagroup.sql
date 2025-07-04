@@ -52,7 +52,8 @@ CREATE TABLE PROVEEDOR (
   NOMBRE_PROVEEDOR VARCHAR2(100) NOT NULL,
   CORREO VARCHAR2(50) NOT NULL,
   DIRECCION_PROVEEDOR VARCHAR2(100) NOT NULL,
-  FECHA_REGISTRO DATE DEFAULT SYSDATE
+  FECHA_REGISTRO DATE DEFAULT SYSDATE,
+  ESTADO NUMBER(1) DEFAULT 1 -- 1 = habilitado, 0 = deshabilitado
 );
 
 -- Crear tabla TIPO_CLINICA
@@ -548,6 +549,7 @@ BEGIN
       DIRECCION_PROVEEDOR,
       FECHA_REGISTRO
     FROM PROVEEDOR
+    WHERE ESTADO = 1
     ORDER BY ID_PROVEEDOR;
 END;
 /
@@ -557,17 +559,20 @@ END;
 CREATE OR REPLACE PROCEDURE insertar_proveedor (
     p_nombre    IN proveedor.nombre_proveedor%TYPE,
     p_correo    IN proveedor.correo%TYPE,
-    p_direccion IN proveedor.direccion_proveedor%TYPE
+    p_direccion IN proveedor.direccion_proveedor%TYPE,
+    p_estado    IN proveedor.estado%TYPE DEFAULT 1
 ) AS
 BEGIN
     INSERT INTO proveedor (
         nombre_proveedor,
         correo,
-        direccion_proveedor
+        direccion_proveedor,
+        estado
     ) VALUES (
         p_nombre,
         p_correo,
-        p_direccion
+        p_direccion,
+        p_estado
     );
 END;
 /
@@ -578,19 +583,20 @@ CREATE OR REPLACE PROCEDURE actualizar_proveedor (
     p_id_proveedor IN proveedor.id_proveedor%TYPE,
     p_nombre       IN proveedor.nombre_proveedor%TYPE,
     p_correo       IN proveedor.correo%TYPE,
-    p_direccion    IN proveedor.direccion_proveedor%TYPE
+    p_direccion    IN proveedor.direccion_proveedor%TYPE,
+    p_estado       IN proveedor.estado%TYPE
 ) AS
 BEGIN
     UPDATE proveedor
     SET
         nombre_proveedor = p_nombre,
         correo = p_correo,
-        direccion_proveedor = p_direccion
+        direccion_proveedor = p_direccion,
+        estado = p_estado
     WHERE
         id_proveedor = p_id_proveedor;
 END;
 /
-
 
 --27. procedimiento para eliminar proveedor   
 
@@ -744,6 +750,21 @@ HAVING
 ORDER BY
     C.NOMBRE_CLIENTE;
 
+-- 4. Vista de Proveedores Deshabilitados
+CREATE OR REPLACE VIEW V_PROVEEDORES_DESHABILITADOS AS
+SELECT 
+    p.ID_PROVEEDOR,
+    p.NOMBRE_PROVEEDOR,
+    t.TELEFONO,
+    p.CORREO,
+    p.DIRECCION_PROVEEDOR
+FROM 
+    PROVEEDOR p
+LEFT JOIN 
+    TELEFONO_PROVEEDOR t ON p.ID_PROVEEDOR = t.ID_PROVEEDOR
+WHERE 
+    p.ESTADO = 0;
+
 
 -- -------------------------- TRIGGER ------------------------------------------------------
 
@@ -780,16 +801,16 @@ END;
 -- La contraseï¿½a se guarda encriptada con HASH_PASSWORD
 
 INSERT INTO USUARIO (NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL, ESTADO) 
-VALUES ('admin', HASH_PASSWORD('a'), '', 'admin@gmail.com', 1, 1);
+VALUES ('admin', HASH_PASSWORD('a'), '89802238', 'admin@gmail.com', 1, 1);
 
 INSERT INTO USUARIO (NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL, ESTADO)
-VALUES ('Vendedor 1', HASH_PASSWORD('a'), '', 'vendedor@gmail.com', 0, 1);
+VALUES ('Vendedor 1', HASH_PASSWORD('a'), '89802238', 'vendedor@gmail.com', 0, 1);
 
 INSERT INTO USUARIO (NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL, ESTADO)
-VALUES ('Vendedor 2', HASH_PASSWORD('a'), '', 'vendedor2@gmail.com', 0, 0);
+VALUES ('Vendedor 2', HASH_PASSWORD('a'), '89802238', 'vendedor2@gmail.com', 0, 0);
 
 INSERT INTO USUARIO (NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL, ESTADO) 
-VALUES ('admin 2', HASH_PASSWORD('a'), '', 'admin2@gmail.com', 1, 0);
+VALUES ('admin 2', HASH_PASSWORD('a'), '89802238', 'admin2@gmail.com', 1, 0);
 
 -- Mostramos los usuarios insertados (veremos el hash, no la contraseï¿½a original)
 SELECT NOMBRE_USUARIO, CONTRASENA FROM USUARIO;
@@ -804,18 +825,48 @@ VALUES ('María Jiménez', 'maria.jimenez@gmail.com', 1);
 
 
 -- 1. Insertar proveedores correctamente (incluye dirección)
-INSERT INTO PROVEEDOR (NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR)
-VALUES ('BeautyTech S.A.', 'ventas@beautytech.com', 'San José, Costa Rica');
+INSERT INTO PROVEEDOR (NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR, ESTADO)
+VALUES ('BeautyTech S.A.', 'ventas@beautytech.com', 'San José, Costa Rica', 1);
 
-INSERT INTO PROVEEDOR (NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR)
-VALUES ('Dermalaser CR', 'info@dermalaser.cr', 'Escazú, Costa Rica');
+INSERT INTO PROVEEDOR (NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR, ESTADO)
+VALUES ('Dermalaser CR', 'info@dermalaser.cr', 'Escazú, Costa Rica', 1);
+
+INSERT INTO PROVEEDOR (NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR, ESTADO)
+VALUES ('DermaSkin', 'contacto@dermaskin.com', 'Santa Ana, Costa Rica', 1);
+
+INSERT INTO PROVEEDOR (NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR, ESTADO)
+VALUES ('Estética Pura Vida', 'contacto@esteticapuravida.cr', 'Heredia, Costa Rica', 1);
+
+INSERT INTO PROVEEDOR (NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR, ESTADO)
+VALUES ('MedEquipos CR', 'ventas@medequiposcr.com', 'Alajuela, Costa Rica', 0);
+
+INSERT INTO PROVEEDOR (NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR, ESTADO)
+VALUES ('LáserClinic S.A.', 'info@laserclinic.cr', 'Cartago, Costa Rica', 1);
+
+INSERT INTO PROVEEDOR (NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR, ESTADO)
+VALUES ('Tecnobeauty', 'servicio@tecnobeauty.com', 'San Pedro, Costa Rica', 0);
+
+INSERT INTO PROVEEDOR (NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR, ESTADO)
+VALUES ('CosmoEsthetics', 'soporte@cosmoesthetics.com', 'Liberia, Costa Rica', 1);
 
 -- 2. Insertar teléfonos (ya existen los proveedores)
 INSERT INTO TELEFONO_PROVEEDOR (TELEFONO, ID_PROVEEDOR)
 VALUES ('89842738', 1);
-
 INSERT INTO TELEFONO_PROVEEDOR (TELEFONO, ID_PROVEEDOR)
 VALUES ('72119988', 2);
+INSERT INTO TELEFONO_PROVEEDOR (TELEFONO, ID_PROVEEDOR)
+VALUES ('88991122', 3);
+INSERT INTO TELEFONO_PROVEEDOR (TELEFONO, ID_PROVEEDOR)
+VALUES ('88776655', 4);
+INSERT INTO TELEFONO_PROVEEDOR (TELEFONO, ID_PROVEEDOR)
+VALUES ('88882211', 5);
+INSERT INTO TELEFONO_PROVEEDOR (TELEFONO, ID_PROVEEDOR)
+VALUES ('89997744', 6);
+INSERT INTO TELEFONO_PROVEEDOR (TELEFONO, ID_PROVEEDOR)
+VALUES ('87778899', 7);
+INSERT INTO TELEFONO_PROVEEDOR (TELEFONO, ID_PROVEEDOR)
+VALUES ('85001133', 8);
+
 
 -- 3. Insertar categoría
 INSERT INTO CATEGORIA (NOMBRE_CATEGORIA)
