@@ -17,9 +17,9 @@ $del = "";
 $edtVer = "";
 
 // Si en la URL hay un valor ?edt=, lo guardamos en la variable $edt para editar ese usuario
-//if (isset($_GET['edt'])) {
-//    $edt = $_GET['edt'];
-//}
+if (isset($_GET['edt'])) {
+    $edt = $_GET['edt'];
+}
 if (isset($_GET['op'])) {
     $op = $_GET['op'];
 }
@@ -355,55 +355,55 @@ include("tabs.php");
         oci_bind_by_name($stmt, ":max_numero", $maxNumero, 10);
         oci_execute($stmt);
         
-        echo "zzz " . $maxNumero;
+        
 
         
 
 // Si se está editando, cargamos los datos del usuario
-//        if (isset($_GET["edt"])) {
-//            $tipoEdit = "Editar Venta";
-//            $venta_id = $_GET["edt"];
-//            // Obtener datos de la venta
-//            $sql = "BEGIN OBTENER_VENTA(:id_venta, :numero, :impuestos, :id_cliente); END;";
-//            $stmt = oci_parse($conn, $sql);
-//
-//            // Parámetros IN y OUT
-//            oci_bind_by_name($stmt, ":id_venta", $venta_id); // IN
-//            oci_bind_by_name($stmt, ":numero", $numero, 32); // OUT
-//            oci_bind_by_name($stmt, ":impuestos", $impuestos, 32); // OUT
-//            oci_bind_by_name($stmt, ":id_cliente", $id_cliente, 32); // OUT
-//
-//            if (!oci_execute($stmt)) {
-//                $e = oci_error($stmt);
-//                echo "Error al ejecutar el procedimiento: " . $e['message'];
-//            }
-//            $cliente_seleccionado = $id_cliente;
-//
-//            // Conexión y preparación
-//            $sqlDetalle = "BEGIN LISTAR_DETALLES_VENTA(:id_venta, :cursor); END;";
-//            $stmtDetalle = oci_parse($conn, $sqlDetalle);
-//
-//            // Crear cursor de salida
-//            $cursorDetalle = oci_new_cursor($conn);
-//
-//            // Bind de parámetros
-//            oci_bind_by_name($stmtDetalle, ":id_venta", $venta_id);
-//            oci_bind_by_name($stmtDetalle, ":cursor", $cursorDetalle, -1, OCI_B_CURSOR);
-//
-//            // Ejecutar procedimiento y cursor
-//            oci_execute($stmtDetalle);
-//            oci_execute($cursorDetalle);
-//
-//            // Leer resultados
-//            $detalles = [];
-//            while ($row = oci_fetch_assoc($cursorDetalle)) {
-//                $detalles[] = $row;
-//            }
-//            
-//            // Liberar recursos
-//            oci_free_statement($stmtDetalle);
-//            oci_free_statement($cursorDetalle);
-//        }
+        if (isset($_GET["edt"])) {
+            $tipoEdit = "Editar Venta";
+            $venta_id = $_GET["edt"];
+            // Obtener datos de la venta
+            $sql = "BEGIN OBTENER_VENTA(:id_venta, :numero, :impuestos, :id_cliente); END;";
+            $stmt = oci_parse($conn, $sql);
+
+            // Parámetros IN y OUT
+            oci_bind_by_name($stmt, ":id_venta", $venta_id); // IN
+            oci_bind_by_name($stmt, ":numero", $numero, 32); // OUT
+            oci_bind_by_name($stmt, ":impuestos", $impuestos, 32); // OUT
+            oci_bind_by_name($stmt, ":id_cliente", $id_cliente, 32); // OUT
+
+            if (!oci_execute($stmt)) {
+                $e = oci_error($stmt);
+                echo "Error al ejecutar el procedimiento: " . $e['message'];
+            }
+            $cliente_seleccionado = $id_cliente;
+
+            // Conexión y preparación
+            $sqlDetalle = "BEGIN LISTAR_DETALLES_VENTA(:id_venta, :cursor); END;";
+            $stmtDetalle = oci_parse($conn, $sqlDetalle);
+
+            // Crear cursor de salida
+            $cursorDetalle = oci_new_cursor($conn);
+
+            // Bind de parámetros
+            oci_bind_by_name($stmtDetalle, ":id_venta", $venta_id);
+            oci_bind_by_name($stmtDetalle, ":cursor", $cursorDetalle, -1, OCI_B_CURSOR);
+
+            // Ejecutar procedimiento y cursor
+            oci_execute($stmtDetalle);
+            oci_execute($cursorDetalle);
+
+            // Leer resultados
+            $detalles = [];
+            while ($row = oci_fetch_assoc($cursorDetalle)) {
+                $detalles[] = $row;
+            }
+            
+            // Liberar recursos
+            oci_free_statement($stmtDetalle);
+            oci_free_statement($cursorDetalle);
+        }
 
         echo "<h3 class='modalx-titulo'>$tipoEdit</h3>";
 

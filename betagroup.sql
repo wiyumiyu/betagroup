@@ -106,6 +106,7 @@ CREATE TABLE VENTA (
   IMPUESTOS NUMBER DEFAULT 0,
   ID_CLIENTE NUMBER NOT NULL,
   ID_USUARIO NUMBER NOT NULL,
+   ESTADO NUMBER(1) DEFAULT 1 ,
   CONSTRAINT FK_VENT_CLIE FOREIGN KEY (ID_CLIENTE) REFERENCES CLIENTE(ID_CLIENTE),
   CONSTRAINT FK_VENT_USUA FOREIGN KEY (ID_USUARIO) REFERENCES USUARIO(ID_USUARIO)
 );
@@ -123,9 +124,10 @@ CREATE TABLE VENTA_DETALLE (
   
 );
 
+
 -- ------------------------------------------------- PROCEDIMIENTOS ALMACENADOS ---------------------------------------------------------------------
 
--- 1. Funci�n para encriptar la contrase�a usando SHA-256
+-- 1. Funcion para encriptar la contrase�a usando SHA-256
 CREATE OR REPLACE FUNCTION HASH_PASSWORD(p_pass VARCHAR2) RETURN VARCHAR2 IS
 BEGIN
   -- Convierte la contrase�a a un hash SHA-256 y lo devuelve en hexadecimal
@@ -666,7 +668,7 @@ BEGIN
 END;
 /
 
--- 31. Procedimiento que inserta una venta
+-- 32. Procedimiento que inserta una venta
 CREATE OR REPLACE PROCEDURE insertar_venta_detalle (
     p_cantidad       IN VENTA_DETALLE.CANTIDAD%TYPE,
     p_precio_unitario IN VENTA_DETALLE.PRECIO_UNITARIO%TYPE,
@@ -690,18 +692,19 @@ BEGIN
     );
 END;
 
-/*
--- Tabla de VENTA_DETALLES
-CREATE TABLE VENTA_DETALLE (
-  ID_VENTA_DETALLE NUMBER PRIMARY KEY,
-  CANTIDAD NUMBER DEFAULT 0,
-  PRECIO_UNITARIO NUMBER DEFAULT 0,
-  DESCUENTO NUMBER DEFAULT 0,
-  ID_PRODUCTO NUMBER NOT NULL,
-  CONSTRAINT FK_VEDE_PROD FOREIGN KEY (ID_PRODUCTO) REFERENCES PRODUCTO(ID_PRODUCTO)
-  
-);
-*/
+
+-- 33. Procedimiento que devuelve el numero mayor de las ventas
+CREATE OR REPLACE PROCEDURE OBTENER_MAX_NUMERO_VENTA (
+    p_max_numero OUT VENTA.NUMERO%TYPE
+)
+AS
+BEGIN
+    SELECT NVL(MAX(NUMERO), 0)
+    INTO p_max_numero
+    FROM VENTA;
+END;
+/
+
 
 -- -------------------------- VISTAS ------------------------------------------------------
 
@@ -899,8 +902,6 @@ VALUES (2, 1002, SYSDATE, 20, 1, 1);
 INSERT INTO VENTA (ID_VENTA, NUMERO, FECHA, IMPUESTOS, ID_CLIENTE, ID_USUARIO)
 VALUES (3, 1003, SYSDATE, 10, 1, 2);
 
-INSERT INTO VENTA (ID_VENTA, NUMERO, FECHA, IMPUESTOS, ID_CLIENTE, ID_USUARIO)
-VALUES (4, 1004, SYSDATE, 15, 2, 2);
 
 commit;
 
