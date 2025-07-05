@@ -6,6 +6,15 @@ include ('../includes/funciones.php');
 $del = "";
 $edt = "";
 $edtVer = "";
+$op = "";
+$ta = "";
+
+if (isset($_GET['op'])) {
+    $op = $_GET['op'];
+}
+if (isset($_GET['ta'])) {
+    $ta = $_GET['ta'];
+}
 
 if (isset($_GET['edt'])) {
     $edt = $_GET['edt'];
@@ -19,7 +28,7 @@ if (isset($_GET['del2'])) {
     $stmt = oci_parse($conn, $sql);
     oci_bind_by_name($stmt, ":id", $del2);
     if (oci_execute($stmt)) {
-        echo "<script>window.location.href = 'usuarios.php';</script>";
+        echo "<script>window.location.href = 'usuarios.php?op=$op&ta=$ta';</script>";
     } else {
         $e = oci_error($stmt);
         echo "Error al eliminar el usuario: " . $e['message'];
@@ -61,7 +70,7 @@ if (isset($_POST['submitted'])) {
     oci_bind_by_name($stmt, ":rol", $rol);
 
     if (oci_execute($stmt)) {
-        echo "<script>window.location='usuarios.php';</script>";
+        echo "<script>window.location='usuarios.php?op=$op&ta=$ta';</script>";
     } else {
         $e = oci_error($stmt);
         echo "Error: " . $e['message'];
@@ -112,8 +121,8 @@ while ($row = oci_fetch_assoc($cursor)) {
     echo "<td>$rolTexto</td>";
     echo "<td>" . date("d-m-Y", strtotime($row['FECHA_REGISTRO'])) . "</td>";
     echo "<td>
-            <a href='usuarios.php?edt=$id' class='btn btn-default'><i class='entypo-pencil'></i></a>
-            <a href='usuarios.php?del=$id' class='btn btn-danger'><i class='entypo-cancel'></i></a>
+            <a href='usuarios.php?op=$op&ta=$ta&edt=$id' class='btn btn-default'><i class='entypo-pencil'></i></a>
+            <a href='usuarios.php?op=$op&ta=$ta&del=$id' class='btn btn-danger'><i class='entypo-cancel'></i></a>
           </td>";
     echo "</tr>";
 }
@@ -184,12 +193,12 @@ if (isset($_GET["edt"])) {
     $seleccionadoActivo = ($estado == 1) ? "selected" : "";
     $seleccionadoInactivo = ($estado == 0) ? "selected" : "";
     $tipoEdit = "Editar";
-    $edtVer = "?edt=$edt";
+    $edtVer = "edt=$edt";
 }
 ?>
 
         <h3 class="modalx-titulo"><?php echo $tipoEdit; ?> usuario</h3>
-        <form action="usuarios.php<?php echo $edtVer; ?>" method="POST">
+        <form action="usuarios.php<?php echo "?op=$op&ta=$ta" & $edtVer; ?>" method="POST">
             <label for="nombre_usuario">Nombre de Usuario:</label>
             <input type="text" id="nombre_usuario" class="form-control" name="nombre_usuario" value="<?php echo $nombre; ?>"><br>
 
@@ -218,7 +227,7 @@ if (isset($_GET["edt"])) {
 
             <input type='hidden' name='submitted' value='TRUE' />
             <div class="modalx-footer">
-                <a href='usuarios.php' class="btn-cancelar">Cancelar</a>
+                <a href='usuarios.php<?php echo "?op=$op&ta=$ta";?>' class="btn-cancelar">Cancelar</a>
                 <button type="submit" class="btn btn-success">Registrar</button>
             </div>
         </form>
@@ -231,8 +240,8 @@ if (isset($_GET["edt"])) {
         <h3 class="modalx-titulo">Confirmar eliminación</h3>
         <p class="modalx-texto">¿Estás seguro de que deseas eliminar este usuario?</p>
         <div class="modalx-footer">
-            <a href='usuarios.php' class="btn-cancelar">Cancelar</a>
-            <a href='usuarios.php?del2=<?php echo $del; ?>' class="btn-confirmar">Eliminar</a>
+            <a href='usuarios.php<?php echo "?op=$op&ta=$ta";?>' class="btn-cancelar">Cancelar</a>
+            <a href='usuarios.php<?php echo "?op=$op&ta=$ta&del2=$del" ; ?>' class="btn-confirmar">Eliminar</a>
         </div>
     </div>
 </div>

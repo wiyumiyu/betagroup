@@ -8,6 +8,17 @@ $edt = "";
 $edtVer = "";
 $linkAceptar = "#";
 
+$ta = "";
+$op = "";
+if (isset($_GET['ta'])) {
+    $ta = $_GET['ta'];
+}
+if (isset($_GET['op'])) {
+    $op = $_GET['op'];
+}
+       
+
+
 if (isset($_GET['edt'])) {
     $edt = $_GET['edt'];
 }
@@ -23,7 +34,7 @@ if (isset($_GET['del2'])) {
     oci_bind_by_name($stmt, ":id", $del2);
 
     if (oci_execute($stmt)) {
-        echo "<script>window.location.href = 'clientes.php';</script>";
+        echo "<script>window.location.href = 'clientes.php?op=$op&ta=$ta';</script>";
     } else {
         $e = oci_error($stmt);
         echo "Error al eliminar el cliente: " . $e['message'];
@@ -53,7 +64,7 @@ if (isset($_POST['submitted'])) {
     oci_bind_by_name($stmt, ":tipo", $tipo);
 
     if (oci_execute($stmt)) {
-        echo "<script>window.location='clientes.php';</script>";
+        echo "<script>window.location='clientes.php?op=$op&ta=$ta';</script>";
     } else {
         $e = oci_error($stmt);
         echo "Error: " . $e['message'];
@@ -101,8 +112,8 @@ while ($row = oci_fetch_assoc($cursor)) {
     echo "<td>" . htmlspecialchars($row['CORREO']) . "</td>";
     echo "<td>" . htmlspecialchars($row['TIPO_CLINICA']) . "</td>";
     echo "<td>
-            <a href='clientes.php?edt=$id' class='btn btn-default'><i class='entypo-pencil'></i></a>
-            <a href='clientes.php?del=$id' class='btn btn-danger'><i class='entypo-cancel'></i></a>
+            <a href='clientes.php?op=$op&ta=$ta&edt=$id' class='btn btn-default'><i class='entypo-pencil'></i></a>
+            <a href='clientes.php?op=$op&ta=$ta&del=$id' class='btn btn-danger'><i class='entypo-cancel'></i></a>
           </td>";
     echo "</tr>";
 }
@@ -133,12 +144,12 @@ if (isset($_GET["edt"])) {
     }
     oci_free_statement($stid);
     $tipoEdit = "Editar";
-    $edtVer = "?edt=$id";
+    $edtVer = "edt=$id";
 }
 ?>
 
         <h3 class='modalx-titulo'><?php echo $tipoEdit; ?> Cliente</h3>
-        <form action="clientes.php<?php echo $edtVer; ?>" method="POST">
+        <form action="clientes.php<?php echo "?op=$op&ta=$ta&" . $edtVer; ?>" method="POST">
             <label for="nombre_cliente">Nombre:</label>
             <input type="text" id="nombre_cliente" class="form-control" name="nombre_cliente" value="<?php echo $nombre; ?>" required>
             <br>
@@ -162,7 +173,7 @@ oci_free_statement($stid);
             <br>
             <input type='hidden' name='submitted' value='TRUE' />
             <div class="modalx-footer">
-                <a href='clientes.php' class="btn-cancelar">Cancelar</a>
+                <a href='clientes.php<?php echo "?op=$op&ta=$ta" ?>' class="btn-cancelar">Cancelar</a>
                 <button type="submit" class="btn btn-success">Guardar</button>
             </div>
         </form>
@@ -175,8 +186,8 @@ oci_free_statement($stid);
         <h3 class="modalx-titulo">Confirmar eliminación</h3>
         <p class="modalx-texto">¿Estás segura de que deseas eliminar este cliente?</p>
         <div class="modalx-footer">
-            <a href='clientes.php' class="btn-cancelar">Cancelar</a>
-            <a href='clientes.php?del2=<?php echo $del; ?>' class="btn-confirmar">Eliminar</a>
+            <a href='clientes.php<?php echo "?op=$op&ta=$ta" ?>' class="btn-cancelar">Cancelar</a>
+            <a href='clientes.php<?php echo "?op=$op&ta=$ta&del2=$del=" ; ?>' class="btn-confirmar">Eliminar</a>
         </div>
     </div>
 </div>

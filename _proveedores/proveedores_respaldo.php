@@ -11,16 +11,6 @@ $del = "";
 $edt = "";
 $edtVer = "";
 
-$ta = "";
-$op = "";
-
-if (isset($_GET['ta'])) {
-    $ta = $_GET['ta'];
-}
-if (isset($_GET['op'])) {
-    $op = $_GET['op'];
-}
-
 if (isset($_GET['edt'])) {
     $edt = $_GET['edt'];
 }
@@ -37,7 +27,7 @@ if (isset($_GET['del2'])) {
     oci_bind_by_name($stmt, ":id", $del2);
 
     if (oci_execute($stmt)) {
-        echo "<script>window.location.href = 'proveedores.php?op=$op&ta=$ta';</script>";
+        echo "<script>window.location.href = 'proveedores.php';</script>";
     } else {
         $e = oci_error($stmt);
         echo "Error al eliminar el proveedor: " . $e['message'];
@@ -132,7 +122,7 @@ if (isset($_POST['submitted'])) {
             }
         }
 
-        echo "<script>window.location.href='proveedores.php?op=$op&ta=$ta';</script>";
+        echo "<script>window.location.href='proveedores.php?op=3&pc=1';</script>";
     } else {
         $e = oci_error($stmt);
         echo "Error: " . $e['message'];
@@ -197,8 +187,8 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
             echo "<td>" . nl2br(htmlspecialchars($row['TELEFONOS'] ?? '')) . "</td>";
             echo "<td>" . date("d-m-Y", strtotime($row['FECHA_REGISTRO'])) . "</td>";
             echo "<td>
-                    <a href='proveedores.php?op=$op&ta=$ta&edt=$id' class='btn btn-default'><i class='entypo-pencil'></i></a>
-                    <a href='proveedores.php?op=$op&ta=$ta&del=$id' class='btn btn-danger'><i class='entypo-cancel'></i></a>
+                    <a href='proveedores.php?edt=$id' class='btn btn-default'><i class='entypo-pencil'></i></a>
+                    <a href='proveedores.php?del=$id' class='btn btn-danger'><i class='entypo-cancel'></i></a>
                   </td>";
             echo "</tr>";
         }
@@ -257,13 +247,13 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
             oci_free_statement($cursor_tels);
 
             $tipoEdit = "Editar";
-            $edtVer = "edt=$id";
+            $edtVer = "?edt=$id";
         }
 
         echo "<h3 class='modalx-titulo'>$tipoEdit proveedor</h3>";
         ?>
 
-        <form action="proveedores.php<?php echo "?op=$op&ta=$ta&" . $edtVer; ?>" method="POST">
+        <form action="proveedores.php<?php echo $edtVer; ?>" method="POST">
             <label for="nombre_proveedor">Nombre:</label>
             <input type="text" id="nombre_proveedor" class="form-control" name="nombre_proveedor" value="<?php echo $nombre_proveedor; ?>" required>
             <br>
@@ -316,7 +306,7 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
 
             <input type="hidden" name="submitted" value="TRUE" />
             <div class="modalx-footer">
-                <a href='proveedores.php<?php echo "?op=$op&ta=$ta";?>' class="btn-cancelar">Cancelar</a>
+                <a href='proveedores.php' class="btn-cancelar">Cancelar</a>
                 <button type="submit" class="btn btn-success">Guardar</button>
             </div>
         </form>
@@ -330,8 +320,8 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
         <h3 class="modalx-titulo">Confirmar eliminación</h3>
         <p class="modalx-texto">¿Estás seguro de que deseas eliminar este proveedor?</p>
         <div class="modalx-footer">
-            <a href='proveedores.php<?php echo "?op=$op&ta=$ta" ; ?>' class="btn-cancelar">Cancelar</a>
-            <a href='proveedores.php=<?php echo "?op=$op&ta=$ta&del2=" .  $del; ?>' class="btn-confirmar">Eliminar</a>
+            <a href='proveedores.php' class="btn-cancelar">Cancelar</a>
+            <a href='proveedores.php?del2=<?php echo $del; ?>' class="btn-confirmar">Eliminar</a>
         </div>
     </div>
 </div>

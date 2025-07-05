@@ -120,7 +120,7 @@ if ($pc == 0) {
                 </a>
                 <ul>
                                      <li class='active'>
-                                            <a href='..\_usuarios\usuarios.php?op=0'>
+                                            <a href='..\_usuarios\usuarios.php?op=0&ta=0'>
                                                 <span>Lista de Usuarios</span>
                                             </a>                            
                                         </li>          
@@ -149,7 +149,7 @@ if ($pc == 0) {
             <ul>
 
                 <li class="active">
-                    <?php echo "<a href='../_proveedores/proveedores.php?op=1'>"; ?>
+                    <?php echo "<a href='../_proveedores/proveedores.php?op=1&ta=0'>"; ?>
                         <span>Lista de Proveedores</span>
                     </a>                            
                 </li>          
@@ -166,7 +166,7 @@ if ($pc == 0) {
 
                 <li class="active">
                     
-                        <?php echo "<a href='../_productos/productos.php?op=2'>"; ?>
+                        <?php echo "<a href='../_productos/productos.php?op=2&ta=0'>"; ?>
                         <span>Lista de Productos</span>
                     </a>                            
                 </li>     
@@ -213,7 +213,7 @@ if ($pc == 0) {
             <ul>
                 <li class="active">
                     
-                    <?php echo "<a href='../_ventas/ventas.php?op=4'>"; ?>       
+                    <?php echo "<a href='../_ventas/ventas.php?op=4&ta=0'>"; ?>       
                         <span>Lista de Ventas</span>
                     </a>                            
                 </li>  

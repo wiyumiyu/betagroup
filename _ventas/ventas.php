@@ -11,9 +11,10 @@ $ii = "123"; // de ejemplo, no se usa
 $rr1 = "A";  // de ejemplo, no se usa
 $linkAceptar = "#";
 
-$op = 0;
+$op = "";
+$ta = "";
 $del = "";
-//$edt = "";
+$edt = "";
 $edtVer = "";
 
 // Si en la URL hay un valor ?edt=, lo guardamos en la variable $edt para editar ese usuario
@@ -23,6 +24,11 @@ if (isset($_GET['edt'])) {
 if (isset($_GET['op'])) {
     $op = $_GET['op'];
 }
+if (isset($_GET['ta'])) {
+    $ta = $_GET['ta'];
+}
+
+
 // Si en la URL hay un valor ?del=, lo guardamos en $del para confirmar eliminación
 if (isset($_GET['del'])) {
     $del = $_GET['del'];
@@ -38,7 +44,7 @@ if (isset($_GET['del2'])) {
 
     if (oci_execute($stmt)) {
         // Si se eliminó correctamente, recargamos la página
-        echo "<script>window.location.href = 'ventas.php?op=$op';</script>";
+        echo "<script>window.location.href = 'ventas.php?op=$op&ta=$ta';</script>";
     } else {
         $e = oci_error($stmt);
         echo "Error al eliminar la venta: " . $e['message'];
@@ -77,6 +83,8 @@ if (isset($_POST['submitted'])) {
     oci_execute($stmtId);
     $row = oci_fetch_assoc($stmtId);
     oci_free_statement($stmtId);
+    
+    echo $row['ID'];
 
     if (!$row || !isset($row['ID'])) {
         echo "No se pudo recuperar el ID de la venta.";
@@ -118,18 +126,13 @@ if (isset($_POST['submitted'])) {
 
     //5. Confirmación
     echo "<script>//alert('Venta registrada correctamente'); 
-            window.location='ventas.php';</script>";
+            window.location='ventas.php?op=$op&ta=$ta';</script>";
 }
 ?>
 
 <!-- ------------------ INTERFAZ HTML ---------------------- -->
 
-<hr>
-<!-- Navegación superior -->
-<ol class="breadcrumb bc-3">
-    <li><a href="..\_dashboard\escritorio.php"><i class="entypo-home"></i>Home</a></li>
-    <li class="active"><strong>Ventas</strong></li>
-</ol>
+
 
 <?php
 include("tabs.php");
@@ -176,8 +179,8 @@ include("tabs.php");
 
             // Botones de editar y eliminar
             echo "<td>
-                    <a href='ventas.php?op=$op&edt=$id' class='btn btn-default'><i class='entypo-pencil'></i></a>
-                    <a href='ventas.php?op=$op&del=$id' class='btn btn-danger'><i class='entypo-cancel'></i></a>
+                    <a href='ventas.php?op=$op&ta=$ta&edt=$id' class='btn btn-default'><i class='entypo-eye'></i></a>
+                    <a href='ventas.php?op=$op&ta=$ta&del=$id' class='btn btn-danger'><i class='entypo-cancel'></i></a>
                   </td>";
             echo "</tr>";
         }
@@ -206,6 +209,14 @@ include("tabs.php");
             cerrarModal();
     };
 
+    // Si hay un valor 'edt' en PHP, se abre el modal de edición automáticamente
+    $(window).on('load', function () {
+
+        var edt = '<?php echo $edt; ?>';
+        if (edt != "") {
+            document.getElementById('modal-confirmar').style.display = 'block';
+        }
+    });
 
 
     // Si hay un valor 'del' en PHP, se abre el modal de confirmación para eliminar
@@ -315,7 +326,32 @@ include("tabs.php");
         });
     });
 
+
+//evitar que se cierre el script
+
+//document.addEventListener('DOMContentLoaded', function () {
+//  const modal = document.getElementById('modal-confirmar');
+//
+//  // Desactivar cerrar al hacer clic fuera del modal
+//  modal.addEventListener('click', function (e) {
+//    if (e.target === modal) {
+//      // No hacer nada: bloquear salida
+//      e.stopPropagation();
+//    }
+//  });
+//
+//  // Desactivar cerrar con tecla Escape
+//  window.addEventListener('keydown', function (e) {
+//    if (e.key === "Escape") {
+//      e.preventDefault(); // evita cierre
+//    }
+//  });
+//});
+
+
 </script>
+
+
 
 <!-- ------------------ MODAL PARA FORMULARIO DE USUARIO ---------------------- -->
 <div id="modal-confirmar" class="modalx modalx_venta">
@@ -326,7 +362,7 @@ include("tabs.php");
         $seleccionadoA = $seleccionadoV = "";
         $edt = "";
         $tipoEdit = "Nueva Venta";
-        //$cliente_seleccionado = 0;
+        $cliente_seleccionado = 0;
 // Abrimos cursor desde el procedimiento LISTAR_PRODUCTOS
         $sql = "BEGIN LISTAR_PRODUCTOS(:cursor); END;";
         $stmt = oci_parse($conn, $sql);
@@ -336,7 +372,7 @@ include("tabs.php");
         oci_execute($cursor);
         $selectProductos = '<select class="form-select" name="producto" id="producto" required>';
         $selectProductos .= "<option value=-1>-- Seleccione --</option>";
-// Recorremos los productos
+        // Recorremos los productos
         while ($row = oci_fetch_assoc($cursor)) {
             $id = $row['ID_PRODUCTO'];
             $nombre = htmlspecialchars($row['NOMBRE_PRODUCTO']);
@@ -350,16 +386,8 @@ include("tabs.php");
         oci_free_statement($stmt);
         oci_free_statement($cursor);
 
-        $sql = "BEGIN OBTENER_MAX_NUMERO_VENTA(:max_numero); END;";
-        $stmt = oci_parse($conn, $sql);
-        oci_bind_by_name($stmt, ":max_numero", $maxNumero, 10);
-        oci_execute($stmt);
-        
-        
 
-        
-
-// Si se está editando, cargamos los datos del usuario
+        // Si se está editando, cargamos los datos del usuario
         if (isset($_GET["edt"])) {
             $tipoEdit = "Editar Venta";
             $venta_id = $_GET["edt"];
@@ -399,10 +427,16 @@ include("tabs.php");
             while ($row = oci_fetch_assoc($cursorDetalle)) {
                 $detalles[] = $row;
             }
-            
+               
             // Liberar recursos
             oci_free_statement($stmtDetalle);
             oci_free_statement($cursorDetalle);
+        } else {
+            $sql = "BEGIN OBTENER_MAX_NUMERO_VENTA(:max_numero); END;";
+            $stmt = oci_parse($conn, $sql);
+            oci_bind_by_name($stmt, ":max_numero", $maxNumero, 10);
+            oci_execute($stmt);
+            $maxNumero += 1;
         }
 
         echo "<h3 class='modalx-titulo'>$tipoEdit</h3>";
@@ -410,25 +444,35 @@ include("tabs.php");
 // llenar select de clientes
 
 
-        $selectClientes = llenarSelect("cliente", "ID_CLIENTE", "NOMBRE_CLIENTE", 0, "BEGIN listar_clientes(:cursor); END;", $conn);
+        $selectClientes = llenarSelect("cliente", "ID_CLIENTE", "NOMBRE_CLIENTE", $cliente_seleccionado, "BEGIN listar_clientes(:cursor); END;", $conn);
         ?>
 
-        <form action="ventas.php" method="POST" id="formFactura">
+        <form action="ventas.php<?php echo "?op=$op&ta=$ta";?>" method="POST" id="formFactura">
             <!-- Encabezado de factura -->
             <div style="display: flex; gap: 20px;">
                 <div class="form-group" style="flex: 1;">
                     <label for="numero">Número:</label>
-                    <input type="number" id="numero" name="numero" class="form-control" value="<?php $maxNumero ?>" required>
+                    <input type="number" id="numero" name="numero" class="form-control" value="<?php
+                    if (isset($_GET["edt"])) {
+                        echo $numero;
+                    } else
+                        echo $maxNumero;
+                    ?>" required>
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label for="impuestos">Impuestos (%):</label>
-                    <input type="number" id="impuestos" name="impuestos" class="form-control" value="13" required>
+                    <input type="number" id="impuestos" name="impuestos" class="form-control" value="<?php
+                    if (isset($_GET["edt"])) {
+                        echo $impuestos;
+                    } else
+                        echo 13;
+        ?>" required>
                 </div>
             </div>
 
             <div class="form-group mt-3">
                 <label for="cliente">Cliente:</label>
-<?php echo $selectClientes; ?>
+                <?php echo $selectClientes; ?>
             </div>
 
             <!-- Tabla de detalles -->
@@ -445,7 +489,28 @@ include("tabs.php");
                 </thead>
                 <tbody id="detalleFactura">
                     <!-- Las filas se agregarán dinámicamente -->
-
+                    <?php
+                    $subtotal = 0;
+                    $descuento = 0;
+                    $total = 0;
+                    $impuestos_total = 0;
+                    if (!empty($detalles)) {
+                        foreach ($detalles as $det) {
+                            $descuento = ($det['CANTIDAD'] * $det['PRECIO_UNITARIO']) * ($det['DESCUENTO'] / 100);
+                            $subtotal += ($det['CANTIDAD'] * $det['PRECIO_UNITARIO']) ;
+                            $impuestos_total += ($det['CANTIDAD'] * $det['PRECIO_UNITARIO']) * ($impuestos / 100);
+                            
+                            echo "<tr>
+                                <td>{$det['NOMBRE_PRODUCTO']}<input type='hidden' name='producto[]' value='{$det['ID_PRODUCTO']}'></td>
+                                <td>{$det['CANTIDAD']}<input type='hidden' name='cantidad[]' value='{$det['CANTIDAD']}'></td>
+                                <td>{$det['DESCUENTO']}<input type='hidden' name='descuento[]' value='{$det['DESCUENTO']}'></td>
+                                <td>{$det['PRECIO_UNITARIO']}<input type='hidden' name='precio_unitario[]' value='{$det['PRECIO_UNITARIO']}'></td>
+                                <td><button type='button' class='btn btn-danger' onclick='this.closest(\"tr\").remove()'>X</button></td>
+                                </tr>";
+                        }
+                        $total = ($subtotal - $descuento) + $impuestos_total;
+                    }
+                    ?>
 
                 </tbody>
                 <tfoot>
@@ -461,15 +526,16 @@ include("tabs.php");
 
             <!-- Totales visuales (puedes mejorarlos con JS si quieres) -->
             <div style="text-align: right; margin-top: 20px;">
-                <p>Subtotal: <span id="subtotal">0.00</span></p>
-                <p>Descuento Total: <span id="descuento_total">0.00</span></p>
-                <p>Impuestos Totales: <span id="impuestos_total">0.00</span></p>
-                <p><strong>Total: <span id="total">0.00</span></strong></p>
+                <p>Subtotal: <span id="subtotal"><?php if(isset($_GET['edt'])){ echo $subtotal;} else {echo '0.00'; }?></span></p>
+                <p>Descuento Total: <span id="descuento_total"><?php if(isset($_GET['edt'])){ echo $descuento;} else {echo '0.00'; }?></span></p>
+                <p>Impuestos Totales: <span id="impuestos_total"><?php if(isset($_GET['edt'])){ echo $impuestos_total;} else {echo '0.00'; }?></span></p>
+                <p><strong>Total: <span id="total"><?php if(isset($_GET['edt'])){ echo $total;} else {echo '0.00'; }?></span></strong></p>
             </div>
 
             <input type="hidden" name="submitted" value="TRUE">
 
             <div class="modal-footer">
+                <a href="ventas.php<?php echo "?op=$op&ta=$ta";?>" class="btn btn-danger">Salir</a>
                 <button type="submit" class="btn btn-success">Agregar Factura</button>
             </div>
         </form>
@@ -482,11 +548,16 @@ include("tabs.php");
         <h3 class="modalx-titulo">Confirmar eliminación</h3>
         <p class="modalx-texto">¿Estás seguro de que deseas eliminar esta venta?</p>
         <div class="modalx-footer">
-            <a href='ventas.php?op=<?php echo $op; ?>' class="btn-cancelar">Cancelar</a>
-            <a href='ventas.php?op=<?php echo $op . "&del2=" . $del; ?>' class="btn-confirmar">Eliminar</a>
+            <a href='ventas.php<?php echo "?op=$op&ta=$ta"; ?>' class="btn btn-cancelar">Cancelar</a>
+            <a href='ventas.php<?php echo "?op=$op&ta=$ta&del2=" . $del; ?>' class="btn-confirmar">Eliminar</a>
         </div>
     </div>
 </div>
 
 <!-- Pie de página -->
 <?php include("../includes/footer.php"); ?>
+
+
+
+
+			

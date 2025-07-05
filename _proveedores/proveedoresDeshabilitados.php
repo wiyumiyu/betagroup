@@ -5,6 +5,16 @@ include('../includes/funciones.php');
 include("tabs.php");
 
 $habilitar = ""; // Inicializar
+$ta = "";
+$op = "";
+
+if (isset($_GET['ta'])) {
+    $ta = $_GET['ta'];
+}
+if (isset($_GET['op'])) {
+    $op = $_GET['op'];
+}
+
 
 // Si se confirmó desde el modal
 if (isset($_GET['confirmar_habilitacion'])) {
@@ -15,7 +25,7 @@ if (isset($_GET['confirmar_habilitacion'])) {
     oci_bind_by_name($stmt, ":id", $id_habilitar);
 
     if (oci_execute($stmt)) {
-       echo "<script>window.location.href='proveedoresDeshabilitados.php?op=2&ta=1';</script>";
+       echo "<script>window.location.href='proveedoresDeshabilitados.php?op=$op&ta=$ta';</script>";
     } else {
         $e = oci_error($stmt);
         echo "Error al habilitar: " . $e['message'];
@@ -64,7 +74,7 @@ if (isset($_GET['habilitar'])) {
             echo "<td>" . htmlspecialchars($row['DIRECCION_PROVEEDOR']) . "</td>";
             echo "<td>" . nl2br(htmlspecialchars($row['TELEFONOS'] ?? '')) . "</td>";
             echo "<td>
-                    <a href='proveedoresDeshabilitados.php?habilitar=$id' class='btn btn-success'>
+                    <a href='proveedoresDeshabilitados.php?op=$op&ta=$ta&habilitar=$id' class='btn btn-success'>
                         <i class='bi bi-check-circle'></i>
                     </a>
                   </td>";
@@ -83,8 +93,8 @@ if (isset($_GET['habilitar'])) {
         <h3 class="modalx-titulo">Confirmar habilitación</h3>
         <p class="modalx-texto">¿Estás seguro de que deseas habilitar este proveedor?</p>
         <div class="modalx-footer">
-            <a href='proveedoresDeshabilitados.php' class="btn-cancelar">Cancelar</a>
-            <a href='proveedoresDeshabilitados.php?confirmar_habilitacion=<?php echo $habilitar; ?>' class="btn btn-success">Habilitar</a>
+            <a href='proveedoresDeshabilitados.php<?php echo "?op=$op&ta=$ta";?>' class="btn-cancelar">Cancelar</a>
+            <a href='proveedoresDeshabilitados.php<?php echo "?op=$op&ta=$ta&confirmar_habilitacion=$habilitar" ; ?>' class="btn btn-success">Habilitar</a>
         </div>
     </div>
 </div>
