@@ -861,6 +861,35 @@ BEGIN
 END;
 /
 
+--43. Procedimiento para obtener los usuarios por ID
+CREATE OR REPLACE PROCEDURE obtener_usuario_por_id (
+    p_id_usuario IN USUARIO.ID_USUARIO%TYPE,
+    p_cursor OUT SYS_REFCURSOR
+) AS
+BEGIN
+    OPEN p_cursor FOR
+        SELECT 
+            NOMBRE_USUARIO,
+            TELEFONO,
+            CORREO,
+            ROL,
+            ESTADO
+        FROM USUARIO
+        WHERE ID_USUARIO = p_id_usuario;
+END;
+/
+
+--44. Procedimiento para habilitar usuarios desactivados
+
+CREATE OR REPLACE PROCEDURE habilitar_usuario (
+    p_id IN USUARIO.ID_USUARIO%TYPE
+) AS
+BEGIN
+    UPDATE USUARIO
+    SET ESTADO = 1
+    WHERE ID_USUARIO = p_id;
+END;
+/
 
 -- -------------------------- VISTAS ------------------------------------------------------
 
@@ -963,7 +992,19 @@ BEGIN
 END;
 /
 
+-- -------------------------- STORED PROCEDURES (Para Vistas) ------------------------------------------------------
 
+--1. Procedimiento almacenado para recorrer la vista de usuarios deshabilitados
+
+CREATE OR REPLACE PROCEDURE listar_usuarios_deshabilitados (
+    p_cursor OUT SYS_REFCURSOR
+) AS
+BEGIN
+    OPEN p_cursor FOR
+        SELECT ID_USUARIO, NOMBRE_USUARIO, TELEFONO, CORREO, ROL, FECHA_REGISTRO
+        FROM V_USUARIOS_DESHABILITADOS;
+END;
+/
 
 -- -------------------------- TRIGGER ------------------------------------------------------
 

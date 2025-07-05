@@ -80,9 +80,6 @@ if (isset($_POST['submitted'])) {
 }
 ?>
 
-<!-- HTML -->
-
-
 <?php include("tabs.php"); ?>
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -170,23 +167,27 @@ $edtVer = "";
 
 if (isset($_GET["edt"])) {
     $edt = $_GET["edt"];
-    $sql = "SELECT NOMBRE_USUARIO, CONTRASENA, TELEFONO, CORREO, ROL, ESTADO FROM USUARIO WHERE ID_USUARIO = :id";
+
+    $sql = "BEGIN obtener_usuario_por_id(:id_usuario, :cursor); END;";
     $stid = oci_parse($conn, $sql);
-    oci_bind_by_name($stid, ":id", $edt);
+    $cursor = oci_new_cursor($conn);
+
+    oci_bind_by_name($stid, ":id_usuario", $edt);
+    oci_bind_by_name($stid, ":cursor", $cursor, -1, OCI_B_CURSOR);
+
     oci_execute($stid);
-    if ($row = oci_fetch_array($stid, OCI_ASSOC)) {
+    oci_execute($cursor);
+
+    if ($row = oci_fetch_array($cursor, OCI_ASSOC)) {
         $nombre = htmlspecialchars($row["NOMBRE_USUARIO"]);
-        if(isset($row["TELEFONO"])){
-            $telefono = $row["TELEFONO"];
-        } else{
-            
-           $telefono = "";
-        }  
+        $telefono = isset($row["TELEFONO"]) ? $row["TELEFONO"] : "";
         $correo = htmlspecialchars($row["CORREO"]);
         $rol = $row["ROL"];
         $estado = $row["ESTADO"];
     }
+
     oci_free_statement($stid);
+    oci_free_statement($cursor);
 
     $seleccionadoV = ($rol == 0) ? "selected" : "";
     $seleccionadoA = ($rol == 1) ? "selected" : "";
@@ -198,7 +199,7 @@ if (isset($_GET["edt"])) {
 ?>
 
         <h3 class="modalx-titulo"><?php echo $tipoEdit; ?> usuario</h3>
-        <form action="usuarios.php<?php echo "?op=$op&ta=$ta" & $edtVer; ?>" method="POST">
+        <form action="usuarios.php<?php echo "?op=$op&ta=$ta&" . $edtVer; ?>" method="POST">
             <label for="nombre_usuario">Nombre de Usuario:</label>
             <input type="text" id="nombre_usuario" class="form-control" name="nombre_usuario" value="<?php echo $nombre; ?>"><br>
 
