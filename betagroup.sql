@@ -762,11 +762,11 @@ END;
 
 -- 39. PROCEDIMIENTO PARA INSERTAR UN DETALLE DE VENTA
 CREATE OR REPLACE PROCEDURE insertar_venta_detalle (
-    p_cantidad        IN VENTA_DETALLE.CANTIDAD%TYPE,
+    p_cantidad       IN VENTA_DETALLE.CANTIDAD%TYPE,
     p_precio_unitario IN VENTA_DETALLE.PRECIO_UNITARIO%TYPE,
-    p_descuento       IN VENTA_DETALLE.DESCUENTO%TYPE,
-    p_id_producto     IN VENTA_DETALLE.ID_PRODUCTO%TYPE,
-    p_id_venta        IN VENTA_DETALLE.ID_VENTA%TYPE
+    p_descuento      IN VENTA_DETALLE.DESCUENTO%TYPE,
+    p_id_producto    IN VENTA_DETALLE.ID_PRODUCTO%TYPE,
+    p_id_venta       IN VENTA_DETALLE.ID_VENTA%TYPE
 ) AS
 BEGIN
     INSERT INTO VENTA_DETALLE (
@@ -796,6 +796,56 @@ BEGIN
 END;
 /
 
+-- 41. Procedimiento que devuelve una venta a partir de un id
+CREATE OR REPLACE PROCEDURE OBTENER_VENTA (
+    p_id_venta   IN  VENTA.ID_VENTA%TYPE,
+    p_numero     OUT VENTA.NUMERO%TYPE,
+    p_impuestos  OUT VENTA.IMPUESTOS%TYPE,
+    p_id_cliente OUT VENTA.ID_CLIENTE%TYPE
+) AS
+BEGIN
+    SELECT NUMERO, IMPUESTOS, ID_CLIENTE
+    INTO   p_numero, p_impuestos, p_id_cliente
+    FROM   VENTA
+    WHERE  ID_VENTA = p_id_venta;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        p_numero     := NULL;
+        p_impuestos  := NULL;
+        p_id_cliente := NULL;
+    WHEN OTHERS THEN
+        RAISE;
+END;
+/
+
+--42. procedimiento que devuelve el detalle de una venta
+CREATE OR REPLACE PROCEDURE LISTAR_DETALLES_VENTA (
+    p_id_venta IN VENTA_DETALLE.ID_VENTA%TYPE,
+    p_cursor OUT SYS_REFCURSOR
+)
+AS
+BEGIN
+    OPEN p_cursor FOR
+        SELECT 
+            vd.ID_PRODUCTO,
+            p.NOMBRE_PRODUCTO,
+            vd.CANTIDAD,
+            vd.DESCUENTO,
+            vd.PRECIO_UNITARIO
+        FROM VENTA_DETALLE vd
+        JOIN PRODUCTO p ON vd.ID_PRODUCTO = p.ID_PRODUCTO
+        WHERE vd.ID_VENTA = p_id_venta;
+END;
+/
+
+--42. procedimiento que devuelve la ultima venta ingresada
+CREATE OR REPLACE PROCEDURE OBTENER_ULTIMO_ID_VENTA (
+    p_id_venta OUT NUMBER
+) AS
+BEGIN
+    SELECT SEQ_ID_VENTA.CURRVAL INTO p_id_venta FROM DUAL;
+END;
+/
 
 -- -------------------------- VISTAS ------------------------------------------------------
 
@@ -862,7 +912,6 @@ FROM
 WHERE 
     p.ESTADO = 0;
 
-    
 -- Procedimiento que manpula la vista de Proveedores Deshabilitados 
 
 CREATE OR REPLACE PROCEDURE LISTAR_PROVEEDORES_DESHABILITADOS (
@@ -874,6 +923,32 @@ BEGIN
         FROM V_PROVEEDORES_DESHABILITADOS;
 END;
 /
+
+-- 5. VISTA PARA LOS 5 PRODUCTOS MENOS VENDIDOS
+CREATE OR REPLACE VIEW VISTA_PRODUCTOS_MENOS_VENDIDOS AS
+SELECT 
+    p.ID_PRODUCTO,
+    p.NOMBRE_PRODUCTO,
+    c.NOMBRE_CATEGORIA,
+    NVL(SUM(vd.CANTIDAD), 0) AS TOTAL_VENDIDO
+FROM PRODUCTO p
+LEFT JOIN VENTA_DETALLE vd ON p.ID_PRODUCTO = vd.ID_PRODUCTO
+JOIN CATEGORIA c ON p.ID_CATEGORIA = c.ID_CATEGORIA
+GROUP BY p.ID_PRODUCTO, p.NOMBRE_PRODUCTO, c.NOMBRE_CATEGORIA
+ORDER BY TOTAL_VENDIDO ASC
+FETCH FIRST 5 ROWS ONLY;
+
+-- Procedimiento vara consultar lo productos menos vendidos
+CREATE OR REPLACE PROCEDURE LISTAR_PRODUCTOS_MENOS_VENDIDOS (
+    p_cursor OUT SYS_REFCURSOR
+) AS
+BEGIN
+    OPEN p_cursor FOR
+        SELECT * FROM VISTA_PRODUCTOS_MENOS_VENDIDOS;
+END;
+/
+
+
 
 -- -------------------------- TRIGGER ------------------------------------------------------
 
@@ -987,30 +1062,40 @@ VALUES ('Equipos Estéticos');
 
 -- 4. Insertar productos (ya existen proveedor y categoría)
 INSERT INTO PRODUCTO (NOMBRE_PRODUCTO, PRECIO, ID_PROVEEDOR, ID_CATEGORIA)
-VALUES ('Soprano Titanium (Depilación Láser)', 42000000, 1, 1);
+VALUES ('Soprano Titanium (Depilación Láser)', 500000, 1, 1);
 
 INSERT INTO PRODUCTO (NOMBRE_PRODUCTO, PRECIO, ID_PROVEEDOR, ID_CATEGORIA)
-VALUES ('Multifuncional 6 en 1 con Lipoláser 850mz y EMS', 800000, 2, 1);
+VALUES ('Multifuncional 6 en 1 con Lipoláser 850mz y EMS', 1200000, 2, 1);
 
+INSERT INTO PRODUCTO (NOMBRE_PRODUCTO, PRECIO, ID_PROVEEDOR, ID_CATEGORIA)
+VALUES ('Lampara de cirugia', 800000, 3, 1);
+
+INSERT INTO PRODUCTO (NOMBRE_PRODUCTO, PRECIO, ID_PROVEEDOR, ID_CATEGORIA)
+VALUES ('Laser CO2', 1500000, 2, 1);
+
+INSERT INTO PRODUCTO (NOMBRE_PRODUCTO, PRECIO, ID_PROVEEDOR, ID_CATEGORIA)
+VALUES ('Láser de 4 longitudes soprano ', 1000000, 2, 1);
+
+/*
 SELECT *
 FROM PRODUCTO;
 
 SELECT *
 FROM TELEFONO_PROVEEDOR;
-
+*/
 -- Ver procedimiento productos
 VARIABLE rc REFCURSOR;
 EXEC LISTAR_PRODUCTOS(:rc);
 PRINT rc;
 
-INSERT INTO VENTA (ID_VENTA, NUMERO, FECHA, IMPUESTOS, ID_CLIENTE, ID_USUARIO)
-VALUES (1, 1001, SYSDATE, 13, 1, 1);
+INSERT INTO VENTA (NUMERO, FECHA, IMPUESTOS, ID_CLIENTE, ID_USUARIO)
+VALUES (1001, SYSDATE, 13, 1, 1);
 
-INSERT INTO VENTA (ID_VENTA, NUMERO, FECHA, IMPUESTOS, ID_CLIENTE, ID_USUARIO)
-VALUES (2, 1002, SYSDATE, 20, 1, 1);
+INSERT INTO VENTA (NUMERO, FECHA, IMPUESTOS, ID_CLIENTE, ID_USUARIO)
+VALUES (1002, SYSDATE, 20, 1, 1);
 
-INSERT INTO VENTA (ID_VENTA, NUMERO, FECHA, IMPUESTOS, ID_CLIENTE, ID_USUARIO)
-VALUES (3, 1003, SYSDATE, 10, 1, 2);
+INSERT INTO VENTA ( NUMERO, FECHA, IMPUESTOS, ID_CLIENTE, ID_USUARIO)
+VALUES ( 1003, SYSDATE, 10, 1, 2);
 
 
 commit;

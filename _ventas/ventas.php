@@ -76,22 +76,36 @@ if (isset($_POST['submitted'])) {
         exit;
     }
     oci_free_statement($stmtVenta);
-
-    // 3. Recuperar el ID_VENTA generado automáticamente (vía CURRVAL)
-    $sqlGetId = "SELECT SEQ_ID_VENTA.CURRVAL AS ID FROM DUAL";
-    $stmtId = oci_parse($conn, $sqlGetId);
-    oci_execute($stmtId);
-    $row = oci_fetch_assoc($stmtId);
-    oci_free_statement($stmtId);
+// Paso 1: Preparamos llamada al procedimiento
+$sqlGetId = "BEGIN OBTENER_ULTIMO_ID_VENTA(:id); END;";
+$stmtId = oci_parse($conn, $sqlGetId);
+  // Paso 2: Variable para capturar el ID
+$idVenta = null;
+oci_bind_by_name($stmtId, ":id", $idVenta, 10);  
+    // Paso 3: Ejecutamos
+if (!oci_execute($stmtId)) {
+    $e = oci_error($stmtId);
+    echo "Error al recuperar ID de venta: " . $e['message'];
+    exit;
+}
+oci_free_statement($stmtId);
     
-    echo $row['ID'];
-
-    if (!$row || !isset($row['ID'])) {
-        echo "No se pudo recuperar el ID de la venta.";
-        exit;
-    }
-
-    $idVenta = $row['ID'];
+    
+    // 3. Recuperar el ID_VENTA generado automáticamente (vía CURRVAL)
+//    $sqlGetId = "SELECT SEQ_ID_VENTA.CURRVAL AS ID FROM DUAL";
+//    $stmtId = oci_parse($conn, $sqlGetId);
+//    oci_execute($stmtId);
+//    $row = oci_fetch_assoc($stmtId);
+//    oci_free_statement($stmtId);
+//    
+//    echo $row['ID'];
+//
+//    if (!$row || !isset($row['ID'])) {
+//        echo "No se pudo recuperar el ID de la venta.";
+//        exit;
+//    }
+//
+//    $idVenta = $row['ID'];
 
     // 4. Insertar los detalles de la venta
     $productos = $_POST['producto'] ?? [];
