@@ -64,10 +64,6 @@ if (isset($_POST['submitted'])) {
 ?>
 
 <hr>
-<ol class="breadcrumb bc-3">
-    <li><a href="..\_dashboard\escritorio.php"><i class="entypo-home"></i>Home</a></li>
-    <li class="active"><strong>Tipos de Clínica</strong></li>
-</ol>
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
     <h2 style="margin: 0;">Tipos de Clínica</h2>

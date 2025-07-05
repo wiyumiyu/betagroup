@@ -4,11 +4,6 @@ include("../includes/barralateral.php");
 include ('../includes/funciones.php');
 ?>
 
-<hr>
-<ol class="breadcrumb bc-3">
-    <li><a href="../_dashboard/escritorio.php"><i class="entypo-home"></i>Home</a></li>
-    <li class="active"><strong>Lista de Usuarios Deshabilitados</strong></li>
-</ol>
 
 <?php
 include("tabs.php");
@@ -39,12 +34,12 @@ oci_execute($stid);
 
 while ($row = oci_fetch_assoc($stid)) {
     echo "<tr>";
-    echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['NOMBRE_USUARIO']) . "</td>";
-    echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['TELEFONO'] ?? '') . "</td>";
-    echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['CORREO']) . "</td>";
+    echo "<td>" . htmlspecialchars($row['NOMBRE_USUARIO']) . "</td>";
+    echo "<td>" . htmlspecialchars($row['TELEFONO'] ?? '') . "</td>";
+    echo "<td>" . htmlspecialchars($row['CORREO']) . "</td>";
     $rolTexto = ($row['ROL'] == 1) ? "Administrador" : "Vendedor";
-    echo "<td style='color: #4B4B4B;'>$rolTexto</td>";
-    echo "<td style='color: #4B4B4B;'>" . date("d-m-Y", strtotime($row['FECHA_REGISTRO'])) . "</td>";
+    echo "<td>$rolTexto</td>";
+    echo "<td>" . date("d-m-Y", strtotime($row['FECHA_REGISTRO'])) . "</td>";
     echo "</tr>";
 }
 

@@ -68,10 +68,6 @@ if (isset($_POST['submitted'])) {
 
 <!-- ------------------ INTERFAZ HTML ---------------------- -->
 <hr>
-<ol class="breadcrumb bc-3">
-  <li><a href="../_dashboard/escritorio.php"><i class="entypo-home"></i>Home</a></li>
-  <li class="active"><strong>Lista de Categorias</strong></li>
-</ol>
 <div style="display:flex;justify-content:space-between;align-items:center;">
   <h2>Lista de Categorías</h2>
   <button onclick="abrirModal()" class="btn btn-success"> Nueva Categoría</button>

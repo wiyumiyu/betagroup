@@ -4,10 +4,9 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/C:/xampp/htdocs/betagroup/_proveedores/proveedores.php</file>
-            <file>file:/C:/xampp/htdocs/betagroup/includes/barralateral.php</file>
-            <file>file:/C:/xampp/htdocs/betagroup/_productos/productos.php</file>
-            <file>file:/C:/xampp/htdocs/betagroup/_tipoClinica/tipoClinica.php</file>
-            <file>file:/C:/xampp/htdocs/betagroup/_clientes/clientes.php</file>
+            <file>file:/C:/xampp/htdocs/betagroup/_proveedores/tabs.php</file>
+            <file>file:/C:/xampp/htdocs/betagroup/_proveedores/proveedoresDeshabilitados.php</file>
+            <file>file:/C:/xampp/htdocs/betagroup/_usuarios/usuarios.php</file>
         </group>
     </open-files>
 </project-private>

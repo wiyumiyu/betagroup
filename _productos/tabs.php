@@ -15,9 +15,6 @@ switch ($tab) {
     case 1:
         $t_vista1 = "active";
         break;
-    case 2:
-        $t_vista2 = "active";
-        break;
 }
 ?>
 
@@ -28,10 +25,7 @@ switch ($tab) {
     <a class="nav-link <?php echo $t_lista; ?>" aria-current="page" href="productos.php?op=2&ta=0">Lista de Productos</a>
   </li>
   <li class="tab-pane  <?php echo $t_vista1; ?>">
-    <a class="nav-link" <?php echo $t_vista1; ?> href="vista1.php?op=2&ta=1">Link</a>
-  </li>
-  <li class="tab-pane <?php echo $t_vista2; ?>">
-    <a class="nav-link" <?php echo $t_vista2; ?>" href="#">Link</a>
+    <a class="nav-link" <?php echo $t_vista1; ?> href="vista1.php?op=2&ta=1">Productos menos vendidos</a>
   </li>
 
 </ul>

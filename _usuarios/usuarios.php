@@ -72,11 +72,7 @@ if (isset($_POST['submitted'])) {
 ?>
 
 <!-- HTML -->
-<hr>
-<ol class="breadcrumb bc-3">
-    <li><a href="..\_dashboard\escritorio.php"><i class="entypo-home"></i>Home</a></li>
-    <li class="active"><strong>Lista de Usuarios</strong></li>
-</ol>
+
 
 <?php include("tabs.php"); ?>
 
@@ -89,12 +85,12 @@ if (isset($_POST['submitted'])) {
 <table class="table table-bordered table-striped datatable" id="table-2">
     <thead>
         <tr>
-            <th>Usuario</th>
-            <th>Teléfono</th>
-            <th>Correo</th>
-            <th>Rol</th>
-            <th>Registro</th>
-            <th>Acciones</th>
+            <th><strong style="color: #999999;">Usuario</strong></th>
+            <th><strong style="color: #999999;">Teléfono</strong></th>
+            <th><strong style="color: #999999;">Correo</strong></th>
+            <th><strong style="color: #999999;">Rol</strong></th>
+            <th><strong style="color: #999999;">Registro</strong></th>
+            <th><strong style="color: #999999;">Acciones</strong></th>
         </tr>
     </thead>
     <tbody>

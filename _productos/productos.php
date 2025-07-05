@@ -96,11 +96,6 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
 ?>
 
 <!-- ------------------ INTERFAZ HTML ---------------------- -->
-<hr>
-<ol class="breadcrumb bc-3">
-    <li><a href="../_dashboard/escritorio.php"><i class="entypo-home"></i>Home</a></li>
-    <li class="active"><strong>Lista de Productos</strong></li>
-</ol>
 
 <?php include("tabs.php"); ?>
 
