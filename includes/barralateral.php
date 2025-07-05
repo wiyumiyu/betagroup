@@ -173,7 +173,7 @@ if ($pc == 0) {
 
                 <li class="active">
                     
-                    <?php echo "<a href='../_productos/categorias.php?op=2'>"; ?>    
+                    <?php echo "<a href='../_productos/categorias.php?op=2&ta=0'>"; ?>    
                         <span>Categorías</span>
                     </a>                            
                 </li>   

@@ -847,6 +847,21 @@ BEGIN
 END;
 /
 
+
+--43. procedimiento que optiene un producto a partir de un id
+CREATE OR REPLACE PROCEDURE OBTENER_PRODUCTO (
+    p_id_producto IN PRODUCTO.ID_PRODUCTO%TYPE,
+    p_cursor      OUT SYS_REFCURSOR
+) AS
+BEGIN
+    OPEN p_cursor FOR
+        SELECT NOMBRE_PRODUCTO, PRECIO, ID_PROVEEDOR, ID_CATEGORIA
+        FROM PRODUCTO
+        WHERE ID_PRODUCTO = p_id_producto;
+END;
+/
+
+
 -- -------------------------- VISTAS ------------------------------------------------------
 
 -- 1. Vista de Usuarios Deshabilitados

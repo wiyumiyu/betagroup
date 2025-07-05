@@ -155,6 +155,10 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
     </tbody>
 </table>
 
+<?php
+?>
+
+
 <!-- MODAL: Agregar / Editar -->
 
 <div id="modal-confirmar" class="modalx">
@@ -166,17 +170,33 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
 
         if (isset($_GET["edt"])) {
             $id = $_GET["edt"];
-            $sql = "SELECT NOMBRE_PRODUCTO, PRECIO, ID_PROVEEDOR, ID_CATEGORIA FROM PRODUCTO WHERE ID_PRODUCTO = :id";
-            $stid = oci_parse($conn, $sql);
-            oci_bind_by_name($stid, ":id", $id);
-            oci_execute($stid);
-            if ($row = oci_fetch_array($stid, OCI_ASSOC)) {
+            $sql = "BEGIN OBTENER_PRODUCTO(:id, :cursor); END;";
+            $stmt = oci_parse($conn, $sql);
+            $cursor = oci_new_cursor($conn);
+
+// Enlazar el ID y el cursor
+            oci_bind_by_name($stmt, ":id", $id);
+            oci_bind_by_name($stmt, ":cursor", $cursor, -1, OCI_B_CURSOR);
+
+// Ejecutar ambos
+            oci_execute($stmt);
+            oci_execute($cursor);
+
+// Leer los datos del cursor
+            if ($row = oci_fetch_assoc($cursor)) {
                 $nombre_producto = htmlspecialchars($row["NOMBRE_PRODUCTO"]);
                 $precio = $row["PRECIO"];
-                $id_proveedor = htmlspecialchars($row["ID_PROVEEDOR"]);
-                $id_categoria = htmlspecialchars($row["ID_CATEGORIA"]);
+                $id_proveedor = $row["ID_PROVEEDOR"];
+                $id_categoria = $row["ID_CATEGORIA"];
+            } else {
+                echo "Producto no encontrado.";
             }
-            oci_free_statement($stid);
+
+// Cerrar
+            oci_free_statement($stmt);
+            oci_free_statement($cursor);
+            //**************************************
+
             $tipoEdit = "Editar";
             $edtVer = "edt=$id";
         }
@@ -197,7 +217,7 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
             <br>
             <input type='hidden' name='submitted' value='TRUE' />
             <div class="modalx-footer">
-                <a href='productos.php<?php echo "?op=$op&ta=$ta";?>' class="btn-cancelar">Cancelar</a>
+                <a href='productos.php<?php echo "?op=$op&ta=$ta"; ?>' class="btn-cancelar">Cancelar</a>
                 <button type="submit" class="btn btn-success">Guardar</button>
             </div>
         </form>
@@ -211,8 +231,8 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
         <h3 class="modalx-titulo">Confirmar eliminación</h3>
         <p class="modalx-texto">¿Estás seguro de que deseas eliminar este producto?</p>
         <div class="modalx-footer">
-            <a href='productos.php<?php echo "?op=$op&ta=$ta" ; ?>' class="btn-cancelar">Cancelar</a>
-            <a href='productos.php<?php echo "?op=$op&ta=$ta&del2=$del" ; ?>' class="btn-confirmar">Eliminar</a>
+            <a href='productos.php<?php echo "?op=$op&ta=$ta"; ?>' class="btn-cancelar">Cancelar</a>
+            <a href='productos.php<?php echo "?op=$op&ta=$ta&del2=$del"; ?>' class="btn-confirmar">Eliminar</a>
         </div>
     </div>
 </div>
@@ -246,10 +266,10 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
             document.getElementById('modal-eliminar').style.display = 'block';
         }
     });
-    
-    
-    
-    
+
+
+
+
 
 
 //    var triggerTabList = [].slice.call(document.querySelectorAll('#myTab a'))

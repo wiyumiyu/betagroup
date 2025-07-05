@@ -15,6 +15,16 @@ $del = "";
 $edt = "";
 $edtVer = "";
 
+$ta = "";
+$op = "";
+
+if (isset($_GET['ta'])) {
+    $ta = $_GET['ta'];
+}
+if (isset($_GET['op'])) {
+    $op = $_GET['op'];
+}
+
 // Si en la URL hay un valor ?edt=, lo guardamos en la variable $edt para editar ese usuario
 if (isset($_GET['edt'])) {
     $edt = $_GET['edt'];
@@ -35,7 +45,7 @@ if (isset($_GET['del2'])) {
 
     if (oci_execute($stmt)) {
         // Si se eliminó correctamente, recargamos la página
-        echo "<script>window.location.href = 'categorias.php';</script>";
+        echo "<script>window.location.href = 'categorias.php?op=$op&ta=$ta';</script>";
     } else {
         $e = oci_error($stmt);
         echo "Error al eliminar el categoria: " . $e['message'];
@@ -54,7 +64,7 @@ if (isset($_POST['submitted'])) {
     oci_bind_by_name($stmt, ":nombre_categoria", $nombre_categoria);
 
     if (oci_execute($stmt)) {
-        echo "<script>window.location.href='categorias.php?op=3&pc=1';</script>";
+        echo "<script>window.location.href='categorias.php?op=$op&ta=$ta';</script>";
     } else {
         $e = oci_error($stmt);
         echo "Error: " . $e['message'];
@@ -98,7 +108,7 @@ $id = $row['ID_CATEGORIA'];
     echo "<td>" . htmlspecialchars($id) . "</td>";
     echo "<td>" . htmlspecialchars($row['NOMBRE_CATEGORIA']) . "</td>";
     echo "<td>
-            <a href='categorias.php?del=$id' class='btn btn-danger'><i class='entypo-cancel'></i></a>
+            <a href='categorias.php?op=$op&ta=$ta&del=$id' class='btn btn-danger'><i class='entypo-cancel'></i></a>
             </td>";
     echo "</tr>";
 }
@@ -117,28 +127,28 @@ $nombre_categoria = "";
 $tipoEdit = "Agregar nuevo";
 $edtVer = "";
 
-if (isset($_GET["edt"])) {
-    $id = $_GET["edt"];
-    $sql = "SELECT NOMBRE_CATEGORIA = :id";
-    $stid = oci_parse($conn, $sql);
-    oci_bind_by_name($stid, ":id", $id);
-    oci_execute($stid);
-    if ($row = oci_fetch_array($stid, OCI_ASSOC)) {
-        $nombre_categoria = htmlspecialchars($row["NOMBRE_CATEGORIA"]);
-    }
-    oci_free_statement($stid);
-    $tipoEdit = "Editar";
-    $edtVer = "?edt=$id";
-}
+//if (isset($_GET["edt"])) {
+//    $id = $_GET["edt"];
+//    $sql = "SELECT NOMBRE_CATEGORIA = :id";
+//    $stid = oci_parse($conn, $sql);
+//    oci_bind_by_name($stid, ":id", $id);
+//    oci_execute($stid);
+//    if ($row = oci_fetch_array($stid, OCI_ASSOC)) {
+//        $nombre_categoria = htmlspecialchars($row["NOMBRE_CATEGORIA"]);
+//    }
+//    oci_free_statement($stid);
+//    $tipoEdit = "Editar";
+//    $edtVer = "?edt=$id";
+//}
 echo "<h3 class='modalx-titulo'>$tipoEdit categoria</h3>";
 ?>
-            <form action="categorias.php<?php echo $edtVer; ?>" method="POST">
+            <form action="categorias.php<?php echo "?op=$op&ta=$ta"; ?>" method="POST">
             <label for="nombre_categoria">Nombre:</label>
             <input type="text" id="nombre_categoria" class="form-control" name="nombre_categoria" value="<?php echo $nombre_categoria; ?>" required>
             <br>
             <input type='hidden' name='submitted' value='TRUE' />
             <div class="modalx-footer">
-                <a href='categorias.php' class="btn-cancelar">Cancelar</a>
+                <a href='categorias.php<?php echo "?op=$op&ta=$ta"; ?>' class="btn-cancelar">Cancelar</a>
                 <button type="submit" class="btn btn-success">Guardar</button>
             </div>
         </form>
@@ -152,8 +162,8 @@ echo "<h3 class='modalx-titulo'>$tipoEdit categoria</h3>";
         <h3 class="modalx-titulo">Confirmar eliminación</h3>
         <p class="modalx-texto">¿Estás seguro de que deseas eliminar este categoria?</p>
         <div class="modalx-footer">
-            <a href='categorias.php' class="btn-cancelar">Cancelar</a>
-            <a href='categorias.php?del2=<?php echo $del; ?>' class="btn-confirmar">Eliminar</a>
+            <a href='categorias.php<?php echo "?op=$op&ta=$ta"; ?>' class="btn-cancelar">Cancelar</a>
+            <a href='categorias.php<?php echo "?op=$op&ta=$ta&del2=$del"; ?>' class="btn-confirmar">Eliminar</a>
         </div>
     </div>
 </div>
