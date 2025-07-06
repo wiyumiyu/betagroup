@@ -127,19 +127,7 @@ $nombre_categoria = "";
 $tipoEdit = "Agregar nuevo";
 $edtVer = "";
 
-//if (isset($_GET["edt"])) {
-//    $id = $_GET["edt"];
-//    $sql = "SELECT NOMBRE_CATEGORIA = :id";
-//    $stid = oci_parse($conn, $sql);
-//    oci_bind_by_name($stid, ":id", $id);
-//    oci_execute($stid);
-//    if ($row = oci_fetch_array($stid, OCI_ASSOC)) {
-//        $nombre_categoria = htmlspecialchars($row["NOMBRE_CATEGORIA"]);
-//    }
-//    oci_free_statement($stid);
-//    $tipoEdit = "Editar";
-//    $edtVer = "?edt=$id";
-//}
+
 echo "<h3 class='modalx-titulo'>$tipoEdit categoria</h3>";
 ?>
             <form action="categorias.php<?php echo "?op=$op&ta=$ta"; ?>" method="POST">
