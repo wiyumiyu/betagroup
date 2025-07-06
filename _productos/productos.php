@@ -38,7 +38,10 @@ if (isset($_GET['del'])) {
 // Si se confirma la eliminación con ?del2=, eliminamos el usuario de la base de datos
 if (isset($_GET['del2'])) {
     $del2 = $_GET['del2'];
-
+    
+    $stmt_contexto =  "BEGIN pkg_contexto_usuario.set_usuario(:id); END;";
+    llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_usuario.set_usuario(:id); END;", $conn);
+    
     $sql = "BEGIN eliminar_producto(:id); END;";
     $stmt = oci_parse($conn, $sql);
     oci_bind_by_name($stmt, ":id", $del2);
@@ -50,7 +53,8 @@ if (isset($_GET['del2'])) {
         $e = oci_error($stmt);
         echo "Error al eliminar el producto: " . $e['message'];
     }
-
+    if (isset($stmt_contexto))
+        oci_free_statement($stmt_contexto);
     oci_free_statement($stmt);
 }
 
@@ -60,6 +64,8 @@ if (isset($_POST['submitted'])) {
     $precio = trim($_POST["precio"]);
     $id_proveedor = trim($_POST["id_proveedor"]);
     $id_categoria = trim($_POST["id_categoria"]);
+    
+    $stmt_contexto =  llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_usuario.set_usuario(:id); END;", $conn);
 
     if (isset($_GET['edt'])) {
         $id = $_GET['edt'];
@@ -76,15 +82,19 @@ if (isset($_POST['submitted'])) {
     oci_bind_by_name($stmt, ":id_proveedor", $id_proveedor);
     oci_bind_by_name($stmt, ":id_categoria", $id_categoria);
 
-    if (oci_execute($stmt)) {
-        echo "<script>window.location.href='productos.php?op=$op&ta=$ta';</script>";
-    } else {
+    if (!oci_execute($stmt)) {
         $e = oci_error($stmt);
         echo "Error: " . $e['message'];
-    }
+    } 
 
     oci_free_statement($stmt);
+    if (isset($stmt_contexto))
+        oci_free_statement($stmt_contexto);
     oci_close($conn);
+    
+    echo "<script>window.location.href='productos.php?op=$op&ta=$ta';</script>";
+    
+    
 }
 
 // --------------------------- Funcion Cargar Select ----------------------------------
@@ -202,7 +212,7 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
         }
         echo "<h3 class='modalx-titulo'>$tipoEdit producto</h3>";
         ?>
-        <form action="productos.php<?php echo "?op=$op&ta=$ta" . $edtVer; ?>" method="POST">
+        <form action="productos.php<?php echo "?op=$op&ta=$ta&" . $edtVer; ?>" method="POST">
             <label for="nombre_producto">Nombre:</label>
             <input type="text" id="nombre_producto" class="form-control" name="nombre_producto" value="<?php echo $nombre_producto; ?>" required>
             <br>

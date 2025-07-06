@@ -31,14 +31,13 @@ if ($r && $resultado == 1) {
     $_SESSION['nombre'] = $nombre;
     $_SESSION['rol'] = $rol;
 
+
     $login_status = 'success';
     $resp['redirect_url'] = '_dashboard/escritorio.php';
 }
 
 oci_free_statement($stid);
 oci_close($conn);
-
-
 
 // Resultado final
 $resp['login_status'] = $login_status;
