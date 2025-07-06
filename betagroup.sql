@@ -13,6 +13,8 @@ GRANT CREATE PROCEDURE TO betagroup;
 GRANT CREATE TRIGGER TO betagroup;
 GRANT CREATE SEQUENCE TO betagroup;
 GRANT CREATE VIEW TO betagroup;
+GRANT CREATE ANY CONTEXT TO betagroup;
+
 
 -- Permiso para usar funciones criptográficas
 GRANT EXECUTE ON DBMS_CRYPTO TO betagroup;
@@ -133,6 +135,13 @@ CREATE TABLE VENTA_DETALLE (
   
 );
 
+-- Tabla de BITACORA
+CREATE TABLE BITACORA (
+  ID_BITACORA    NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  ID_USUARIO      NUMBER,
+  FECHA_OPERACION TIMESTAMP DEFAULT SYSTIMESTAMP,
+  DESCRIPCION     CLOB
+);
 
 -- ------------------------------------------------- PROCEDIMIENTOS ALMACENADOS ---------------------------------------------------------------------
 
@@ -1120,9 +1129,36 @@ BEGIN
 END;
 /
 
+-- -------------------------- CONTEXTOS ------------------------------------------------------
+
+CREATE OR REPLACE CONTEXT APP_CTX USING pkg_contexto_usuario;
+/
+
+CREATE OR REPLACE PACKAGE pkg_contexto_usuario AS
+  PROCEDURE set_usuario(p_id_usuario IN NUMBER);
+  PROCEDURE limpiar_usuario;
+END;
+/
+
+-- -------------------------- PAQUETES ------------------------------------------------------
+
+CREATE OR REPLACE PACKAGE BODY pkg_contexto_usuario AS
+  PROCEDURE set_usuario(p_id_usuario IN NUMBER) IS
+  BEGIN
+    DBMS_SESSION.SET_CONTEXT('APP_CTX', 'ID_USUARIO', TO_CHAR(p_id_usuario));
+  END;
+
+  PROCEDURE limpiar_usuario IS
+  BEGIN
+    DBMS_SESSION.CLEAR_CONTEXT('APP_CTX', 'ID_USUARIO');
+  END;
+END;
+/
+
+
 -- -------------------------- TRIGGER ------------------------------------------------------
 
--- 1. INSERTAR +506 al nï¿½mero
+-- 1. INSERTAR +506 al numero
 
 CREATE OR REPLACE TRIGGER TRG_TELEFONO_FORMATO
 BEFORE INSERT ON TELEFONO_PROVEEDOR
@@ -1131,6 +1167,51 @@ BEGIN
   IF SUBSTR(:NEW.TELEFONO, 1, 4) != '+506' THEN
     :NEW.TELEFONO := '+506 ' || :NEW.TELEFONO;
   END IF;
+END;
+/
+
+-- 2. Auditar los cambios de la tabla proveedores en bitacora
+
+CREATE OR REPLACE TRIGGER trg_bitacora_producto
+AFTER INSERT OR UPDATE OR DELETE ON PRODUCTO
+FOR EACH ROW
+DECLARE
+  v_usuario     NUMBER := TO_NUMBER(SYS_CONTEXT('APP_CTX', 'ID_USUARIO'));
+  v_operacion   VARCHAR2(10);
+  v_descripcion CLOB;
+BEGIN
+  IF INSERTING THEN
+    v_operacion := 'INSERT';
+    v_descripcion := 'Se insertó el producto: ' ||
+                     'ID=' || :NEW.ID_PRODUCTO || ', ' ||
+                     'NOMBRE=' || :NEW.NOMBRE_PRODUCTO || ', ' ||
+                     'PRECIO=' || :NEW.PRECIO || ', ' ||
+                     'ID_PROVEEDOR=' || :NEW.ID_PROVEEDOR || ', ' ||
+                     'ID_CATEGORIA=' || :NEW.ID_CATEGORIA;
+
+  ELSIF UPDATING THEN
+    v_operacion := 'UPDATE';
+    v_descripcion := 'Se actualizó el producto ID=' || :OLD.ID_PRODUCTO || ' ? ' ||
+                     'ANTES [NOMBRE=' || :OLD.NOMBRE_PRODUCTO || ', PRECIO=' || :OLD.PRECIO || '] ? ' ||
+                     'DESPUÉS [NOMBRE=' || :NEW.NOMBRE_PRODUCTO || ', PRECIO=' || :NEW.PRECIO || ']';
+
+  ELSIF DELETING THEN
+    v_operacion := 'DELETE';
+    v_descripcion := 'Se eliminó el producto: ' ||
+                     'ID=' || :OLD.ID_PRODUCTO || ', ' ||
+                     'NOMBRE=' || :OLD.NOMBRE_PRODUCTO || ', ' ||
+                     'PRECIO=' || :OLD.PRECIO;
+  END IF;
+
+  INSERT INTO BITACORA (
+    ID_USUARIO,
+    FECHA_OPERACION,
+    DESCRIPCION
+  ) VALUES (
+    v_usuario,
+    SYSTIMESTAMP,
+    v_operacion || ' - ' || v_descripcion
+  );
 END;
 /
 
@@ -1146,6 +1227,7 @@ BEGIN
     CREAR_AUTOINCREMENTO('TIPO_CLINICA', 'ID_TIPO_CLINICA');
     CREAR_AUTOINCREMENTO('VENTA', 'ID_VENTA');
     CREAR_AUTOINCREMENTO('VENTA_DETALLE', 'ID_VENTA_DETALLE');
+    CREAR_AUTOINCREMENTO('BITACORA', 'ID_BITACORA');
 END;
 /
 -- Llamamos al procedimiento para crear la secuencia y trigger para la tabla CLIENTE
@@ -1272,6 +1354,7 @@ VALUES (1002, SYSDATE, 20, 1, 1);
 INSERT INTO VENTA ( NUMERO, FECHA, IMPUESTOS, ID_CLIENTE, ID_USUARIO)
 VALUES ( 1003, SYSDATE, 10, 1, 2);
 
+SELECT * FROM BITACORA order by id_bitacora;
 
 commit;
 
