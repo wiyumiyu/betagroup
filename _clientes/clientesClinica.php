@@ -2,47 +2,57 @@
 include ('../includes/header.html');
 include("../includes/barralateral.php");
 include ('../includes/funciones.php');
-?>
 
-<?php
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $_GET["ta"] = 1;
+}
+
 include("tabs.php");
 
-// ---------- LÓGICA PHP ----------
 $tipoSeleccionado = "";
 $resultado = [];
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $tipoSeleccionado = $_POST["id_tipo_clinica"];
 
-    $sql = "SELECT * FROM V_CLIENTES_CON_TIPO_CLINICA WHERE ID_TIPO_CLINICA = :tipo_id";
+    $stmt = oci_parse($conn, "BEGIN obtener_clientes_por_clinica(:tipo_id, :cursor); END;");
+    $cursor = oci_new_cursor($conn);
 
-    $stmt = oci_parse($conn, $sql);
     oci_bind_by_name($stmt, ":tipo_id", $tipoSeleccionado);
-    oci_execute($stmt);
+    oci_bind_by_name($stmt, ":cursor", $cursor, -1, OCI_B_CURSOR);
 
-    while ($row = oci_fetch_assoc($stmt)) {
+    oci_execute($stmt);
+    oci_execute($cursor);
+
+    while ($row = oci_fetch_assoc($cursor)) {
         $resultado[] = $row;
     }
 
     oci_free_statement($stmt);
+    oci_free_statement($cursor);
 }
 ?>
 
 <h2>Filtrar Clientes por Tipo de Clínica</h2>
 
-<form method="POST" action="clientesClinica.php" style="margin-bottom: 20px;">
+<form method="POST" action="clientesClinica.php?op=3&ta=1" style="margin-bottom: 20px;">
     <div style="display: flex; gap: 10px;">
         <select name="id_tipo_clinica" class="form-control" required>
             <option value="">-- Seleccione Tipo de Clínica --</option>
 <?php
-$sqlTipos = "SELECT ID_TIPO_CLINICA, DESCRIPCION FROM TIPO_CLINICA ORDER BY DESCRIPCION";
-$stidTipos = oci_parse($conn, $sqlTipos);
-oci_execute($stidTipos);
-while ($row = oci_fetch_array($stidTipos, OCI_ASSOC)) {
+$stmt = oci_parse($conn, "BEGIN listar_tipos_clinica(:cursor); END;");
+$cursor = oci_new_cursor($conn);
+oci_bind_by_name($stmt, ":cursor", $cursor, -1, OCI_B_CURSOR);
+oci_execute($stmt);
+oci_execute($cursor);
+
+while ($row = oci_fetch_array($cursor, OCI_ASSOC)) {
     $selected = ($tipoSeleccionado == $row["ID_TIPO_CLINICA"]) ? "selected" : "";
     echo "<option value='{$row["ID_TIPO_CLINICA"]}' $selected>" . htmlspecialchars($row["DESCRIPCION"]) . "</option>";
 }
-oci_free_statement($stidTipos);
+
+oci_free_statement($stmt);
+oci_free_statement($cursor);
 ?>
         </select>
         <button type="submit" class="btn btn-info">Consultar</button>

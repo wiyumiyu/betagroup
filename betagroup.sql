@@ -72,6 +72,15 @@ CREATE TABLE CLIENTE (
     REFERENCES TIPO_CLINICA(ID_TIPO_CLINICA)
 );
 
+-- Crear tabla Telefono Cliente
+CREATE TABLE TELEFONO_CLIENTE (
+  ID_TELEFONO NUMBER PRIMARY KEY,
+  TELEFONO VARCHAR2(20) NOT NULL,
+  ID_CLIENTE NUMBER NOT NULL,
+  CONSTRAINT FK_TELEFONO_CLIENTE FOREIGN KEY (ID_CLIENTE)
+    REFERENCES CLIENTE(ID_CLIENTE)
+);
+
 -- Tabla de TELEFONO_PROVEEDOR
 CREATE TABLE TELEFONO_PROVEEDOR (
   ID_TELEFONO NUMBER PRIMARY KEY,
@@ -352,12 +361,27 @@ BEGIN
 END;
 /
 
--- 11. Procedimiento para actualizar cliente
+-- 11. Procedimiento para eliminar cliente
 
 CREATE OR REPLACE PROCEDURE eliminar_cliente (
     p_id_cliente IN CLIENTE.ID_CLIENTE%TYPE
 ) AS
 BEGIN
+    -- Eliminar VENTA_DETALLE asociados a las ventas del cliente
+    DELETE FROM VENTA_DETALLE
+    WHERE ID_VENTA IN (
+        SELECT ID_VENTA FROM VENTA WHERE ID_CLIENTE = p_id_cliente
+    );
+
+    -- Eliminar las VENTAS del cliente
+    DELETE FROM VENTA
+    WHERE ID_CLIENTE = p_id_cliente;
+
+    -- Eliminar los teléfonos asociados
+    DELETE FROM TELEFONO_CLIENTE
+    WHERE ID_CLIENTE = p_id_cliente;
+
+    -- Eliminar el cliente
     DELETE FROM CLIENTE
     WHERE ID_CLIENTE = p_id_cliente;
 END;
@@ -891,6 +915,83 @@ BEGIN
 END;
 /
 
+--45. Procedimiento para obtener datos cliente por ID
+CREATE OR REPLACE PROCEDURE OBTENER_CLIENTE (
+  p_id_cliente IN CLIENTE.ID_CLIENTE%TYPE,
+  p_nombre     OUT CLIENTE.NOMBRE_CLIENTE%TYPE,
+  p_correo     OUT CLIENTE.CORREO%TYPE,
+  p_tipo       OUT CLIENTE.ID_TIPO_CLINICA%TYPE
+) AS
+BEGIN
+  SELECT NOMBRE_CLIENTE, CORREO, ID_TIPO_CLINICA
+    INTO p_nombre, p_correo, p_tipo
+    FROM CLIENTE
+   WHERE ID_CLIENTE = p_id_cliente;
+END;
+/
+
+--46. Procedimiento para obtener teléfonos de un cliente
+CREATE OR REPLACE PROCEDURE OBTENER_TELEFONOS_CLIENTE (
+  p_id_cliente IN TELEFONO_CLIENTE.ID_CLIENTE%TYPE,
+  p_cursor     OUT SYS_REFCURSOR
+) AS
+BEGIN
+  OPEN p_cursor FOR
+    SELECT ID_TELEFONO, TELEFONO
+      FROM TELEFONO_CLIENTE
+     WHERE ID_CLIENTE = p_id_cliente;
+END;
+/
+
+--47. Procedimiento para obtener solo los IDs de teléfono de un cliente
+CREATE OR REPLACE PROCEDURE OBTENER_ID_TELEFONOS_CLIENTE (
+  p_id_cliente IN TELEFONO_CLIENTE.ID_CLIENTE%TYPE,
+  p_cursor     OUT SYS_REFCURSOR
+) AS
+BEGIN
+  OPEN p_cursor FOR
+    SELECT ID_TELEFONO
+      FROM TELEFONO_CLIENTE
+     WHERE ID_CLIENTE = p_id_cliente;
+END;
+/
+
+--48. Procedimiento para insertar un telefono cliente
+CREATE OR REPLACE PROCEDURE insertar_telefono_cliente (
+  p_id_cliente IN TELEFONO_CLIENTE.ID_CLIENTE%TYPE,
+  p_telefono   IN TELEFONO_CLIENTE.TELEFONO%TYPE
+) AS
+BEGIN
+  INSERT INTO TELEFONO_CLIENTE (ID_CLIENTE, TELEFONO)
+  VALUES (p_id_cliente, p_telefono);
+END;
+/
+
+--49. Procedimiento para actualizar un telefono cliente
+CREATE OR REPLACE PROCEDURE actualizar_telefono_cliente (
+  p_id_tel   IN TELEFONO_CLIENTE.ID_TELEFONO%TYPE,
+  p_telefono IN TELEFONO_CLIENTE.TELEFONO%TYPE
+) AS
+BEGIN
+  UPDATE TELEFONO_CLIENTE
+     SET TELEFONO = p_telefono
+   WHERE ID_TELEFONO = p_id_tel;
+END;
+/
+
+SELECT * FROM CLIENTE;
+SELECT * FROM TELEFONO_CLIENTE;
+
+--50. Procedimiento para eliminar un telefono cliente
+CREATE OR REPLACE PROCEDURE eliminar_telefono_cliente (
+  p_id_tel IN TELEFONO_CLIENTE.ID_TELEFONO%TYPE
+) AS
+BEGIN
+  DELETE FROM TELEFONO_CLIENTE
+   WHERE ID_TELEFONO = p_id_tel;
+END;
+/
+
 -- -------------------------- VISTAS ------------------------------------------------------
 
 -- 1. Vista de Usuarios Deshabilitados
@@ -1006,6 +1107,19 @@ BEGIN
 END;
 /
 
+--2. Procedimiento almacenado para recorrer la vista de los clientes por tipo clinica
+CREATE OR REPLACE PROCEDURE obtener_clientes_por_clinica (
+    p_id_tipo_clinica IN TIPO_CLINICA.ID_TIPO_CLINICA%TYPE,
+    p_cursor OUT SYS_REFCURSOR
+) AS
+BEGIN
+    OPEN p_cursor FOR
+        SELECT * 
+        FROM V_CLIENTES_CON_TIPO_CLINICA 
+        WHERE ID_TIPO_CLINICA = p_id_tipo_clinica;
+END;
+/
+
 -- -------------------------- TRIGGER ------------------------------------------------------
 
 -- 1. INSERTAR +506 al nï¿½mero
@@ -1022,17 +1136,22 @@ END;
 
 -- -------------------------- DATOS Y PRUEBAS ------------------------------------------------------
 
--- Llamamos al procedimiento para crear la secuencia y trigger para la tabla USUARIO
+-- Llamamos al procedimiento para crear la secuencia y trigger para las tablas
 BEGIN
     CREAR_AUTOINCREMENTO('USUARIO', 'ID_USUARIO');
     CREAR_AUTOINCREMENTO('PRODUCTO', 'ID_PRODUCTO');
     CREAR_AUTOINCREMENTO('CATEGORIA', 'ID_CATEGORIA');
     CREAR_AUTOINCREMENTO('PROVEEDOR', 'ID_PROVEEDOR');
     CREAR_AUTOINCREMENTO('TELEFONO_PROVEEDOR', 'ID_TELEFONO');
-    CREAR_AUTOINCREMENTO('CLIENTE', 'ID_CLIENTE');
     CREAR_AUTOINCREMENTO('TIPO_CLINICA', 'ID_TIPO_CLINICA');
     CREAR_AUTOINCREMENTO('VENTA', 'ID_VENTA');
     CREAR_AUTOINCREMENTO('VENTA_DETALLE', 'ID_VENTA_DETALLE');
+END;
+/
+-- Llamamos al procedimiento para crear la secuencia y trigger para la tabla CLIENTE
+BEGIN
+    CREAR_AUTOINCREMENTO('TELEFONO_CLIENTE', 'ID_TELEFONO');
+    CREAR_AUTOINCREMENTO('CLIENTE', 'ID_CLIENTE');
 END;
 /
 
