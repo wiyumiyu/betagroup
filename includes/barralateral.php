@@ -130,7 +130,7 @@ if ($pc == 0) {
                                             </a>                            
                                         </li>      
                                         <li class='active'>
-                                            <a href=''>
+                                            <a href='..\_usuarios\bitacora.php?op=0&ta=0'>
                                                 <span>Bitácora</span>
                                             </a>                            
                                         </li>                                         

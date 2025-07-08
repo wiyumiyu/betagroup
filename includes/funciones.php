@@ -42,6 +42,15 @@ function llenarBitacora($id, $sql_contexto, $conn){
     return $stmt_contexto;
     
 }
-
+//
+//function formatearTextoBitacora($texto) {
+//    // 1. Reemplazar ":" o "," por salto de línea
+//    $texto = preg_replace('/[:|,]/', "<br>", $texto);
+//
+//    // 2. Poner en negrita las palabras que están antes de un "="
+//    $texto = preg_replace('/(\b\w+\b)\s*=/','<strong>$1</strong>=', $texto);
+//
+//    return $texto;
+//}
 
 ?>

@@ -1001,6 +1001,27 @@ BEGIN
 END;
 /
 
+
+--50. Procedimiento mostrar la bitacora
+CREATE OR REPLACE PROCEDURE LISTAR_BITACORA(p_cursor OUT SYS_REFCURSOR) AS
+BEGIN
+  OPEN p_cursor FOR
+    SELECT 
+      b.ID_BITACORA,
+      b.FECHA_OPERACION,
+      u.ID_USUARIO,
+      u.NOMBRE_USUARIO,
+      u.CORREO,
+      b.DESCRIPCION
+    FROM 
+      BITACORA b
+    LEFT JOIN 
+      USUARIO u ON b.ID_USUARIO = u.ID_USUARIO
+    ORDER BY 
+      b.FECHA_OPERACION DESC;
+END;
+/
+
 -- -------------------------- VISTAS ------------------------------------------------------
 
 -- 1. Vista de Usuarios Deshabilitados
@@ -1130,7 +1151,7 @@ END;
 /
 
 -- -------------------------- CONTEXTOS ------------------------------------------------------
-
+-----CTX_Usuario
 CREATE OR REPLACE CONTEXT APP_CTX USING pkg_contexto_usuario;
 /
 
@@ -1140,8 +1161,19 @@ CREATE OR REPLACE PACKAGE pkg_contexto_usuario AS
 END;
 /
 
+-----CTX_Venta
+CREATE OR REPLACE CONTEXT APP_CTX USING pkg_contexto_venta;
+/
+
+CREATE OR REPLACE PACKAGE pkg_contexto_venta AS
+  PROCEDURE set_venta(p_id_venta IN NUMBER);
+  PROCEDURE limpiar_venta;
+END;
+/
+
 -- -------------------------- PAQUETES ------------------------------------------------------
 
+-----PKG_Usuario
 CREATE OR REPLACE PACKAGE BODY pkg_contexto_usuario AS
   PROCEDURE set_usuario(p_id_usuario IN NUMBER) IS
   BEGIN
@@ -1154,6 +1186,21 @@ CREATE OR REPLACE PACKAGE BODY pkg_contexto_usuario AS
   END;
 END;
 /
+
+-----PKG_Venta
+CREATE OR REPLACE PACKAGE BODY pkg_contexto_venta AS
+  PROCEDURE set_venta(p_id_venta IN NUMBER) IS
+  BEGIN
+    DBMS_SESSION.SET_CONTEXT('APP_CTX', 'ID_VENTA', TO_CHAR(p_id_venta));
+  END;
+
+  PROCEDURE limpiar_venta IS
+  BEGIN
+    DBMS_SESSION.CLEAR_CONTEXT('APP_CTX', 'ID_VENTA');
+  END;
+END;
+/
+
 
 
 -- -------------------------- TRIGGER ------------------------------------------------------
@@ -1214,6 +1261,50 @@ BEGIN
   );
 END;
 /
+
+CREATE OR REPLACE TRIGGER trg_bitacora_venta
+AFTER INSERT OR UPDATE OR DELETE ON VENTA
+FOR EACH ROW
+DECLARE
+  v_usuario     NUMBER := TO_NUMBER(SYS_CONTEXT('APP_CTX', 'ID_USUARIO'));
+  v_operacion   VARCHAR2(10);
+  v_descripcion CLOB;
+BEGIN
+  IF INSERTING THEN
+    v_operacion := 'INSERT';
+    v_descripcion := 'Se insertó la venta: ' ||
+                     'ID=' || :NEW.ID_VENTA || ', ' ||
+                     'NUMERO=' || :NEW.NUMERO || ', ' ||
+                     'IMPUESTOS=' || :NEW.IMPUESTOS || ', ' ||
+                     'ID_CLIENTE=' || :NEW.ID_CLIENTE || ', ' ||
+                     'ID_USUARIO=' || :NEW.ID_USUARIO;
+
+  ELSIF UPDATING THEN
+    v_operacion := 'UPDATE';
+    v_descripcion := 'Se actualizó la venta ID=' || :OLD.ID_VENTA || ' ? ' ||
+                     'ANTES [NUMERO=' || :OLD.NUMERO || ', IMPUESTOS=' || :OLD.IMPUESTOS || '] ? ' ||
+                     'DESPUÉS [NUMERO=' || :NEW.NUMERO || ', IMPUESTOS=' || :NEW.IMPUESTOS || ']';
+
+  ELSIF DELETING THEN
+    v_operacion := 'DELETE';
+    v_descripcion := 'Se eliminó la venta: ' ||
+                     'ID=' || :OLD.ID_VENTA || ', ' ||
+                     'NUMERO=' || :OLD.NUMERO || ', ' ||
+                     'IMPUESTOS=' || :OLD.IMPUESTOS;
+  END IF;
+
+  INSERT INTO BITACORA (
+    ID_USUARIO,
+    FECHA_OPERACION,
+    DESCRIPCION
+  ) VALUES (
+    v_usuario,
+    SYSTIMESTAMP,
+    v_operacion || ' - ' || v_descripcion
+  );
+END;
+/
+
 
 -- -------------------------- DATOS Y PRUEBAS ------------------------------------------------------
 
