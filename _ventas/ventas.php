@@ -38,23 +38,38 @@ if (isset($_GET['del'])) {
 if (isset($_GET['del2'])) {
     $del2 = $_GET['del2'];
 
-    $stmt_contexto =  "BEGIN pkg_contexto_venta.set_venta(:id); END;";
-    llenarBitacora($_SESSION['id_venta'], "BEGIN pkg_contexto_venta.set_venta(:id); END;", $conn);    
-    
+    echo $_SESSION['id_usuario'];
+    $stmt_contexto = llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_venta.set_venta(:id); END;", $conn);
+//
+//    $stmt_contexto2 = "BEGIN pkg_contexto_venta_detalle.set_venta_detalle(:id); END;";
+//    llenarBitacora($_SESSION['id_usuario'], $stmt_contexto2, $conn);
+
+    $sql = "BEGIN eliminar_venta_detalle(:id); END;";
+    $stmt = oci_parse($conn, $sql);
+    oci_bind_by_name($stmt, ":id", $del2);
+
+    if (!oci_execute($stmt)) {
+        $e = oci_error($stmt);
+        echo "Error al eliminar la venta: " . $e['message'];
+    }
+
     $sql = "BEGIN eliminar_venta(:id); END;";
     $stmt = oci_parse($conn, $sql);
     oci_bind_by_name($stmt, ":id", $del2);
 
-    if (oci_execute($stmt)) {
-        // Si se eliminó correctamente, recargamos la página
-        echo "<script>window.location.href = 'ventas.php?op=$op&ta=$ta';</script>";
-    } else {
-        $e = oci_error($stmt);
-        echo "Error al eliminar la venta: " . $e['message'];
-    }
+    if (!oci_execute($stmt)) {
+            $e = oci_error($stmt);
+        echo "Error al eliminar la venta: " . $e['message']; 
+    } 
+    
     if (isset($stmt_contexto))
         oci_free_statement($stmt_contexto);
+//    if (isset($stmt_contexto2))
+//        oci_free_statement($stmt_contexto2);
     oci_free_statement($stmt);
+
+    // Si se eliminó correctamente, recargamos la página
+   // echo "<script>window.location.href = 'ventas.php?op=$op&ta=$ta';</script>";
 }
 
 // Si el formulario fue enviado (para agregar o actualizar un usuario)
@@ -64,9 +79,6 @@ if (isset($_POST['submitted'])) {
     $impuestos = trim($_POST['impuestos']);
     $id_cliente = trim($_POST['cliente']);
     $id_usuario = $_SESSION['id_usuario'];  // El usuario actual autenticado
-
-    
-    
     // 2. Insertar venta usando el procedimiento almacenado
     $sqlVenta = "BEGIN insertar_venta(:numero, :impuestos, :id_cliente, :id_usuario); END;";
     $stmtVenta = oci_parse($conn, $sqlVenta);
@@ -96,9 +108,9 @@ if (isset($_POST['submitted'])) {
     }
     oci_free_statement($stmtId);
 
+    $stmt_contexto = llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_venta.set_venta(:id); END;", $conn);
+    $stmt_contexto2 = llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_venta_detalle.set_venta_detalle(:id); END;", $conn);
     
-    
-    $stmt_contexto =  llenarBitacora($idVenta, "BEGIN pkg_contexto_venta.set_venta(:id); END;", $conn);
     // 3. Recuperar el ID_VENTA generado automáticamente (vía CURRVAL)
 //    $sqlGetId = "SELECT SEQ_ID_VENTA.CURRVAL AS ID FROM DUAL";
 //    $stmtId = oci_parse($conn, $sqlGetId);
@@ -144,10 +156,11 @@ if (isset($_POST['submitted'])) {
 
         oci_free_statement($stmtDet);
     }
-    
+
     if (isset($stmt_contexto))
         oci_free_statement($stmt_contexto);
-    
+   if (isset($stmt_contexto2))
+        oci_free_statement($stmt_contexto2);
     //5. Confirmación
     echo "<script>//alert('Venta registrada correctamente'); 
             window.location='ventas.php?op=$op&ta=$ta';</script>";
@@ -489,13 +502,13 @@ $selectClientes = llenarSelect("cliente", "ID_CLIENTE", "NOMBRE_CLIENTE", $clien
                         echo $impuestos;
                     } else
                         echo 13;
-?>" required>
+                    ?>" required>
                 </div>
             </div>
 
             <div class="form-group mt-3">
                 <label for="cliente">Cliente:</label>
-<?php echo $selectClientes; ?>
+                           <?php echo $selectClientes; ?>
             </div>
 
             <!-- Tabla de detalles -->
@@ -549,26 +562,34 @@ if (!empty($detalles)) {
 
             <!-- Totales visuales (puedes mejorarlos con JS si quieres) -->
             <div style="text-align: right; margin-top: 20px;">
-                <p>Subtotal: <span id="subtotal"><?php if (isset($_GET['edt'])) {
+                <p>Subtotal: <span id="subtotal"><?php
+                    if (isset($_GET['edt'])) {
                         echo $subtotal;
                     } else {
                         echo '0.00';
-                    } ?></span></p>
-                <p>Descuento Total: <span id="descuento_total"><?php if (isset($_GET['edt'])) {
-                        echo $descuento;
-                    } else {
-                        echo '0.00';
-                    } ?></span></p>
-                <p>Impuestos Totales: <span id="impuestos_total"><?php if (isset($_GET['edt'])) {
-                        echo $impuestos_total;
-                    } else {
-                        echo '0.00';
-                    } ?></span></p>
-                <p><strong>Total: <span id="total"><?php if (isset($_GET['edt'])) {
-                        echo $total;
-                    } else {
-                        echo '0.00';
-                    } ?></span></strong></p>
+                    }
+?></span></p>
+                <p>Descuento Total: <span id="descuento_total"><?php
+                        if (isset($_GET['edt'])) {
+                            echo $descuento;
+                        } else {
+                            echo '0.00';
+                        }
+                        ?></span></p>
+                <p>Impuestos Totales: <span id="impuestos_total"><?php
+                        if (isset($_GET['edt'])) {
+                            echo $impuestos_total;
+                        } else {
+                            echo '0.00';
+                        }
+                        ?></span></p>
+                <p><strong>Total: <span id="total"><?php
+                            if (isset($_GET['edt'])) {
+                                echo $total;
+                            } else {
+                                echo '0.00';
+                            }
+                            ?></span></strong></p>
             </div>
 
             <input type="hidden" name="submitted" value="TRUE">

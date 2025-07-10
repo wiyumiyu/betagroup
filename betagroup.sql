@@ -14,6 +14,7 @@ GRANT CREATE TRIGGER TO betagroup;
 GRANT CREATE SEQUENCE TO betagroup;
 GRANT CREATE VIEW TO betagroup;
 GRANT CREATE ANY CONTEXT TO betagroup;
+GRANT EXECUTE ON DBMS_SESSION TO BETAGROUP;
 
 
 -- Permiso para usar funciones criptográficas
@@ -137,7 +138,7 @@ CREATE TABLE VENTA_DETALLE (
 
 -- Tabla de BITACORA
 CREATE TABLE BITACORA (
-  ID_BITACORA    NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  ID_BITACORA    NUMBER  PRIMARY KEY,
   ID_USUARIO      NUMBER,
   FECHA_OPERACION TIMESTAMP DEFAULT SYSTIMESTAMP,
   DESCRIPCION     CLOB
@@ -754,7 +755,7 @@ CREATE OR REPLACE PROCEDURE eliminar_venta_detalle (
 ) AS
 BEGIN
     DELETE FROM VENTA_DETALLE
-    WHERE ID_VENTA_DETALLE = p_id;
+    WHERE ID_VENTA = p_id;
 END;
 /
 
@@ -876,9 +877,11 @@ CREATE OR REPLACE PROCEDURE OBTENER_ULTIMO_ID_VENTA (
     p_id_venta OUT NUMBER
 ) AS
 BEGIN
-    SELECT SEQ_ID_VENTA.CURRVAL INTO p_id_venta FROM DUAL;
+    SELECT NVL(MAX(ID_VENTA), 1) INTO p_id_venta FROM VENTA;
 END;
 /
+
+
 
 
 --43. procedimiento que optiene un producto a partir de un id
@@ -1171,6 +1174,18 @@ CREATE OR REPLACE PACKAGE pkg_contexto_venta AS
 END;
 /
 
+-----CTX_Venta_Detalle
+CREATE OR REPLACE CONTEXT APP_CTX USING pkg_contexto_venta_detalle;
+/
+
+CREATE OR REPLACE PACKAGE pkg_contexto_venta_detalle  AS
+  PROCEDURE set_venta_detalle(p_id_venta_detalle IN NUMBER);
+  PROCEDURE limpiar_venta_detalle;
+END;
+/
+
+
+
 -- -------------------------- PAQUETES ------------------------------------------------------
 
 -----PKG_Usuario
@@ -1188,7 +1203,7 @@ END;
 /
 
 -----PKG_Venta
-CREATE OR REPLACE PACKAGE BODY pkg_contexto_venta AS
+CREATE OR REPLACE PACKAGE BODY pkg_contexto_venta  AS
   PROCEDURE set_venta(p_id_venta IN NUMBER) IS
   BEGIN
     DBMS_SESSION.SET_CONTEXT('APP_CTX', 'ID_VENTA', TO_CHAR(p_id_venta));
@@ -1201,7 +1216,19 @@ CREATE OR REPLACE PACKAGE BODY pkg_contexto_venta AS
 END;
 /
 
+-----PKG_Venta_Detalle
+CREATE OR REPLACE PACKAGE BODY pkg_contexto_venta_detalle  AS
+  PROCEDURE set_venta_detalle(p_id_venta_detalle IN NUMBER) IS
+  BEGIN
+    DBMS_SESSION.SET_CONTEXT('APP_CTX', 'ID_VENTA_DETALLE', TO_CHAR(p_id_venta_detalle));
+  END;
 
+  PROCEDURE limpiar_venta_detalle IS
+  BEGIN
+    DBMS_SESSION.CLEAR_CONTEXT('APP_CTX', 'ID_VENTA_DETALLE');
+  END;
+END;
+/
 
 -- -------------------------- TRIGGER ------------------------------------------------------
 
@@ -1291,6 +1318,53 @@ BEGIN
                      'ID=' || :OLD.ID_VENTA || ', ' ||
                      'NUMERO=' || :OLD.NUMERO || ', ' ||
                      'IMPUESTOS=' || :OLD.IMPUESTOS;
+  END IF;
+
+  INSERT INTO BITACORA (
+    ID_USUARIO,
+    FECHA_OPERACION,
+    DESCRIPCION
+  ) VALUES (
+    v_usuario,
+    SYSTIMESTAMP,
+    v_operacion || ' - ' || v_descripcion
+  );
+END;
+/
+
+CREATE OR REPLACE TRIGGER trg_bitacora_venta_detalle
+AFTER INSERT OR UPDATE OR DELETE ON VENTA_DETALLE
+FOR EACH ROW
+DECLARE
+  v_usuario     NUMBER := TO_NUMBER(SYS_CONTEXT('APP_CTX', 'ID_USUARIO'));
+  v_operacion   VARCHAR2(10);
+  v_descripcion CLOB;
+BEGIN
+  IF INSERTING THEN
+    v_operacion := 'INSERT';
+    v_descripcion := 'Se insertó el detalle de venta: ' ||
+                     'ID=' || :NEW.ID_VENTA_DETALLE || ', ' ||
+                     'ID_VENTA=' || :NEW.ID_VENTA || ', ' ||
+                     'ID_PRODUCTO=' || :NEW.ID_PRODUCTO || ', ' ||
+                     'CANTIDAD=' || :NEW.CANTIDAD || ', ' ||
+                     'PRECIO_UNITARIO=' || :NEW.PRECIO_UNITARIO || ', ' ||
+                     'DESCUENTO=' || :NEW.DESCUENTO;
+
+  ELSIF UPDATING THEN
+    v_operacion := 'UPDATE';
+    v_descripcion := 'Se actualizó el detalle de venta ID=' || :OLD.ID_VENTA_DETALLE || ' ? ' ||
+                     'ANTES [CANTIDAD=' || :OLD.CANTIDAD || ', PRECIO_UNITARIO=' || :OLD.PRECIO_UNITARIO || ', DESCUENTO=' || :OLD.DESCUENTO || '] ? ' ||
+                     'DESPUÉS [CANTIDAD=' || :NEW.CANTIDAD || ', PRECIO_UNITARIO=' || :NEW.PRECIO_UNITARIO || ', DESCUENTO=' || :NEW.DESCUENTO || ']';
+
+  ELSIF DELETING THEN
+    v_operacion := 'DELETE';
+    v_descripcion := 'Se eliminó el detalle de venta: ' ||
+                     'ID=' || :OLD.ID_VENTA_DETALLE || ', ' ||
+                     'ID_VENTA=' || :OLD.ID_VENTA || ', ' ||
+                     'ID_PRODUCTO=' || :OLD.ID_PRODUCTO || ', ' ||
+                     'CANTIDAD=' || :OLD.CANTIDAD || ', ' ||
+                     'PRECIO_UNITARIO=' || :OLD.PRECIO_UNITARIO || ', ' ||
+                     'DESCUENTO=' || :OLD.DESCUENTO;
   END IF;
 
   INSERT INTO BITACORA (
