@@ -5,7 +5,7 @@ include('../includes/funciones.php');
 include("tabs.php");
 
 // Llamar al procedimiento que usa la vista
-$sql = "BEGIN LISTAR_PRODUCTOS_MENOS_VENDIDOS(:cursor); END;";
+$sql = "BEGIN PROC_LISTAR_PRODUCTOS_MENOS_VENDIDOS(:cursor); END;";
 $stid = oci_parse($conn, $sql);
 $cursor = oci_new_cursor($conn);
 oci_bind_by_name($stid, ":cursor", $cursor, -1, OCI_B_CURSOR);

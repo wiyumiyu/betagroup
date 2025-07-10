@@ -18,7 +18,7 @@ if (isset($_GET['del'])) {
 // Eliminar tipo de clínica si viene ?del2
 if (isset($_GET['del2'])) {
     $del2 = $_GET['del2'];
-    $sql = "BEGIN eliminar_tipo_clinica(:id); END;";
+    $sql = "BEGIN PROC_eliminar_tipo_clinica(:id); END;";
     $stmt = oci_parse($conn, $sql);
     oci_bind_by_name($stmt, ":id", $del2);
 
@@ -38,11 +38,11 @@ if (isset($_POST['submitted'])) {
 
     if (isset($_GET['edt'])) {
         $id = $_GET['edt'];
-        $sql = "BEGIN actualizar_tipo_clinica(:id, :desc); END;";
+        $sql = "BEGIN PROC_actualizar_tipo_clinica(:id, :desc); END;";
         $stmt = oci_parse($conn, $sql);
         oci_bind_by_name($stmt, ":id", $id);
     } else {
-        $sql = "BEGIN insertar_tipo_clinica(:descripcion); END;";
+        $sql = "BEGIN PROC_insertar_tipo_clinica(:descripcion); END;";
         $stmt = oci_parse($conn, $sql);
         oci_bind_by_name($stmt, ":descripcion", $descripcion);
 
@@ -81,7 +81,7 @@ if (isset($_POST['submitted'])) {
     </thead>
     <tbody>
 <?php
-$sql = "BEGIN listar_tipos_clinica(:cursor); END;";
+$sql = "BEGIN PROC_listar_tipos_clinica(:cursor); END;";
 $stid = oci_parse($conn, $sql);
 $cursor = oci_new_cursor($conn);
 oci_bind_by_name($stid, ":cursor", $cursor, -1, OCI_B_CURSOR);

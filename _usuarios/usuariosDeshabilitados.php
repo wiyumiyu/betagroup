@@ -5,7 +5,7 @@ include ('../includes/funciones.php');
 
 if (isset($_GET['hab'])) {
     $hab = $_GET['hab'];
-    $sql = "BEGIN habilitar_usuario(:id); END;";
+    $sql = "BEGIN PROC_habilitar_usuario(:id); END;";
     $stmt = oci_parse($conn, $sql);
     oci_bind_by_name($stmt, ":id", $hab);
 
@@ -43,7 +43,7 @@ if (isset($_GET['hab'])) {
     </thead>
     <tbody>
 <?php
-$sql = "BEGIN listar_usuarios_deshabilitados(:cursor); END;";
+$sql = "BEGIN PROC_listar_usuarios_deshabilitados(:cursor); END;";
 $stid = oci_parse($conn, $sql);
 $cursor = oci_new_cursor($conn);
 oci_bind_by_name($stid, ":cursor", $cursor, -1, OCI_B_CURSOR);

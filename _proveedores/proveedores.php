@@ -32,7 +32,7 @@ if (isset($_GET['del'])) {
 if (isset($_GET['del2'])) {
     $del2 = $_GET['del2'];
 
-    $sql = "BEGIN eliminar_proveedor(:id); END;";
+    $sql = "BEGIN PROC_eliminar_proveedor(:id); END;";
     $stmt = oci_parse($conn, $sql);
     oci_bind_by_name($stmt, ":id", $del2);
 
@@ -55,12 +55,12 @@ if (isset($_POST['submitted'])) {
     if (isset($_GET['edt'])) {
         // Modo edición
         $id = $_GET['edt'];
-        $sql = "BEGIN actualizar_proveedor(:id, :nombre, :correo, :direccion, :estado); END;";
+        $sql = "BEGIN PROC_actualizar_proveedor(:id, :nombre, :correo, :direccion, :estado); END;";
         $stmt = oci_parse($conn, $sql);
         oci_bind_by_name($stmt, ":id", $id);
     } else {
         // Modo inserción con retorno del ID generado
-        $sql = "BEGIN insertar_proveedor(:nombre, :correo, :direccion, :estado, :id_out); END;";
+        $sql = "BEGIN PROC_insertar_proveedor(:nombre, :correo, :direccion, :estado, :id_out); END;";
         $stmt = oci_parse($conn, $sql);
         oci_bind_by_name($stmt, ":id_out", $id, 20); // ← Captura el ID generado
     }
@@ -77,7 +77,7 @@ if (isset($_POST['submitted'])) {
 
         if (isset($_GET['edt'])) {
             // Si es edición, obtener los teléfonos actuales
-            $stmt_get = oci_parse($conn, "BEGIN OBTENER_ID_TELEFONOS(:id, :cursor); END;");
+            $stmt_get = oci_parse($conn, "BEGIN PROC_OBTENER_ID_TELEFONOS(:id, :cursor); END;");
             $cursor = oci_new_cursor($conn);
             oci_bind_by_name($stmt_get, ":id", $id);
             oci_bind_by_name($stmt_get, ":cursor", $cursor, -1, OCI_B_CURSOR);
@@ -101,7 +101,7 @@ if (isset($_POST['submitted'])) {
 
             if ($id_tel == "") {
                 // Insertar nuevo teléfono
-                $sql_tel = "BEGIN insertar_telefono_proveedor(:id, :tel); END;";
+                $sql_tel = "BEGIN PROC_insertar_telefono_proveedor(:id, :tel); END;";
                 $stmt_tel = oci_parse($conn, $sql_tel);
                 oci_bind_by_name($stmt_tel, ":id", $id); // ← Funciona en inserción y edición
                 oci_bind_by_name($stmt_tel, ":tel", $telefono);
@@ -109,7 +109,7 @@ if (isset($_POST['submitted'])) {
                 oci_free_statement($stmt_tel);
             } else {
                 // Actualizar teléfono existente
-                $sql_upd = "BEGIN actualizar_telefono_proveedor(:id_tel, :tel); END;";
+                $sql_upd = "BEGIN PROC_actualizar_telefono_proveedor(:id_tel, :tel); END;";
                 $stmt_upd = oci_parse($conn, $sql_upd);
                 oci_bind_by_name($stmt_upd, ":id_tel", $id_tel);
                 oci_bind_by_name($stmt_upd, ":tel", $telefono);
@@ -124,7 +124,7 @@ if (isset($_POST['submitted'])) {
         if (isset($_GET['edt'])) {
             $a_eliminar = array_diff($telefonos_actuales, $ids_recibidos);
             foreach ($a_eliminar as $id_eliminar) {
-                $sql_del = "BEGIN eliminar_telefono(:id_tel); END;";
+                $sql_del = "BEGIN PROC_eliminar_telefono(:id_tel); END;";
                 $stmt_del = oci_parse($conn, $sql_del);
                 oci_bind_by_name($stmt_del, ":id_tel", $id_eliminar);
                 oci_execute($stmt_del);
@@ -181,7 +181,7 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
     </thead>
     <tbody>
         <?php
-        $sql = "BEGIN LISTAR_PROVEEDORES(:cursor); END;";
+        $sql = "BEGIN PROC_LISTAR_PROVEEDORES(:cursor); END;";
         $stid = oci_parse($conn, $sql);
         $cursor = oci_new_cursor($conn);
         oci_bind_by_name($stid, ":cursor", $cursor, -1, OCI_B_CURSOR);
@@ -223,7 +223,7 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
             $id = $_GET["edt"];
 
             // --- Llamar procedimiento para proveedor
-            $stmt = oci_parse($conn, "BEGIN OBTENER_PROVEEDOR(:id, :cursor); END;");
+            $stmt = oci_parse($conn, "BEGIN PROC_OBTENER_PROVEEDOR(:id, :cursor); END;");
             $cursor = oci_new_cursor($conn);
             oci_bind_by_name($stmt, ":id", $id);
             oci_bind_by_name($stmt, ":cursor", $cursor, -1, OCI_B_CURSOR);
@@ -242,7 +242,7 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
 
             // --- Llamar procedimiento para teléfonos
             $telefonos_editar = [];
-            $stmt_tels = oci_parse($conn, "BEGIN OBTENER_TELEFONOS_PROVEEDOR(:id, :cursor); END;");
+            $stmt_tels = oci_parse($conn, "BEGIN PROC_OBTENER_TELEFONOS_PROVEEDOR(:id, :cursor); END;");
             $cursor_tels = oci_new_cursor($conn);
             oci_bind_by_name($stmt_tels, ":id", $id);
             oci_bind_by_name($stmt_tels, ":cursor", $cursor_tels, -1, OCI_B_CURSOR);

@@ -1,4 +1,4 @@
--- OJO: Eliminación de datos de BETAGROUP desde ADMIN SYS
+-- OJO: Eliminaciï¿½n de datos de BETAGROUP desde ADMIN SYS
 DROP USER betagroup CASCADE;
 DROP TABLESPACE tbs_betagroup INCLUDING CONTENTS AND DATAFILES;
 
@@ -8,7 +8,7 @@ CREATE USER betagroup IDENTIFIED BY beta123;
 GRANT CONNECT, RESOURCE TO betagroup;
 GRANT UNLIMITED TABLESPACE TO betagroup;
 
--- Permisos para programación PL/SQL
+-- Permisos para programaciï¿½n PL/SQL
 GRANT CREATE PROCEDURE TO betagroup;
 GRANT CREATE TRIGGER TO betagroup;
 GRANT CREATE SEQUENCE TO betagroup;
@@ -17,7 +17,7 @@ GRANT CREATE ANY CONTEXT TO betagroup;
 GRANT EXECUTE ON DBMS_SESSION TO BETAGROUP;
 
 
--- Permiso para usar funciones criptográficas
+-- Permiso para usar funciones criptogrï¿½ficas
 GRANT EXECUTE ON DBMS_CRYPTO TO betagroup;
 
 /*Crear un nuevo tablespace*/
@@ -32,7 +32,7 @@ ALTER USER betagroup
 commit
 
 
--- OJO DESDE AQUÍ SE EMPIEZA A EJECUTAR DESDE EL ESQUEMA BETAGROUP
+-- OJO DESDE AQUï¿½ SE EMPIEZA A EJECUTAR DESDE EL ESQUEMA BETAGROUP
 
 -- ------------------------------------------------- TABLAS ---------------------------------------------------------------------
 
@@ -160,7 +160,7 @@ END;
 /
 
 -- 2. Procedimiento para validar si el login es correcto
-CREATE OR REPLACE PROCEDURE VALIDAR_LOGIN (
+CREATE OR REPLACE PROCEDURE PROC_VALIDAR_LOGIN (
     p_correo       IN  VARCHAR2,
     p_pass         IN  VARCHAR2,
     p_resultado    OUT NUMBER,
@@ -170,7 +170,7 @@ CREATE OR REPLACE PROCEDURE VALIDAR_LOGIN (
 ) IS
     v_hash VARCHAR2(64);
 BEGIN
-    -- Hash de la contraseña ingresada
+    -- Hash de la contraseï¿½a ingresada
     v_hash := HASH_PASSWORD(p_pass);
 
     -- Validar credenciales y estado
@@ -181,16 +181,16 @@ BEGIN
       AND contrasena = v_hash
       AND estado = 1;  -- Solo usuarios habilitados
 
-    p_resultado := 1; -- login válido
+    p_resultado := 1; -- login vï¿½lido
 
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
-        p_resultado := 0; -- login inválido o usuario deshabilitado
+        p_resultado := 0; -- login invï¿½lido o usuario deshabilitado
 END;
 /
 
 -- 3. Procedimiento que devuelve todos los usuarios usando un cursor
-CREATE OR REPLACE PROCEDURE LISTAR_USUARIOS(p_cursor OUT SYS_REFCURSOR) AS
+CREATE OR REPLACE PROCEDURE PROC_LISTAR_USUARIOS(p_cursor OUT SYS_REFCURSOR) AS
 BEGIN
     OPEN p_cursor FOR
         SELECT ID_USUARIO, NOMBRE_USUARIO, TELEFONO, CORREO, ROL, FECHA_REGISTRO, ESTADO
@@ -246,7 +246,7 @@ END;
 
 -- 5. Procedimiento que inserta un usuario
 
-CREATE OR REPLACE PROCEDURE insertar_usuario (
+CREATE OR REPLACE PROCEDURE PROC_insertar_usuario (
     p_nombre     IN USUARIO.NOMBRE_USUARIO%TYPE,
     p_contrasena IN VARCHAR2,
     p_telefono   IN USUARIO.TELEFONO%TYPE,
@@ -275,7 +275,7 @@ END;
 
 -- 6. Procedimiento para actualizar usuario
 
-CREATE OR REPLACE PROCEDURE actualizar_usuario (
+CREATE OR REPLACE PROCEDURE PROC_actualizar_usuario (
     p_id_usuario  IN USUARIO.ID_USUARIO%TYPE,
     p_nombre      IN USUARIO.NOMBRE_USUARIO%TYPE,
     p_contrasena  IN VARCHAR2, -- Puede venir NULL si no se quiere actualizar
@@ -302,7 +302,7 @@ END;
 
 
 -- 7. Procedimiento para actualizar usuario sin contraseï¿½a
-CREATE OR REPLACE PROCEDURE actualizar_usuario_sc (
+CREATE OR REPLACE PROCEDURE PROC_actualizar_usuario_sc (
     p_id_usuario  IN USUARIO.ID_USUARIO%TYPE,
     p_nombre      IN USUARIO.NOMBRE_USUARIO%TYPE,
     p_telefono    IN USUARIO.TELEFONO%TYPE,
@@ -324,7 +324,7 @@ END;
 
 -- 8. Procedimiento para eliminar usuario
 
-CREATE OR REPLACE PROCEDURE eliminar_usuario (
+CREATE OR REPLACE PROCEDURE PROC_eliminar_usuario (
     p_id IN USUARIO.ID_USUARIO%TYPE
 ) AS
 BEGIN
@@ -335,7 +335,7 @@ END;
 
 -- 9. Procedimiento para crear cliente
 
-CREATE OR REPLACE PROCEDURE insertar_cliente (
+CREATE OR REPLACE PROCEDURE PROC_insertar_cliente (
     p_nombre_cliente  IN CLIENTE.NOMBRE_CLIENTE%TYPE,
     p_correo          IN CLIENTE.CORREO%TYPE,
     p_id_tipo_clinica IN CLIENTE.ID_TIPO_CLINICA%TYPE
@@ -355,7 +355,7 @@ END;
 
 -- 10. Procedimiento para actualizar cliente
 
-CREATE OR REPLACE PROCEDURE actualizar_cliente (
+CREATE OR REPLACE PROCEDURE PROC_actualizar_cliente (
     p_id_cliente    IN CLIENTE.ID_cliente%TYPE,
     p_nombre_cliente  IN CLIENTE.NOMBRE_CLIENTE%TYPE,
     p_correo          IN CLIENTE.CORREO%TYPE,
@@ -373,7 +373,7 @@ END;
 
 -- 11. Procedimiento para eliminar cliente
 
-CREATE OR REPLACE PROCEDURE eliminar_cliente (
+CREATE OR REPLACE PROCEDURE PROC_eliminar_cliente (
     p_id_cliente IN CLIENTE.ID_CLIENTE%TYPE
 ) AS
 BEGIN
@@ -387,7 +387,7 @@ BEGIN
     DELETE FROM VENTA
     WHERE ID_CLIENTE = p_id_cliente;
 
-    -- Eliminar los teléfonos asociados
+    -- Eliminar los telï¿½fonos asociados
     DELETE FROM TELEFONO_CLIENTE
     WHERE ID_CLIENTE = p_id_cliente;
 
@@ -399,7 +399,7 @@ END;
 
 -- 12. Procedimiento para actualizar cliente
 
-CREATE OR REPLACE PROCEDURE listar_clientes (
+CREATE OR REPLACE PROCEDURE PROC_listar_clientes (
     p_cursor OUT SYS_REFCURSOR
 ) AS
 BEGIN
@@ -416,7 +416,7 @@ END;
 
 -- 13. Procedimiento para insertar una clinica nueva
 
-CREATE OR REPLACE PROCEDURE insertar_tipo_clinica (
+CREATE OR REPLACE PROCEDURE PROC_insertar_tipo_clinica (
     p_descripcion IN TIPO_CLINICA.DESCRIPCION%TYPE
 ) AS
 BEGIN
@@ -427,7 +427,7 @@ END;
 
 -- 14. Procedimiento para actualizar una clinica
 
-CREATE OR REPLACE PROCEDURE actualizar_tipo_clinica (
+CREATE OR REPLACE PROCEDURE PROC_actualizar_tipo_clinica (
     p_id_tipo_clinica IN TIPO_CLINICA.ID_TIPO_CLINICA%TYPE,
     p_descripcion     IN TIPO_CLINICA.DESCRIPCION%TYPE
 ) AS
@@ -440,7 +440,7 @@ END;
 
 -- 15. Procedimiento para eliminar una clinica
 
-CREATE OR REPLACE PROCEDURE eliminar_tipo_clinica (
+CREATE OR REPLACE PROCEDURE PROC_eliminar_tipo_clinica (
     p_id_tipo_clinica IN TIPO_CLINICA.ID_TIPO_CLINICA%TYPE
 ) AS
 BEGIN
@@ -451,7 +451,7 @@ END;
 
 -- 16. Procedimiento para listar las clinicas
 
-CREATE OR REPLACE PROCEDURE listar_tipos_clinica (
+CREATE OR REPLACE PROCEDURE PROC_listar_tipos_clinica (
     p_cursor OUT SYS_REFCURSOR
 ) AS
 BEGIN
@@ -463,7 +463,7 @@ END;
 /
 
 -- 17. Procedimiento que devuelve todos los productos usando un cursor
-CREATE OR REPLACE PROCEDURE LISTAR_PRODUCTOS(p_cursor OUT SYS_REFCURSOR) AS
+CREATE OR REPLACE PROCEDURE PROC_LISTAR_PRODUCTOS(p_cursor OUT SYS_REFCURSOR) AS
 BEGIN
     OPEN p_cursor FOR
         SELECT 
@@ -482,7 +482,7 @@ END;
 
 -- 18. Procedimiento que inserta un producto
 
-CREATE OR REPLACE PROCEDURE insertar_producto (
+CREATE OR REPLACE PROCEDURE PROC_insertar_producto (
     p_nombre_producto   IN PRODUCTO.NOMBRE_PRODUCTO%TYPE,
     p_precio            IN PRODUCTO.PRECIO%TYPE,
     p_id_proveedor      IN PRODUCTO.ID_PROVEEDOR%TYPE,
@@ -506,7 +506,7 @@ END;
 
 -- 19. Procedimiento para actualizar un producto
 
-CREATE OR REPLACE PROCEDURE actualizar_producto (
+CREATE OR REPLACE PROCEDURE PROC_actualizar_producto (
     p_id_producto       IN PRODUCTO.ID_PRODUCTO%TYPE,
     p_nombre_producto   IN PRODUCTO.NOMBRE_PRODUCTO%TYPE,
     p_precio            IN PRODUCTO.PRECIO%TYPE,
@@ -526,7 +526,7 @@ END;
 
 -- 20. Procedimiento para eliminar un producto
 
-CREATE OR REPLACE PROCEDURE eliminar_producto (
+CREATE OR REPLACE PROCEDURE PROC_eliminar_producto (
     p_id IN PRODUCTO.ID_PRODUCTO%TYPE
 ) AS
 BEGIN
@@ -537,7 +537,7 @@ END;
 
 -- 21. Procedimiento que devuelve todas las categorias 
 
-CREATE OR REPLACE PROCEDURE LISTAR_CATEGORIAS(p_cursor OUT SYS_REFCURSOR) AS
+CREATE OR REPLACE PROCEDURE PROC_LISTAR_CATEGORIAS(p_cursor OUT SYS_REFCURSOR) AS
 BEGIN
     OPEN p_cursor FOR
         SELECT 
@@ -550,7 +550,7 @@ END;
 
 -- 22. Procedimiento que inserta una categoria
 
-CREATE OR REPLACE PROCEDURE insertar_categoria (
+CREATE OR REPLACE PROCEDURE PROC_insertar_categoria (
     p_nombre_categoria IN CATEGORIA.NOMBRE_CATEGORIA%TYPE
 ) AS
 BEGIN
@@ -564,7 +564,7 @@ END;
 
 -- 23. Procedimiento para eliminar una categoria
 
-CREATE OR REPLACE PROCEDURE eliminar_categoria (
+CREATE OR REPLACE PROCEDURE PROC_eliminar_categoria (
     p_id IN CATEGORIA.ID_CATEGORIA%TYPE
 ) AS
 BEGIN
@@ -575,7 +575,7 @@ END;
 
 -- 24. Procedimiento que devuelve todos los proveedores
 
-CREATE OR REPLACE PROCEDURE LISTAR_PROVEEDORES(p_cursor OUT SYS_REFCURSOR) AS
+CREATE OR REPLACE PROCEDURE PROC_LISTAR_PROVEEDORES(p_cursor OUT SYS_REFCURSOR) AS
 BEGIN
   OPEN p_cursor FOR
     SELECT 
@@ -600,7 +600,7 @@ END;
 
 -- 25. Procedimiento para insertar_proveedor --
 
-CREATE OR REPLACE PROCEDURE insertar_proveedor (
+CREATE OR REPLACE PROCEDURE PROC_insertar_proveedor (
     p_nombre    IN proveedor.nombre_proveedor%TYPE,
     p_correo    IN proveedor.correo%TYPE,
     p_direccion IN proveedor.direccion_proveedor%TYPE,
@@ -625,7 +625,7 @@ END;
    
 -- 26. procedimiento para actualizar proveedor
 
-CREATE OR REPLACE PROCEDURE actualizar_proveedor (
+CREATE OR REPLACE PROCEDURE PROC_actualizar_proveedor (
     p_id_proveedor IN proveedor.id_proveedor%TYPE,
     p_nombre       IN proveedor.nombre_proveedor%TYPE,
     p_correo       IN proveedor.correo%TYPE,
@@ -645,7 +645,7 @@ END;
 /
 
 -- 27. PROCEDIMIENTO PARA ELIMINAR PROVEEDOR
-CREATE OR REPLACE PROCEDURE eliminar_proveedor (
+CREATE OR REPLACE PROCEDURE PROC_eliminar_proveedor (
     p_id_proveedor IN proveedor.id_proveedor%TYPE
 ) AS
 BEGIN
@@ -655,7 +655,7 @@ END;
 /
 
 -- 28. PROCEDIMIENTO PARA HABILITAR UN PROVEEDOR CAMBIANDO SU ESTADO A 1
-CREATE OR REPLACE PROCEDURE habilitar_proveedor (
+CREATE OR REPLACE PROCEDURE PROC_habilitar_proveedor (
     p_id IN PROVEEDOR.ID_PROVEEDOR%TYPE
 ) AS
 BEGIN
@@ -665,8 +665,8 @@ BEGIN
 END;
 /
 
--- 29. PROCEDIMIENTO PARA OBTENER DATOS DE UN PROVEEDOR ESPECÍFICO
-CREATE OR REPLACE PROCEDURE OBTENER_PROVEEDOR (
+-- 29. PROCEDIMIENTO PARA OBTENER DATOS DE UN PROVEEDOR ESPECï¿½FICO
+CREATE OR REPLACE PROCEDURE PROC_OBTENER_PROVEEDOR (
     p_id       IN  NUMBER,
     p_cursor   OUT SYS_REFCURSOR
 ) AS
@@ -678,8 +678,8 @@ BEGIN
 END;
 /
 
--- 30. PROCEDIMIENTO PARA OBTENER SOLO LOS ID DE TELÉFONOS DE UN PROVEEDOR
-CREATE OR REPLACE PROCEDURE OBTENER_ID_TELEFONOS (
+-- 30. PROCEDIMIENTO PARA OBTENER SOLO LOS ID DE TELï¿½FONOS DE UN PROVEEDOR
+CREATE OR REPLACE PROCEDURE PROC_OBTENER_ID_TELEFONOS (
     p_id_proveedor IN TELEFONO_PROVEEDOR.ID_PROVEEDOR%TYPE,
     p_cursor       OUT SYS_REFCURSOR
 ) AS
@@ -691,8 +691,8 @@ BEGIN
 END;
 /
 
--- 31. PROCEDIMIENTO PARA OBTENER LOS TELÉFONOS COMPLETOS DE UN PROVEEDOR
-CREATE OR REPLACE PROCEDURE OBTENER_TELEFONOS_PROVEEDOR (
+-- 31. PROCEDIMIENTO PARA OBTENER LOS TELï¿½FONOS COMPLETOS DE UN PROVEEDOR
+CREATE OR REPLACE PROCEDURE PROC_OBTENER_TELEFONOS_PROVEEDOR (
     p_id_proveedor IN TELEFONO_PROVEEDOR.ID_PROVEEDOR%TYPE,
     p_cursor       OUT SYS_REFCURSOR
 ) AS
@@ -704,8 +704,8 @@ BEGIN
 END;
 /
 
--- 32. PROCEDIMIENTO PARA ACTUALIZAR UN TELÉFONO EXISTENTE
-CREATE OR REPLACE PROCEDURE actualizar_telefono_proveedor (
+-- 32. PROCEDIMIENTO PARA ACTUALIZAR UN TELï¿½FONO EXISTENTE
+CREATE OR REPLACE PROCEDURE PROC_actualizar_telefono_proveedor (
     p_id_telefono   IN TELEFONO_PROVEEDOR.ID_TELEFONO%TYPE,
     p_telefono      IN TELEFONO_PROVEEDOR.TELEFONO%TYPE
 ) AS
@@ -716,8 +716,8 @@ BEGIN
 END;
 /
 
--- 33. PROCEDIMIENTO PARA ELIMINAR UN TELÉFONO
-CREATE OR REPLACE PROCEDURE eliminar_telefono (
+-- 33. PROCEDIMIENTO PARA ELIMINAR UN TELï¿½FONO
+CREATE OR REPLACE PROCEDURE PROC_eliminar_telefono (
     p_id_tel IN TELEFONO_PROVEEDOR.ID_TELEFONO%TYPE
 )
 AS
@@ -727,8 +727,8 @@ BEGIN
 END;
 /
 
--- 34. PROCEDIMIENTO PARA INSERTAR UN NUEVO TELÉFONO PARA UN PROVEEDOR
-CREATE OR REPLACE PROCEDURE insertar_telefono_proveedor (
+-- 34. PROCEDIMIENTO PARA INSERTAR UN NUEVO TELï¿½FONO PARA UN PROVEEDOR
+CREATE OR REPLACE PROCEDURE PROC_insertar_telefono_proveedor (
     p_id_proveedor IN TELEFONO_PROVEEDOR.ID_PROVEEDOR%TYPE,
     p_telefono     IN TELEFONO_PROVEEDOR.TELEFONO%TYPE
 ) AS
@@ -740,7 +740,7 @@ END;
 
   
 -- 35. PROCEDIMIENTO PARA ELIMINAR UNA VENTA
-CREATE OR REPLACE PROCEDURE eliminar_venta (
+CREATE OR REPLACE PROCEDURE PROC_eliminar_venta (
     p_id IN VENTA.ID_VENTA%TYPE
 ) AS
 BEGIN
@@ -750,7 +750,7 @@ END;
 /
 
 -- 36. PROCEDIMIENTO PARA ELIMINAR UNA VENTA_DETALLE
-CREATE OR REPLACE PROCEDURE eliminar_venta_detalle (
+CREATE OR REPLACE PROCEDURE PROC_eliminar_venta_detalle (
     p_id IN VENTA_DETALLE.ID_VENTA_DETALLE%TYPE
 ) AS
 BEGIN
@@ -760,7 +760,7 @@ END;
 /
 
 -- 37. PROCEDIMIENTO QUE DEVUELVE TODAS LAS VENTAS USANDO UN CURSOR
-CREATE OR REPLACE PROCEDURE LISTAR_VENTAS(p_cursor OUT SYS_REFCURSOR) AS
+CREATE OR REPLACE PROCEDURE PROC_LISTAR_VENTAS(p_cursor OUT SYS_REFCURSOR) AS
 BEGIN
     -- Abrimos el cursor con los datos de todas las ventas
     OPEN p_cursor FOR
@@ -773,7 +773,7 @@ END;
 /
 
 -- 38. PROCEDIMIENTO PARA INSERTAR UNA VENTA
-CREATE OR REPLACE PROCEDURE insertar_venta (
+CREATE OR REPLACE PROCEDURE PROC_insertar_venta (
     p_numero     IN VENTA.NUMERO%TYPE,
     p_impuestos  IN VENTA.IMPUESTOS%TYPE,
     p_id_cliente IN VENTA.ID_CLIENTE%TYPE,
@@ -795,7 +795,7 @@ END;
 /
 
 -- 39. PROCEDIMIENTO PARA INSERTAR UN DETALLE DE VENTA
-CREATE OR REPLACE PROCEDURE insertar_venta_detalle (
+CREATE OR REPLACE PROCEDURE PROC_insertar_venta_detalle (
     p_cantidad       IN VENTA_DETALLE.CANTIDAD%TYPE,
     p_precio_unitario IN VENTA_DETALLE.PRECIO_UNITARIO%TYPE,
     p_descuento      IN VENTA_DETALLE.DESCUENTO%TYPE,
@@ -819,8 +819,8 @@ BEGIN
 END;
 /
 
--- 40. PROCEDIMIENTO QUE DEVUELVE EL NÚMERO MAYOR DE LAS VENTAS
-CREATE OR REPLACE PROCEDURE OBTENER_MAX_NUMERO_VENTA (
+-- 40. PROCEDIMIENTO QUE DEVUELVE EL Nï¿½MERO MAYOR DE LAS VENTAS
+CREATE OR REPLACE PROCEDURE PROC_OBTENER_MAX_NUMERO_VENTA (
     p_max_numero OUT VENTA.NUMERO%TYPE
 ) AS
 BEGIN
@@ -831,7 +831,7 @@ END;
 /
 
 -- 41. Procedimiento que devuelve una venta a partir de un id
-CREATE OR REPLACE PROCEDURE OBTENER_VENTA (
+CREATE OR REPLACE PROCEDURE PROC_OBTENER_VENTA (
     p_id_venta   IN  VENTA.ID_VENTA%TYPE,
     p_numero     OUT VENTA.NUMERO%TYPE,
     p_impuestos  OUT VENTA.IMPUESTOS%TYPE,
@@ -853,7 +853,7 @@ END;
 /
 
 --42. procedimiento que devuelve el detalle de una venta
-CREATE OR REPLACE PROCEDURE LISTAR_DETALLES_VENTA (
+CREATE OR REPLACE PROCEDURE PROC_LISTAR_DETALLES_VENTA (
     p_id_venta IN VENTA_DETALLE.ID_VENTA%TYPE,
     p_cursor OUT SYS_REFCURSOR
 )
@@ -873,7 +873,7 @@ END;
 /
 
 --42. procedimiento que devuelve la ultima venta ingresada
-CREATE OR REPLACE PROCEDURE OBTENER_ULTIMO_ID_VENTA (
+CREATE OR REPLACE PROCEDURE PROC_OBTENER_ULTIMO_ID_VENTA (
     p_id_venta OUT NUMBER
 ) AS
 BEGIN
@@ -881,11 +881,8 @@ BEGIN
 END;
 /
 
-
-
-
 --43. procedimiento que optiene un producto a partir de un id
-CREATE OR REPLACE PROCEDURE OBTENER_PRODUCTO (
+CREATE OR REPLACE PROCEDURE PROC_OBTENER_PRODUCTO (
     p_id_producto IN PRODUCTO.ID_PRODUCTO%TYPE,
     p_cursor      OUT SYS_REFCURSOR
 ) AS
@@ -898,7 +895,7 @@ END;
 /
 
 --43. Procedimiento para obtener los usuarios por ID
-CREATE OR REPLACE PROCEDURE obtener_usuario_por_id (
+CREATE OR REPLACE PROCEDURE PROC_obtener_usuario_por_id (
     p_id_usuario IN USUARIO.ID_USUARIO%TYPE,
     p_cursor OUT SYS_REFCURSOR
 ) AS
@@ -917,7 +914,7 @@ END;
 
 --44. Procedimiento para habilitar usuarios desactivados
 
-CREATE OR REPLACE PROCEDURE habilitar_usuario (
+CREATE OR REPLACE PROCEDURE PROC_habilitar_usuario (
     p_id IN USUARIO.ID_USUARIO%TYPE
 ) AS
 BEGIN
@@ -928,7 +925,7 @@ END;
 /
 
 --45. Procedimiento para obtener datos cliente por ID
-CREATE OR REPLACE PROCEDURE OBTENER_CLIENTE (
+CREATE OR REPLACE PROCEDURE PROC_OBTENER_CLIENTE (
   p_id_cliente IN CLIENTE.ID_CLIENTE%TYPE,
   p_nombre     OUT CLIENTE.NOMBRE_CLIENTE%TYPE,
   p_correo     OUT CLIENTE.CORREO%TYPE,
@@ -942,8 +939,8 @@ BEGIN
 END;
 /
 
---46. Procedimiento para obtener teléfonos de un cliente
-CREATE OR REPLACE PROCEDURE OBTENER_TELEFONOS_CLIENTE (
+--46. Procedimiento para obtener telï¿½fonos de un cliente
+CREATE OR REPLACE PROCEDURE PROC_OBTENER_TELEFONOS_CLIENTE (
   p_id_cliente IN TELEFONO_CLIENTE.ID_CLIENTE%TYPE,
   p_cursor     OUT SYS_REFCURSOR
 ) AS
@@ -955,8 +952,8 @@ BEGIN
 END;
 /
 
---47. Procedimiento para obtener solo los IDs de teléfono de un cliente
-CREATE OR REPLACE PROCEDURE OBTENER_ID_TELEFONOS_CLIENTE (
+--47. Procedimiento para obtener solo los IDs de telï¿½fono de un cliente
+CREATE OR REPLACE PROCEDURE PROC_OBTENER_ID_TELEFONOS_CLIENTE (
   p_id_cliente IN TELEFONO_CLIENTE.ID_CLIENTE%TYPE,
   p_cursor     OUT SYS_REFCURSOR
 ) AS
@@ -969,7 +966,7 @@ END;
 /
 
 --48. Procedimiento para insertar un telefono cliente
-CREATE OR REPLACE PROCEDURE insertar_telefono_cliente (
+CREATE OR REPLACE PROCEDURE PROC_insertar_telefono_cliente (
   p_id_cliente IN TELEFONO_CLIENTE.ID_CLIENTE%TYPE,
   p_telefono   IN TELEFONO_CLIENTE.TELEFONO%TYPE
 ) AS
@@ -980,7 +977,7 @@ END;
 /
 
 --49. Procedimiento para actualizar un telefono cliente
-CREATE OR REPLACE PROCEDURE actualizar_telefono_cliente (
+CREATE OR REPLACE PROCEDURE PROC_actualizar_telefono_cliente (
   p_id_tel   IN TELEFONO_CLIENTE.ID_TELEFONO%TYPE,
   p_telefono IN TELEFONO_CLIENTE.TELEFONO%TYPE
 ) AS
@@ -995,7 +992,7 @@ SELECT * FROM CLIENTE;
 SELECT * FROM TELEFONO_CLIENTE;
 
 --50. Procedimiento para eliminar un telefono cliente
-CREATE OR REPLACE PROCEDURE eliminar_telefono_cliente (
+CREATE OR REPLACE PROCEDURE PROC_eliminar_telefono_cliente (
   p_id_tel IN TELEFONO_CLIENTE.ID_TELEFONO%TYPE
 ) AS
 BEGIN
@@ -1004,9 +1001,8 @@ BEGIN
 END;
 /
 
-
 --50. Procedimiento mostrar la bitacora
-CREATE OR REPLACE PROCEDURE LISTAR_BITACORA(p_cursor OUT SYS_REFCURSOR) AS
+CREATE OR REPLACE PROCEDURE PROC_LISTAR_BITACORA(p_cursor OUT SYS_REFCURSOR) AS
 BEGIN
   OPEN p_cursor FOR
     SELECT 
@@ -1028,7 +1024,7 @@ END;
 -- -------------------------- VISTAS ------------------------------------------------------
 
 -- 1. Vista de Usuarios Deshabilitados
-CREATE OR REPLACE VIEW V_USUARIOS_DESHABILITADOS AS
+CREATE OR REPLACE VIEW VW_USUARIOS_DESHABILITADOS AS
 SELECT 
     ID_USUARIO,
     NOMBRE_USUARIO,
@@ -1042,7 +1038,7 @@ WHERE
     ESTADO = 0;
 
 -- 2. Vista de clientes filtrados por Tipo_Clinica
-CREATE OR REPLACE VIEW V_CLIENTES_CON_TIPO_CLINICA AS
+CREATE OR REPLACE VIEW VW_CLIENTES_CON_TIPO_CLINICA AS
 SELECT
     C.ID_CLIENTE,
     C.NOMBRE_CLIENTE,
@@ -1055,7 +1051,7 @@ JOIN
     TIPO_CLINICA TC ON C.ID_TIPO_CLINICA = TC.ID_TIPO_CLINICA;
 
 -- 3. Vista de cantidad de compras efectuadas por cliente
-CREATE OR REPLACE VIEW V_CANTIDAD_VENTAS_POR_CLIENTE AS
+CREATE OR REPLACE VIEW VW_CANTIDAD_VENTAS_POR_CLIENTE AS
 SELECT
     C.ID_CLIENTE,
     C.NOMBRE_CLIENTE,
@@ -1073,13 +1069,13 @@ ORDER BY
     C.NOMBRE_CLIENTE;
 
 -- 4. Vista de Proveedores Deshabilitados
-CREATE OR REPLACE VIEW V_PROVEEDORES_DESHABILITADOS AS
+CREATE OR REPLACE VIEW VW_PROVEEDORES_DESHABILITADOS AS
 SELECT 
     p.ID_PROVEEDOR,
     p.NOMBRE_PROVEEDOR,
     p.CORREO,
     p.DIRECCION_PROVEEDOR,
-    -- Agrupar teléfonos en una sola columna
+    -- Agrupar telï¿½fonos en una sola columna
     (
         SELECT LISTAGG(t.TELEFONO, CHR(10)) WITHIN GROUP (ORDER BY t.ID_TELEFONO)
         FROM TELEFONO_PROVEEDOR t
@@ -1090,20 +1086,8 @@ FROM
 WHERE 
     p.ESTADO = 0;
 
--- Procedimiento que manpula la vista de Proveedores Deshabilitados 
-
-CREATE OR REPLACE PROCEDURE LISTAR_PROVEEDORES_DESHABILITADOS (
-    p_cursor OUT SYS_REFCURSOR
-) AS
-BEGIN
-    OPEN p_cursor FOR
-        SELECT ID_PROVEEDOR, NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR, TELEFONOS
-        FROM V_PROVEEDORES_DESHABILITADOS;
-END;
-/
-
 -- 5. VISTA PARA LOS 5 PRODUCTOS MENOS VENDIDOS
-CREATE OR REPLACE VIEW VISTA_PRODUCTOS_MENOS_VENDIDOS AS
+CREATE OR REPLACE VIEW VW_PRODUCTOS_MENOS_VENDIDOS AS
 SELECT 
     p.ID_PRODUCTO,
     p.NOMBRE_PRODUCTO,
@@ -1116,42 +1100,55 @@ GROUP BY p.ID_PRODUCTO, p.NOMBRE_PRODUCTO, c.NOMBRE_CATEGORIA
 ORDER BY TOTAL_VENDIDO ASC
 FETCH FIRST 5 ROWS ONLY;
 
--- Procedimiento vara consultar lo productos menos vendidos
-CREATE OR REPLACE PROCEDURE LISTAR_PRODUCTOS_MENOS_VENDIDOS (
-    p_cursor OUT SYS_REFCURSOR
-) AS
-BEGIN
-    OPEN p_cursor FOR
-        SELECT * FROM VISTA_PRODUCTOS_MENOS_VENDIDOS;
-END;
-/
-
 -- -------------------------- STORED PROCEDURES (Para Vistas) ------------------------------------------------------
 
 --1. Procedimiento almacenado para recorrer la vista de usuarios deshabilitados
 
-CREATE OR REPLACE PROCEDURE listar_usuarios_deshabilitados (
+CREATE OR REPLACE PROCEDURE PROC_listar_usuarios_deshabilitados (
     p_cursor OUT SYS_REFCURSOR
 ) AS
 BEGIN
     OPEN p_cursor FOR
         SELECT ID_USUARIO, NOMBRE_USUARIO, TELEFONO, CORREO, ROL, FECHA_REGISTRO
-        FROM V_USUARIOS_DESHABILITADOS;
+        FROM VW_USUARIOS_DESHABILITADOS;
 END;
 /
 
 --2. Procedimiento almacenado para recorrer la vista de los clientes por tipo clinica
-CREATE OR REPLACE PROCEDURE obtener_clientes_por_clinica (
+CREATE OR REPLACE PROCEDURE PROC_obtener_clientes_por_clinica (
     p_id_tipo_clinica IN TIPO_CLINICA.ID_TIPO_CLINICA%TYPE,
     p_cursor OUT SYS_REFCURSOR
 ) AS
 BEGIN
     OPEN p_cursor FOR
         SELECT * 
-        FROM V_CLIENTES_CON_TIPO_CLINICA 
+        FROM VW_CLIENTES_CON_TIPO_CLINICA 
         WHERE ID_TIPO_CLINICA = p_id_tipo_clinica;
 END;
 /
+
+-- 3. Procedimiento que manipula la vista de Proveedores Deshabilitados 
+
+CREATE OR REPLACE PROCEDURE PROC_LISTAR_PROVEEDORES_DESHABILITADOS (
+    p_cursor OUT SYS_REFCURSOR
+) AS
+BEGIN
+    OPEN p_cursor FOR
+        SELECT ID_PROVEEDOR, NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR, TELEFONOS
+        FROM VW_PROVEEDORES_DESHABILITADOS;
+END;
+/
+
+-- 4. Procedimiento vara consultar lo productos menos vendidos
+CREATE OR REPLACE PROCEDURE PROC_LISTAR_PRODUCTOS_MENOS_VENDIDOS (
+    p_cursor OUT SYS_REFCURSOR
+) AS
+BEGIN
+    OPEN p_cursor FOR
+        SELECT * FROM VW_PRODUCTOS_MENOS_VENDIDOS;
+END;
+/
+
 
 -- -------------------------- CONTEXTOS ------------------------------------------------------
 -----CTX_Usuario
@@ -1256,7 +1253,7 @@ DECLARE
 BEGIN
   IF INSERTING THEN
     v_operacion := 'INSERT';
-    v_descripcion := 'Se insertó el producto: ' ||
+    v_descripcion := 'Se insertï¿½ el producto: ' ||
                      'ID=' || :NEW.ID_PRODUCTO || ', ' ||
                      'NOMBRE=' || :NEW.NOMBRE_PRODUCTO || ', ' ||
                      'PRECIO=' || :NEW.PRECIO || ', ' ||
@@ -1265,13 +1262,13 @@ BEGIN
 
   ELSIF UPDATING THEN
     v_operacion := 'UPDATE';
-    v_descripcion := 'Se actualizó el producto ID=' || :OLD.ID_PRODUCTO || ' ? ' ||
+    v_descripcion := 'Se actualizï¿½ el producto ID=' || :OLD.ID_PRODUCTO || ' ? ' ||
                      'ANTES [NOMBRE=' || :OLD.NOMBRE_PRODUCTO || ', PRECIO=' || :OLD.PRECIO || '] ? ' ||
-                     'DESPUÉS [NOMBRE=' || :NEW.NOMBRE_PRODUCTO || ', PRECIO=' || :NEW.PRECIO || ']';
+                     'DESPUï¿½S [NOMBRE=' || :NEW.NOMBRE_PRODUCTO || ', PRECIO=' || :NEW.PRECIO || ']';
 
   ELSIF DELETING THEN
     v_operacion := 'DELETE';
-    v_descripcion := 'Se eliminó el producto: ' ||
+    v_descripcion := 'Se eliminï¿½ el producto: ' ||
                      'ID=' || :OLD.ID_PRODUCTO || ', ' ||
                      'NOMBRE=' || :OLD.NOMBRE_PRODUCTO || ', ' ||
                      'PRECIO=' || :OLD.PRECIO;
@@ -1299,7 +1296,7 @@ DECLARE
 BEGIN
   IF INSERTING THEN
     v_operacion := 'INSERT';
-    v_descripcion := 'Se insertó la venta: ' ||
+    v_descripcion := 'Se insertï¿½ la venta: ' ||
                      'ID=' || :NEW.ID_VENTA || ', ' ||
                      'NUMERO=' || :NEW.NUMERO || ', ' ||
                      'IMPUESTOS=' || :NEW.IMPUESTOS || ', ' ||
@@ -1308,13 +1305,13 @@ BEGIN
 
   ELSIF UPDATING THEN
     v_operacion := 'UPDATE';
-    v_descripcion := 'Se actualizó la venta ID=' || :OLD.ID_VENTA || ' ? ' ||
+    v_descripcion := 'Se actualizï¿½ la venta ID=' || :OLD.ID_VENTA || ' ? ' ||
                      'ANTES [NUMERO=' || :OLD.NUMERO || ', IMPUESTOS=' || :OLD.IMPUESTOS || '] ? ' ||
-                     'DESPUÉS [NUMERO=' || :NEW.NUMERO || ', IMPUESTOS=' || :NEW.IMPUESTOS || ']';
+                     'DESPUï¿½S [NUMERO=' || :NEW.NUMERO || ', IMPUESTOS=' || :NEW.IMPUESTOS || ']';
 
   ELSIF DELETING THEN
     v_operacion := 'DELETE';
-    v_descripcion := 'Se eliminó la venta: ' ||
+    v_descripcion := 'Se eliminï¿½ la venta: ' ||
                      'ID=' || :OLD.ID_VENTA || ', ' ||
                      'NUMERO=' || :OLD.NUMERO || ', ' ||
                      'IMPUESTOS=' || :OLD.IMPUESTOS;
@@ -1342,7 +1339,7 @@ DECLARE
 BEGIN
   IF INSERTING THEN
     v_operacion := 'INSERT';
-    v_descripcion := 'Se insertó el detalle de venta: ' ||
+    v_descripcion := 'Se insertï¿½ el detalle de venta: ' ||
                      'ID=' || :NEW.ID_VENTA_DETALLE || ', ' ||
                      'ID_VENTA=' || :NEW.ID_VENTA || ', ' ||
                      'ID_PRODUCTO=' || :NEW.ID_PRODUCTO || ', ' ||
@@ -1352,13 +1349,13 @@ BEGIN
 
   ELSIF UPDATING THEN
     v_operacion := 'UPDATE';
-    v_descripcion := 'Se actualizó el detalle de venta ID=' || :OLD.ID_VENTA_DETALLE || ' ? ' ||
+    v_descripcion := 'Se actualizï¿½ el detalle de venta ID=' || :OLD.ID_VENTA_DETALLE || ' ? ' ||
                      'ANTES [CANTIDAD=' || :OLD.CANTIDAD || ', PRECIO_UNITARIO=' || :OLD.PRECIO_UNITARIO || ', DESCUENTO=' || :OLD.DESCUENTO || '] ? ' ||
-                     'DESPUÉS [CANTIDAD=' || :NEW.CANTIDAD || ', PRECIO_UNITARIO=' || :NEW.PRECIO_UNITARIO || ', DESCUENTO=' || :NEW.DESCUENTO || ']';
+                     'DESPUï¿½S [CANTIDAD=' || :NEW.CANTIDAD || ', PRECIO_UNITARIO=' || :NEW.PRECIO_UNITARIO || ', DESCUENTO=' || :NEW.DESCUENTO || ']';
 
   ELSIF DELETING THEN
     v_operacion := 'DELETE';
-    v_descripcion := 'Se eliminó el detalle de venta: ' ||
+    v_descripcion := 'Se eliminï¿½ el detalle de venta: ' ||
                      'ID=' || :OLD.ID_VENTA_DETALLE || ', ' ||
                      'ID_VENTA=' || :OLD.ID_VENTA || ', ' ||
                      'ID_PRODUCTO=' || :OLD.ID_PRODUCTO || ', ' ||
@@ -1423,31 +1420,31 @@ SELECT NOMBRE_USUARIO, CONTRASENA FROM USUARIO;
 
 --Insertar una clinica
 INSERT INTO TIPO_CLINICA (DESCRIPCION)
-VALUES ('Clínica General');
+VALUES ('Clï¿½nica General');
 
 --Insertar un cliente
 INSERT INTO CLIENTE (NOMBRE_CLIENTE, CORREO, ID_TIPO_CLINICA)
-VALUES ('María Jiménez', 'maria.jimenez@gmail.com', 1);
+VALUES ('Marï¿½a Jimï¿½nez', 'maria.jimenez@gmail.com', 1);
 
 
--- 1. Insertar proveedores correctamente (incluye dirección)
+-- 1. Insertar proveedores correctamente (incluye direcciï¿½n)
 INSERT INTO PROVEEDOR (NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR, ESTADO)
-VALUES ('BeautyTech S.A.', 'ventas@beautytech.com', 'San José, Costa Rica', 1);
+VALUES ('BeautyTech S.A.', 'ventas@beautytech.com', 'San Josï¿½, Costa Rica', 1);
 
 INSERT INTO PROVEEDOR (NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR, ESTADO)
-VALUES ('Dermalaser CR', 'info@dermalaser.cr', 'Escazú, Costa Rica', 1);
+VALUES ('Dermalaser CR', 'info@dermalaser.cr', 'Escazï¿½, Costa Rica', 1);
 
 INSERT INTO PROVEEDOR (NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR, ESTADO)
 VALUES ('DermaSkin', 'contacto@dermaskin.com', 'Santa Ana, Costa Rica', 1);
 
 INSERT INTO PROVEEDOR (NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR, ESTADO)
-VALUES ('Estética Pura Vida', 'contacto@esteticapuravida.cr', 'Heredia, Costa Rica', 1);
+VALUES ('Estï¿½tica Pura Vida', 'contacto@esteticapuravida.cr', 'Heredia, Costa Rica', 1);
 
 INSERT INTO PROVEEDOR (NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR, ESTADO)
 VALUES ('MedEquipos CR', 'ventas@medequiposcr.com', 'Alajuela, Costa Rica', 0);
 
 INSERT INTO PROVEEDOR (NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR, ESTADO)
-VALUES ('LáserClinic S.A.', 'info@laserclinic.cr', 'Cartago, Costa Rica', 1);
+VALUES ('Lï¿½serClinic S.A.', 'info@laserclinic.cr', 'Cartago, Costa Rica', 1);
 
 INSERT INTO PROVEEDOR (NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR, ESTADO)
 VALUES ('Tecnobeauty', 'servicio@tecnobeauty.com', 'San Pedro, Costa Rica', 0);
@@ -1455,7 +1452,7 @@ VALUES ('Tecnobeauty', 'servicio@tecnobeauty.com', 'San Pedro, Costa Rica', 0);
 INSERT INTO PROVEEDOR (NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR, ESTADO)
 VALUES ('CosmoEsthetics', 'soporte@cosmoesthetics.com', 'Liberia, Costa Rica', 1);
 
--- 2. Insertar teléfonos (ya existen los proveedores)
+-- 2. Insertar telï¿½fonos (ya existen los proveedores)
 INSERT INTO TELEFONO_PROVEEDOR (TELEFONO, ID_PROVEEDOR)
 VALUES ('89842738', 1);
 INSERT INTO TELEFONO_PROVEEDOR (TELEFONO, ID_PROVEEDOR)
@@ -1478,16 +1475,16 @@ INSERT INTO TELEFONO_PROVEEDOR (TELEFONO, ID_PROVEEDOR)
 VALUES ('85001133', 8);
 
 
--- 3. Insertar categoría
+-- 3. Insertar categorï¿½a
 INSERT INTO CATEGORIA (NOMBRE_CATEGORIA)
-VALUES ('Equipos Estéticos');
+VALUES ('Equipos Estï¿½ticos');
 
--- 4. Insertar productos (ya existen proveedor y categoría)
+-- 4. Insertar productos (ya existen proveedor y categorï¿½a)
 INSERT INTO PRODUCTO (NOMBRE_PRODUCTO, PRECIO, ID_PROVEEDOR, ID_CATEGORIA)
-VALUES ('Soprano Titanium (Depilación Láser)', 500000, 1, 1);
+VALUES ('Soprano Titanium (Depilaciï¿½n Lï¿½ser)', 500000, 1, 1);
 
 INSERT INTO PRODUCTO (NOMBRE_PRODUCTO, PRECIO, ID_PROVEEDOR, ID_CATEGORIA)
-VALUES ('Multifuncional 6 en 1 con Lipoláser 850mz y EMS', 1200000, 2, 1);
+VALUES ('Multifuncional 6 en 1 con Lipolï¿½ser 850mz y EMS', 1200000, 2, 1);
 
 INSERT INTO PRODUCTO (NOMBRE_PRODUCTO, PRECIO, ID_PROVEEDOR, ID_CATEGORIA)
 VALUES ('Lampara de cirugia', 800000, 3, 1);
@@ -1496,7 +1493,7 @@ INSERT INTO PRODUCTO (NOMBRE_PRODUCTO, PRECIO, ID_PROVEEDOR, ID_CATEGORIA)
 VALUES ('Laser CO2', 1500000, 2, 1);
 
 INSERT INTO PRODUCTO (NOMBRE_PRODUCTO, PRECIO, ID_PROVEEDOR, ID_CATEGORIA)
-VALUES ('Láser de 4 longitudes soprano ', 1000000, 2, 1);
+VALUES ('Lï¿½ser de 4 longitudes soprano ', 1000000, 2, 1);
 
 /*
 SELECT *
@@ -1511,7 +1508,7 @@ EXEC LISTAR_PRODUCTOS(:rc);
 PRINT rc;
 
 INSERT INTO VENTA (NUMERO, FECHA, IMPUESTOS, ID_CLIENTE, ID_USUARIO)
-VALUES (1001, SYSDATE, 13, 1, 1);
+VALUES (1001, SYSDATE, 13, 2, 1);
 
 INSERT INTO VENTA (NUMERO, FECHA, IMPUESTOS, ID_CLIENTE, ID_USUARIO)
 VALUES (1002, SYSDATE, 20, 1, 1);
@@ -1523,5 +1520,70 @@ SELECT * FROM BITACORA order by id_bitacora;
 
 commit;
 
+-- Drops de los nombres anteriores
+-- Procedimientos
+DROP PROCEDURE VALIDAR_LOGIN;
+DROP PROCEDURE LISTAR_USUARIOS;
+DROP PROCEDURE CREAR_AUTOINCREMENTO;
+DROP PROCEDURE insertar_usuario;
+DROP PROCEDURE actualizar_usuario;
+DROP PROCEDURE actualizar_usuario_sc;
+DROP PROCEDURE eliminar_usuario;
+DROP PROCEDURE insertar_cliente;
+DROP PROCEDURE actualizar_cliente;
+DROP PROCEDURE eliminar_cliente;
+DROP PROCEDURE listar_clientes;
+DROP PROCEDURE insertar_tipo_clinica;
+DROP PROCEDURE actualizar_tipo_clinica;
+DROP PROCEDURE eliminar_tipo_clinica;
+DROP PROCEDURE listar_tipos_clinica;
+DROP PROCEDURE LISTAR_PRODUCTOS;
+DROP PROCEDURE insertar_producto;
+DROP PROCEDURE actualizar_producto;
+DROP PROCEDURE eliminar_producto;
+DROP PROCEDURE LISTAR_CATEGORIAS;
+DROP PROCEDURE insertar_categoria;
+DROP PROCEDURE eliminar_categoria;
+DROP PROCEDURE LISTAR_PROVEEDORES;
+DROP PROCEDURE insertar_proveedor;
+DROP PROCEDURE actualizar_proveedor;
+DROP PROCEDURE eliminar_proveedor;
+DROP PROCEDURE habilitar_proveedor;
+DROP PROCEDURE OBTENER_PROVEEDOR;
+DROP PROCEDURE OBTENER_ID_TELEFONOS;
+DROP PROCEDURE OBTENER_TELEFONOS_PROVEEDOR;
+DROP PROCEDURE actualizar_telefono_proveedor;
+DROP PROCEDURE eliminar_telefono;
+DROP PROCEDURE insertar_telefono_proveedor;
+DROP PROCEDURE eliminar_venta;
+DROP PROCEDURE eliminar_venta_detalle;
+DROP PROCEDURE LISTAR_VENTAS;
+DROP PROCEDURE insertar_venta;
+DROP PROCEDURE insertar_venta_detalle;
+DROP PROCEDURE OBTENER_MAX_NUMERO_VENTA;
+DROP PROCEDURE OBTENER_VENTA;
+DROP PROCEDURE LISTAR_DETALLES_VENTA;
+DROP PROCEDURE OBTENER_ULTIMO_ID_VENTA;
+DROP PROCEDURE OBTENER_PRODUCTO;
+DROP PROCEDURE obtener_usuario_por_id;
+DROP PROCEDURE habilitar_usuario;
+DROP PROCEDURE OBTENER_CLIENTE;
+DROP PROCEDURE OBTENER_TELEFONOS_CLIENTE;
+DROP PROCEDURE OBTENER_ID_TELEFONOS_CLIENTE;
+DROP PROCEDURE insertar_telefono_cliente;
+DROP PROCEDURE actualizar_telefono_cliente;
+DROP PROCEDURE eliminar_telefono_cliente;
+DROP PROCEDURE LISTAR_BITACORA;
 
+--Vistas
+DROP VIEW V_USUARIOS_DESHABILITADOS;
+DROP VIEW V_CLIENTES_CON_TIPO_CLINICA;
+DROP VIEW V_PROVEEDORES_DESHABILITADOS;
+DROP VIEW V_CANTIDAD_VENTAS_POR_CLIENTE;
+DROP VIEW VISTA_PRODUCTOS_MENOS_VENDIDOS;
 
+--Procedimientos dependientes de las vistas
+DROP PROCEDURE listar_usuarios_deshabilitados;
+DROP PROCEDURE obtener_clientes_por_clinica;
+DROP PROCEDURE LISTAR_PROVEEDORES_DESHABILITADOS;
+DROP PROCEDURE LISTAR_PRODUCTOS_MENOS_VENDIDOS;

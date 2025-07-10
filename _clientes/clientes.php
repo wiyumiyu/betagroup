@@ -18,7 +18,7 @@ $edtVer = ($edt != "") ? "edt=$edt" : "";
 // Eliminar cliente
 if (isset($_GET['del2'])) {
     $del2 = $_GET['del2'];
-    $sql = "BEGIN eliminar_cliente(:id); END;";
+    $sql = "BEGIN PROC_eliminar_cliente(:id); END;";
     $stmt = oci_parse($conn, $sql);
     oci_bind_by_name($stmt, ":id", $del2);
     if (oci_execute($stmt)) {
@@ -38,11 +38,11 @@ if (isset($_POST['submitted'])) {
 
     if ($edt != "") {
         $id = $edt;
-        $sql = "BEGIN actualizar_cliente(:id, :nombre, :correo, :tipo); END;";
+        $sql = "BEGIN PROC_actualizar_cliente(:id, :nombre, :correo, :tipo); END;";
         $stmt = oci_parse($conn, $sql);
         oci_bind_by_name($stmt, ":id", $id);
     } else {
-        $sql = "BEGIN insertar_cliente(:nombre, :correo, :tipo); END;";
+        $sql = "BEGIN PROC_insertar_cliente(:nombre, :correo, :tipo); END;";
         $stmt = oci_parse($conn, $sql);
         // Necesitamos obtener el ID del último cliente insertado para los teléfonos
         $get_id_sql = "SELECT MAX(ID_CLIENTE) AS ID_CLIENTE FROM CLIENTE";
@@ -64,7 +64,7 @@ if (isset($_POST['submitted'])) {
     $ids_recibidos = [];
 
     if ($edt != "") {
-        $stmt_get = oci_parse($conn, "BEGIN OBTENER_ID_TELEFONOS_CLIENTE(:id, :cursor); END;");
+        $stmt_get = oci_parse($conn, "BEGIN PROC_OBTENER_ID_TELEFONOS_CLIENTE(:id, :cursor); END;");
         $cursor = oci_new_cursor($conn);
         oci_bind_by_name($stmt_get, ":id", $id);
         oci_bind_by_name($stmt_get, ":cursor", $cursor, -1, OCI_B_CURSOR);
@@ -86,14 +86,14 @@ if (isset($_POST['submitted'])) {
         if ($telefono == "") continue;
 
         if ($id_tel == "") {
-            $sql_tel = "BEGIN insertar_telefono_cliente(:id, :tel); END;";
+            $sql_tel = "BEGIN PROC_insertar_telefono_cliente(:id, :tel); END;";
             $stmt_tel = oci_parse($conn, $sql_tel);
             oci_bind_by_name($stmt_tel, ":id", $id);
             oci_bind_by_name($stmt_tel, ":tel", $telefono);
             oci_execute($stmt_tel);
             oci_free_statement($stmt_tel);
         } else {
-            $sql_upd = "BEGIN actualizar_telefono_cliente(:id_tel, :tel); END;";
+            $sql_upd = "BEGIN PROC_actualizar_telefono_cliente(:id_tel, :tel); END;";
             $stmt_upd = oci_parse($conn, $sql_upd);
             oci_bind_by_name($stmt_upd, ":id_tel", $id_tel);
             oci_bind_by_name($stmt_upd, ":tel", $telefono);
@@ -106,7 +106,7 @@ if (isset($_POST['submitted'])) {
     if ($edt != "") {
         $a_eliminar = array_diff($telefonos_actuales, $ids_recibidos);
         foreach ($a_eliminar as $id_eliminar) {
-            $sql_del = "BEGIN eliminar_telefono_cliente(:id_tel); END;";
+            $sql_del = "BEGIN PROC_eliminar_telefono_cliente(:id_tel); END;";
             $stmt_del = oci_parse($conn, $sql_del);
             oci_bind_by_name($stmt_del, ":id_tel", $id_eliminar);
             oci_execute($stmt_del);
@@ -138,7 +138,7 @@ if (isset($_POST['submitted'])) {
     </thead>
     <tbody>
 <?php
-$sql = "BEGIN listar_clientes(:cursor); END;";
+$sql = "BEGIN PROC_listar_clientes(:cursor); END;";
 $stid = oci_parse($conn, $sql);
 $cursor = oci_new_cursor($conn);
 oci_bind_by_name($stid, ":cursor", $cursor, -1, OCI_B_CURSOR);
@@ -150,7 +150,7 @@ while ($row = oci_fetch_assoc($cursor)) {
 
     // Obtener teléfonos
     $telefonos = [];
-    $stmt_tel = oci_parse($conn, "BEGIN OBTENER_TELEFONOS_CLIENTE(:id, :cur); END;");
+    $stmt_tel = oci_parse($conn, "BEGIN PROC_OBTENER_TELEFONOS_CLIENTE(:id, :cur); END;");
     $cur = oci_new_cursor($conn);
     oci_bind_by_name($stmt_tel, ":id", $id);
     oci_bind_by_name($stmt_tel, ":cur", $cur, -1, OCI_B_CURSOR);
@@ -187,7 +187,7 @@ $nombre = $correo = $tipo = "";
 $telefonos_editar = [];
 
 if ($edt != "") {
-    $sql = "BEGIN OBTENER_CLIENTE(:id, :nom, :cor, :tip); END;";
+    $sql = "BEGIN PROC_OBTENER_CLIENTE(:id, :nom, :cor, :tip); END;";
     $stmt = oci_parse($conn, $sql);
     oci_bind_by_name($stmt, ":id", $edt);
     oci_bind_by_name($stmt, ":nom", $nombre, 100);
@@ -196,7 +196,7 @@ if ($edt != "") {
     oci_execute($stmt);
     oci_free_statement($stmt);
 
-    $stmt_tel = oci_parse($conn, "BEGIN OBTENER_TELEFONOS_CLIENTE(:id, :cur); END;");
+    $stmt_tel = oci_parse($conn, "BEGIN PROC_OBTENER_TELEFONOS_CLIENTE(:id, :cur); END;");
     $cur = oci_new_cursor($conn);
     oci_bind_by_name($stmt_tel, ":id", $edt);
     oci_bind_by_name($stmt_tel, ":cur", $cur, -1, OCI_B_CURSOR);

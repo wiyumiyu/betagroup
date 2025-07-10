@@ -20,7 +20,7 @@ if (isset($_GET['del'])) {
 }
 if (isset($_GET['del2'])) {
     $del2 = $_GET['del2'];
-    $sql = "BEGIN eliminar_usuario(:id); END;";
+    $sql = "BEGIN PROC_eliminar_usuario(:id); END;";
     $stmt = oci_parse($conn, $sql);
     oci_bind_by_name($stmt, ":id", $del2);
     if (oci_execute($stmt)) {
@@ -59,7 +59,7 @@ if (isset($_POST['submitted'])) {
     <tbody>
 <?php
     // 1. Preparamos la llamada al procedimiento almacenado que devuelve la bitácora
-$sql = "BEGIN LISTAR_BITACORA(:cursor); END;";
+$sql = "BEGIN PROC_LISTAR_BITACORA(:cursor); END;";
 $stid = oci_parse($conn, $sql); // Preparamos el statement
 
 // 2. Creamos un cursor que será llenado por el procedimiento

@@ -44,7 +44,7 @@ if (isset($_GET['del2'])) {
 //    $stmt_contexto2 = "BEGIN pkg_contexto_venta_detalle.set_venta_detalle(:id); END;";
 //    llenarBitacora($_SESSION['id_usuario'], $stmt_contexto2, $conn);
 
-    $sql = "BEGIN eliminar_venta_detalle(:id); END;";
+    $sql = "BEGIN PROC_eliminar_venta_detalle(:id); END;";
     $stmt = oci_parse($conn, $sql);
     oci_bind_by_name($stmt, ":id", $del2);
 
@@ -53,7 +53,7 @@ if (isset($_GET['del2'])) {
         echo "Error al eliminar la venta: " . $e['message'];
     }
 
-    $sql = "BEGIN eliminar_venta(:id); END;";
+    $sql = "BEGIN PROC_eliminar_venta(:id); END;";
     $stmt = oci_parse($conn, $sql);
     oci_bind_by_name($stmt, ":id", $del2);
 
@@ -80,7 +80,7 @@ if (isset($_POST['submitted'])) {
     $id_cliente = trim($_POST['cliente']);
     $id_usuario = $_SESSION['id_usuario'];  // El usuario actual autenticado
     // 2. Insertar venta usando el procedimiento almacenado
-    $sqlVenta = "BEGIN insertar_venta(:numero, :impuestos, :id_cliente, :id_usuario); END;";
+    $sqlVenta = "BEGIN PROC_insertar_venta(:numero, :impuestos, :id_cliente, :id_usuario); END;";
     $stmtVenta = oci_parse($conn, $sqlVenta);
 
     oci_bind_by_name($stmtVenta, ":numero", $numero);
@@ -95,7 +95,7 @@ if (isset($_POST['submitted'])) {
     }
     oci_free_statement($stmtVenta);
 // Paso 1: Preparamos llamada al procedimiento
-    $sqlGetId = "BEGIN OBTENER_ULTIMO_ID_VENTA(:id); END;";
+    $sqlGetId = "BEGIN PROC_OBTENER_ULTIMO_ID_VENTA(:id); END;";
     $stmtId = oci_parse($conn, $sqlGetId);
     // Paso 2: Variable para capturar el ID
     $idVenta = null;
@@ -139,7 +139,7 @@ if (isset($_POST['submitted'])) {
             continue;
         }
 
-        $sqlDet = "BEGIN insertar_venta_detalle(:cantidad, :precio, :descuento, :producto, :id_venta); END;";
+        $sqlDet = "BEGIN PROC_insertar_venta_detalle(:cantidad, :precio, :descuento, :producto, :id_venta); END;";
         $stmtDet = oci_parse($conn, $sqlDet);
 
         oci_bind_by_name($stmtDet, ":cantidad", $cantidades[$i]);
@@ -197,7 +197,7 @@ include("tabs.php");
     <tbody>
 <?php
 // Se llama al procedimiento almacenado para listar LAS VENTAS
-$sql = "BEGIN LISTAR_VENTAS(:cursor); END;";
+$sql = "BEGIN PROC_LISTAR_VENTAS(:cursor); END;";
 $stid = oci_parse($conn, $sql);
 $cursor = oci_new_cursor($conn);
 oci_bind_by_name($stid, ":cursor", $cursor, -1, OCI_B_CURSOR);
@@ -401,7 +401,7 @@ $edt = "";
 $tipoEdit = "Nueva Venta";
 $cliente_seleccionado = 0;
 // Abrimos cursor desde el procedimiento LISTAR_PRODUCTOS
-$sql = "BEGIN LISTAR_PRODUCTOS(:cursor); END;";
+$sql = "BEGIN PROC_LISTAR_PRODUCTOS(:cursor); END;";
 $stmt = oci_parse($conn, $sql);
 $cursor = oci_new_cursor($conn);
 oci_bind_by_name($stmt, ":cursor", $cursor, -1, OCI_B_CURSOR);
@@ -428,7 +428,7 @@ if (isset($_GET["edt"])) {
     $tipoEdit = "Editar Venta";
     $venta_id = $_GET["edt"];
     // Obtener datos de la venta
-    $sql = "BEGIN OBTENER_VENTA(:id_venta, :numero, :impuestos, :id_cliente); END;";
+    $sql = "BEGIN PROC_OBTENER_VENTA(:id_venta, :numero, :impuestos, :id_cliente); END;";
     $stmt = oci_parse($conn, $sql);
 
     // Parámetros IN y OUT
@@ -444,7 +444,7 @@ if (isset($_GET["edt"])) {
     $cliente_seleccionado = $id_cliente;
 
     // Conexión y preparación
-    $sqlDetalle = "BEGIN LISTAR_DETALLES_VENTA(:id_venta, :cursor); END;";
+    $sqlDetalle = "BEGIN PROC_LISTAR_DETALLES_VENTA(:id_venta, :cursor); END;";
     $stmtDetalle = oci_parse($conn, $sqlDetalle);
 
     // Crear cursor de salida
@@ -468,7 +468,7 @@ if (isset($_GET["edt"])) {
     oci_free_statement($stmtDetalle);
     oci_free_statement($cursorDetalle);
 } else {
-    $sql = "BEGIN OBTENER_MAX_NUMERO_VENTA(:max_numero); END;";
+    $sql = "BEGIN PROC_OBTENER_MAX_NUMERO_VENTA(:max_numero); END;";
     $stmt = oci_parse($conn, $sql);
     oci_bind_by_name($stmt, ":max_numero", $maxNumero, 10);
     oci_execute($stmt);
@@ -480,7 +480,7 @@ echo "<h3 class='modalx-titulo'>$tipoEdit</h3>";
 // llenar select de clientes
 
 
-$selectClientes = llenarSelect("cliente", "ID_CLIENTE", "NOMBRE_CLIENTE", $cliente_seleccionado, "BEGIN listar_clientes(:cursor); END;", $conn);
+$selectClientes = llenarSelect("cliente", "ID_CLIENTE", "NOMBRE_CLIENTE", $cliente_seleccionado, "BEGIN PROC_listar_clientes(:cursor); END;", $conn);
 ?>
 
         <form action="ventas.php<?php echo "?op=$op&ta=$ta"; ?>" method="POST" id="formFactura">

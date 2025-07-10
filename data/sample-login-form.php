@@ -11,7 +11,7 @@ $username = $_POST["username"];
 $password = $_POST["password"];
 $login_status = 'invalid'; // esto sirva para AJAX (el 100%, la animacion del login)
 
-$sql = "BEGIN VALIDAR_LOGIN(:correo, :pass, :resultado, :id_usuario, :nombre, :rol); END;";
+$sql = "BEGIN PROC_VALIDAR_LOGIN(:correo, :pass, :resultado, :id_usuario, :nombre, :rol); END;";
 $stid = oci_parse($conn, $sql); // aqui hace la consulta, se convierte en idioma oracle la info
 
 // definir bien quien es quien... los campos que vienen de la BD

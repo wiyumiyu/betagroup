@@ -24,7 +24,7 @@ if (isset($_GET['del'])) {
 }
 if (isset($_GET['del2'])) {
     $del2 = $_GET['del2'];
-    $sql = "BEGIN eliminar_usuario(:id); END;";
+    $sql = "BEGIN PROC_eliminar_usuario(:id); END;";
     $stmt = oci_parse($conn, $sql);
     oci_bind_by_name($stmt, ":id", $del2);
     if (oci_execute($stmt)) {
@@ -48,18 +48,18 @@ if (isset($_POST['submitted'])) {
         $id = $_GET['edt'];
 
         if ($contrasena != "") {
-            $sql = "BEGIN actualizar_usuario(:id, :nombre, :contrasena, :telefono, :correo, :rol, :estado); END;";
+            $sql = "BEGIN PROC_actualizar_usuario(:id, :nombre, :contrasena, :telefono, :correo, :rol, :estado); END;";
             $stmt = oci_parse($conn, $sql);
             oci_bind_by_name($stmt, ":contrasena", $contrasena);
         } else {
-            $sql = "BEGIN actualizar_usuario_sc(:id, :nombre, :telefono, :correo, :rol, :estado); END;";
+            $sql = "BEGIN PROC_actualizar_usuario_sc(:id, :nombre, :telefono, :correo, :rol, :estado); END;";
             $stmt = oci_parse($conn, $sql);
         }
 
         oci_bind_by_name($stmt, ":id", $id);
         oci_bind_by_name($stmt, ":estado", $estado);
     } else {
-        $sql = "BEGIN insertar_usuario(:nombre, :contrasena, :telefono, :correo, :rol); END;";
+        $sql = "BEGIN PROC_insertar_usuario(:nombre, :contrasena, :telefono, :correo, :rol); END;";
         $stmt = oci_parse($conn, $sql);
         oci_bind_by_name($stmt, ":contrasena", $contrasena);
     }
@@ -101,7 +101,7 @@ if (isset($_POST['submitted'])) {
     </thead>
     <tbody>
 <?php
-$sql = "BEGIN LISTAR_USUARIOS(:cursor); END;";
+$sql = "BEGIN PROC_LISTAR_USUARIOS(:cursor); END;";
 $stid = oci_parse($conn, $sql);
 $cursor = oci_new_cursor($conn);
 oci_bind_by_name($stid, ":cursor", $cursor, -1, OCI_B_CURSOR);
@@ -168,7 +168,7 @@ $edtVer = "";
 if (isset($_GET["edt"])) {
     $edt = $_GET["edt"];
 
-    $sql = "BEGIN obtener_usuario_por_id(:id_usuario, :cursor); END;";
+    $sql = "BEGIN PROC_obtener_usuario_por_id(:id_usuario, :cursor); END;";
     $stid = oci_parse($conn, $sql);
     $cursor = oci_new_cursor($conn);
 

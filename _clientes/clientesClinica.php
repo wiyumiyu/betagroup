@@ -15,7 +15,7 @@ $resultado = [];
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $tipoSeleccionado = $_POST["id_tipo_clinica"];
 
-    $stmt = oci_parse($conn, "BEGIN obtener_clientes_por_clinica(:tipo_id, :cursor); END;");
+    $stmt = oci_parse($conn, "BEGIN PROC_obtener_clientes_por_clinica(:tipo_id, :cursor); END;");
     $cursor = oci_new_cursor($conn);
 
     oci_bind_by_name($stmt, ":tipo_id", $tipoSeleccionado);
@@ -40,7 +40,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <select name="id_tipo_clinica" class="form-control" required>
             <option value="">-- Seleccione Tipo de Clínica --</option>
 <?php
-$stmt = oci_parse($conn, "BEGIN listar_tipos_clinica(:cursor); END;");
+$stmt = oci_parse($conn, "BEGIN PROC_listar_tipos_clinica(:cursor); END;");
 $cursor = oci_new_cursor($conn);
 oci_bind_by_name($stmt, ":cursor", $cursor, -1, OCI_B_CURSOR);
 oci_execute($stmt);

@@ -42,7 +42,7 @@ if (isset($_GET['del2'])) {
     $stmt_contexto =  "BEGIN pkg_contexto_usuario.set_usuario(:id); END;";
     llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_usuario.set_usuario(:id); END;", $conn);
     
-    $sql = "BEGIN eliminar_producto(:id); END;";
+    $sql = "BEGIN PROC_eliminar_producto(:id); END;";
     $stmt = oci_parse($conn, $sql);
     oci_bind_by_name($stmt, ":id", $del2);
 
@@ -69,11 +69,11 @@ if (isset($_POST['submitted'])) {
 
     if (isset($_GET['edt'])) {
         $id = $_GET['edt'];
-        $sql = "BEGIN actualizar_producto(:id, :nombre_producto, :precio, :id_proveedor, :id_categoria); END;";
+        $sql = "BEGIN PROC_actualizar_producto(:id, :nombre_producto, :precio, :id_proveedor, :id_categoria); END;";
         $stmt = oci_parse($conn, $sql);
         oci_bind_by_name($stmt, ":id", $id);
     } else {
-        $sql = "BEGIN insertar_producto(:nombre_producto, :precio, :id_proveedor, :id_categoria); END;";
+        $sql = "BEGIN PROC_insertar_producto(:nombre_producto, :precio, :id_proveedor, :id_categoria); END;";
         $stmt = oci_parse($conn, $sql);
     }
 
@@ -138,7 +138,7 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
     </thead>
     <tbody>
         <?php
-        $sql = "BEGIN LISTAR_PRODUCTOS(:cursor); END;";
+        $sql = "BEGIN PROC_LISTAR_PRODUCTOS(:cursor); END;";
         $stid = oci_parse($conn, $sql);
         $cursor = oci_new_cursor($conn);
         oci_bind_by_name($stid, ":cursor", $cursor, -1, OCI_B_CURSOR);
@@ -180,7 +180,7 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
 
         if (isset($_GET["edt"])) {
             $id = $_GET["edt"];
-            $sql = "BEGIN OBTENER_PRODUCTO(:id, :cursor); END;";
+            $sql = "BEGIN PROC_OBTENER_PRODUCTO(:id, :cursor); END;";
             $stmt = oci_parse($conn, $sql);
             $cursor = oci_new_cursor($conn);
 
@@ -220,9 +220,9 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
             <input type="number" id="precio" class="form-control" name="precio" value="<?php echo $precio; ?>" required>
             <br>
             <label for="$id_proveedor"> Proveedor:</label>
-            <?php cargarSelect($conn, 'LISTAR_PROVEEDORES', 'ID_PROVEEDOR', 'NOMBRE_PROVEEDOR', 'id_proveedor', $id_proveedor); ?>
+            <?php cargarSelect($conn, 'PROC_LISTAR_PROVEEDORES', 'ID_PROVEEDOR', 'NOMBRE_PROVEEDOR', 'id_proveedor', $id_proveedor); ?>
             <label for="$id_categoria"> Categoría:</label>
-            <?php cargarSelect($conn, 'LISTAR_CATEGORIAS', 'ID_CATEGORIA', 'NOMBRE_CATEGORIA', 'id_categoria', $id_categoria); ?>
+            <?php cargarSelect($conn, 'PROC_LISTAR_CATEGORIAS', 'ID_CATEGORIA', 'NOMBRE_CATEGORIA', 'id_categoria', $id_categoria); ?>
             </select>
             <br>
             <input type='hidden' name='submitted' value='TRUE' />

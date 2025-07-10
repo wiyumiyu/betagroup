@@ -39,7 +39,7 @@ if (isset($_GET['del'])) {
 if (isset($_GET['del2'])) {
     $del2 = $_GET['del2'];
 
-    $sql = "BEGIN eliminar_categoria(:id); END;";
+    $sql = "BEGIN PROC_eliminar_categoria(:id); END;";
     $stmt = oci_parse($conn, $sql);
     oci_bind_by_name($stmt, ":id", $del2);
 
@@ -58,7 +58,7 @@ if (isset($_GET['del2'])) {
 if (isset($_POST['submitted'])) {
     $nombre_categoria = trim($_POST["nombre_categoria"]);
     
-        $sql = "BEGIN insertar_categoria(:nombre_categoria); END;";
+        $sql = "BEGIN PROC_insertar_categoria(:nombre_categoria); END;";
         $stmt = oci_parse($conn, $sql);
     
     oci_bind_by_name($stmt, ":nombre_categoria", $nombre_categoria);
@@ -94,7 +94,7 @@ if (isset($_POST['submitted'])) {
     </thead>
   <tbody>
 <?php
-$sql = "BEGIN LISTAR_CATEGORIAS(:cursor); END;";
+$sql = "BEGIN PROC_LISTAR_CATEGORIAS(:cursor); END;";
 $stid = oci_parse($conn, $sql);
 $cursor = oci_new_cursor($conn);
 oci_bind_by_name($stid, ":cursor", $cursor, -1, OCI_B_CURSOR);

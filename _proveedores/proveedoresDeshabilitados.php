@@ -20,7 +20,7 @@ if (isset($_GET['op'])) {
 if (isset($_GET['confirmar_habilitacion'])) {
     $id_habilitar = $_GET['confirmar_habilitacion'];
 
-    $sql = "BEGIN habilitar_proveedor(:id); END;";
+    $sql = "BEGIN PROC_habilitar_proveedor(:id); END;";
     $stmt = oci_parse($conn, $sql);
     oci_bind_by_name($stmt, ":id", $id_habilitar);
 
@@ -58,7 +58,7 @@ if (isset($_GET['habilitar'])) {
     </thead>
     <tbody>
         <?php
-        $sql = "BEGIN LISTAR_PROVEEDORES_DESHABILITADOS(:cursor); END;";
+        $sql = "BEGIN PROC_LISTAR_PROVEEDORES_DESHABILITADOS(:cursor); END;";
         $stid = oci_parse($conn, $sql);
         $cursor = oci_new_cursor($conn);
         oci_bind_by_name($stid, ":cursor", $cursor, -1, OCI_B_CURSOR);
