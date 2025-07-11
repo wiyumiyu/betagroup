@@ -46,8 +46,7 @@ if (isset($_GET['anular'])) {
 if (isset($_GET['del2'])) {
     $del2 = $_GET['del2'];
 
-    $stmt_contexto =  llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_usuario.set_usuario(:id); END;", $conn);
-
+    $stmt_contexto = llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_usuario.set_usuario(:id); END;", $conn);
 
     $sql = "BEGIN PROC_eliminar_venta_detalle(:id); END;";
     $stmt = oci_parse($conn, $sql);
@@ -63,24 +62,23 @@ if (isset($_GET['del2'])) {
     oci_bind_by_name($stmt, ":id", $del2);
 
     if (!oci_execute($stmt)) {
-            $e = oci_error($stmt);
-        echo "Error al eliminar la venta: " . $e['message']; 
-    } 
-    
+        $e = oci_error($stmt);
+        echo "Error al eliminar la venta: " . $e['message'];
+    }
+
     if (isset($stmt_contexto))
         oci_free_statement($stmt_contexto);
     oci_free_statement($stmt);
 
     // Si se eliminó correctamente, recargamos la página
-   echo "<script>window.location.href = 'ventas.php?op=$op&ta=$ta';</script>";
+    echo "<script>window.location.href = 'ventas_anuladas.php?op=$op&ta=$ta';</script>";
 }
 
 if (isset($_GET['anular2'])) {
     $anular2 = $_GET['anular2'];
-    $estado = 0;
+    $estado = 1;
     
-    $stmt_contexto =  llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_usuario.set_usuario(:id); END;", $conn);
-
+    $stmt_contexto = llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_usuario.set_usuario(:id); END;", $conn);
 
     $sql = "BEGIN PROC_habilitar_venta(:id, :estado); END;";
     $stmt = oci_parse($conn, $sql);
@@ -91,112 +89,13 @@ if (isset($_GET['anular2'])) {
         $e = oci_error($stmt);
         echo "Error al actualizar la venta: " . $e['message'];
     }
-    
+
     if (isset($stmt_contexto))
         oci_free_statement($stmt_contexto);
     oci_free_statement($stmt);
 
     // Si se actualizó correctamente, recargamos la página
-   echo "<script>window.location.href = 'ventas.php?op=$op&ta=$ta';</script>";
-}
-
-// Si el formulario fue enviado (para agregar o actualizar un usuario)
-if (isset($_POST['submitted'])) {
-    // 1. Datos principales de la venta
-    $numero = trim($_POST['numero']);
-    $impuestos = trim($_POST['impuestos']);
-    $id_cliente = trim($_POST['cliente']);
-    $id_usuario = $_SESSION['id_usuario'];  // El usuario actual autenticado
-    
-    $stmt_contexto =  llenarBitacora($id_usuario, "BEGIN pkg_contexto_usuario.set_usuario(:id); END;", $conn);
-       
-    // 2. Insertar venta usando el procedimiento almacenado
-    $sqlVenta = "BEGIN PROC_insertar_venta(:numero, :impuestos, :id_cliente, :id_usuario); END;";
-    $stmtVenta = oci_parse($conn, $sqlVenta);
-
-    oci_bind_by_name($stmtVenta, ":numero", $numero);
-    oci_bind_by_name($stmtVenta, ":impuestos", $impuestos);
-    oci_bind_by_name($stmtVenta, ":id_cliente", $id_cliente);
-    oci_bind_by_name($stmtVenta, ":id_usuario", $id_usuario);
-
-    if (!oci_execute($stmtVenta)) {
-        $e = oci_error($stmtVenta);
-        echo "Error al insertar la venta: " . $e['message'];
-        exit;
-    }
-   
-    // Paso 1: Preparamos llamada al procedimiento
-    $sqlGetId = "BEGIN PROC_OBTENER_ULTIMO_ID_VENTA(:id); END;";
-    $stmtId = oci_parse($conn, $sqlGetId);
-    // Paso 2: Variable para capturar el ID
-    $idVenta = null;
-    oci_bind_by_name($stmtId, ":id", $idVenta, 10);
-    // Paso 3: Ejecutamos
-    if (!oci_execute($stmtId)) {
-        $e = oci_error($stmtId);
-        echo "Error al recuperar ID de venta: " . $e['message'];
-        //exit;
-    }
-
-
-    
-    // 3. Recuperar el ID_VENTA generado automáticamente (vía CURRVAL)
-//    $sqlGetId = "SELECT SEQ_ID_VENTA.CURRVAL AS ID FROM DUAL";
-//    $stmtId = oci_parse($conn, $sqlGetId);
-//    oci_execute($stmtId);
-//    $row = oci_fetch_assoc($stmtId);
-//    oci_free_statement($stmtId);
-//    
-//    echo $row['ID'];
-//
-//    if (!$row || !isset($row['ID'])) {
-//        echo "No se pudo recuperar el ID de la venta.";
-//        exit;
-//    }
-//
-//    $idVenta = $row['ID'];
-    // 4. Insertar los detalles de la venta
-    $productos = $_POST['producto'] ?? [];
-    $cantidades = $_POST['cantidad'] ?? [];
-    $precios = $_POST['precio_unitario'] ?? [];
-    $descuentos = $_POST['descuento'] ?? [];
-
-    $filas = min(count($productos), count($cantidades), count($precios)); // Por seguridad
-
-    for ($i = 0; $i < $filas; $i++) {
-        if ($productos[$i] === '' || $cantidades[$i] === '' || $precios[$i] === '') {
-            continue;
-        }
-
-        $sqlDet = "BEGIN PROC_insertar_venta_detalle(:cantidad, :precio, :descuento, :producto, :id_venta); END;";
-        $stmtDet = oci_parse($conn, $sqlDet);
-
-        oci_bind_by_name($stmtDet, ":cantidad", $cantidades[$i]);
-        oci_bind_by_name($stmtDet, ":precio", $precios[$i]);
-        oci_bind_by_name($stmtDet, ":descuento", $descuentos[$i]);
-        oci_bind_by_name($stmtDet, ":producto", $productos[$i]);
-        oci_bind_by_name($stmtDet, ":id_venta", $idVenta);
-
-        if (!oci_execute($stmtDet)) {
-            $e = oci_error($stmtDet);
-            echo "Error al insertar detalle #" . ($i + 1) . ": " . $e['message'];
-            exit;
-        }
-
-        
-    }
-    
-     if (isset($stmt_contexto))
-        oci_free_statement($stmt_contexto);
-
-    oci_free_statement($stmtVenta);
-    oci_free_statement($stmtId);
-    oci_free_statement($stmtDet);
-
-
-    //5. Confirmación
-//    echo "<script>//alert('Venta registrada correctamente'); 
-//            window.location='ventas.php?op=$op&ta=$ta';</script>";
+    echo "<script>window.location.href = 'ventas_anuladas.php?op=$op&ta=$ta';</script>";
 }
 ?>
 
@@ -210,8 +109,8 @@ include("tabs.php");
 
 <!-- Título y botón para nuevo usuario -->
 <div style="display: flex; justify-content: space-between; align-items: center;">
-    <h2 style="margin: 0;">Lista de Ventas</h2>
-    <button onclick="abrirModal()" class="btn btn-success">Nueva Venta</button>
+    <h2 style="margin: 0;">Lista de Ventas Anuladas</h2>
+
 </div>
 <br>
 
@@ -228,40 +127,40 @@ include("tabs.php");
         </tr>
     </thead>
     <tbody>
-<?php
+        <?php
 // Se llama al procedimiento almacenado para listar LAS VENTAS
-$estado = 1;
-$sql = "BEGIN PROC_LISTAR_VENTAS(:cursor, :estado); END;";
-$stid = oci_parse($conn, $sql);
-$cursor = oci_new_cursor($conn);
-oci_bind_by_name($stid, ":cursor", $cursor, -1, OCI_B_CURSOR);
-oci_bind_by_name($stid, ":estado", $estado);
-oci_execute($stid);
-oci_execute($cursor);
+        $estado = 0;
+        $sql = "BEGIN PROC_LISTAR_VENTAS(:cursor, :estado); END;";
+        $stid = oci_parse($conn, $sql);
+        $cursor = oci_new_cursor($conn);
+        oci_bind_by_name($stid, ":cursor", $cursor, -1, OCI_B_CURSOR);
+        oci_bind_by_name($stid, ":estado", $estado);
+        oci_execute($stid);
+        oci_execute($cursor);
 
 // Recorremos cada venta y la mostramos en una fila de la tabla
-while ($row = oci_fetch_assoc($cursor)) {
-    $id = $row['ID_VENTA'];
-    echo "<tr>";
-    echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['NUMERO']) . "</td>";
-    echo "<td style='color: #4B4B4B;'>" . date("d-m-Y", strtotime($row['FECHA'])) . "</td>";
-    echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['IMPUESTOS']) . "</td>";
-    echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['NOMBRE_CLIENTE']) . "</td>";
-    echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['NOMBRE_USUARIO']) . "</td>";
+        while ($row = oci_fetch_assoc($cursor)) {
+            $id = $row['ID_VENTA'];
+            echo "<tr>";
+            echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['NUMERO']) . "</td>";
+            echo "<td style='color: #4B4B4B;'>" . date("d-m-Y", strtotime($row['FECHA'])) . "</td>";
+            echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['IMPUESTOS']) . "</td>";
+            echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['NOMBRE_CLIENTE']) . "</td>";
+            echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['NOMBRE_USUARIO']) . "</td>";
 
-    // Botones de editar y eliminar
-    echo "<td>
-                    <a href='ventas.php?op=$op&ta=$ta&edt=$id' class='btn btn-default'><i class='entypo-eye'></i></a>
-                    <a href='ventas.php?op=$op&ta=$ta&anular=$id' class='btn btn-orange'><i class='entypo-block'></i></a>
-                    <a href='ventas.php?op=$op&ta=$ta&del=$id' class='btn btn-danger'><i class='entypo-cancel'></i></a>
+            // Botones de editar y eliminar
+            echo "<td>
+                    <a href='ventas_anuladas.php?op=$op&ta=$ta&edt=$id' class='btn btn-primary'><i class='entypo-eye'></i></a>
+                    <a href='ventas_anuladas.php?op=$op&ta=$ta&anular=$id' class='btn btn-success'><i class='entypo-block'></i></a>
+                    <a href='ventas_anuladas.php?op=$op&ta=$ta&del=$id' class='btn btn-danger'><i class='entypo-cancel'></i></a>
                     
                   </td>";
-    echo "</tr>";
-}
+            echo "</tr>";
+        }
 
-oci_free_statement($stid);
-oci_free_statement($cursor);
-?>
+        oci_free_statement($stid);
+        oci_free_statement($cursor);
+        ?>
     </tbody>
 </table>
 
@@ -300,14 +199,14 @@ oci_free_statement($cursor);
             document.getElementById('modal-eliminar').style.display = 'block';
         }
     });
-    
+
     // Si hay un valor 'del' en PHP, se abre el modal de confirmación para eliminar
     $(window).on('load', function () {
         var anular = '<?php echo $anular; ?>';
         if (anular != "") {
             document.getElementById('modal-anular').style.display = 'block';
         }
-    });    
+    });
 
     // Esta función se activa al presionar el botón "Agregar"
     function agregarFila() {
@@ -438,123 +337,122 @@ oci_free_statement($cursor);
 <!-- ------------------ MODAL PARA FORMULARIO DE USUARIO ---------------------- -->
 <div id="modal-confirmar" class="modalx modalx_venta">
     <div class="modalx-content">
-<?php
+        <?php
 // Variables para rellenar el formulario si se está editando
-$nombre = $telefono = $correo = $contrasena = $rol = "";
-$seleccionadoA = $seleccionadoV = "";
-$edt = "";
-$tipoEdit = "Nueva Venta";
-$cliente_seleccionado = 0;
+        $nombre = $telefono = $correo = $contrasena = $rol = "";
+        $seleccionadoA = $seleccionadoV = "";
+        $edt = "";
+//$tipoEdit = "Nueva Venta";
+        $cliente_seleccionado = 0;
 // Abrimos cursor desde el procedimiento LISTAR_PRODUCTOS
-$sql = "BEGIN PROC_LISTAR_PRODUCTOS(:cursor); END;";
-$stmt = oci_parse($conn, $sql);
-$cursor = oci_new_cursor($conn);
-oci_bind_by_name($stmt, ":cursor", $cursor, -1, OCI_B_CURSOR);
-oci_execute($stmt);
-oci_execute($cursor);
-$selectProductos = '<select class="form-select" name="producto" id="producto" required>';
-$selectProductos .= "<option value=-1>-- Seleccione --</option>";
+        $sql = "BEGIN PROC_LISTAR_PRODUCTOS(:cursor); END;";
+        $stmt = oci_parse($conn, $sql);
+        $cursor = oci_new_cursor($conn);
+        oci_bind_by_name($stmt, ":cursor", $cursor, -1, OCI_B_CURSOR);
+        oci_execute($stmt);
+        oci_execute($cursor);
+        $selectProductos = '<select class="form-select" name="producto" id="producto" required>';
+        $selectProductos .= "<option value=-1>-- Seleccione --</option>";
 // Recorremos los productos
-while ($row = oci_fetch_assoc($cursor)) {
-    $id = $row['ID_PRODUCTO'];
-    $nombre = htmlspecialchars($row['NOMBRE_PRODUCTO']);
-    $precio = $row['PRECIO'];
+        while ($row = oci_fetch_assoc($cursor)) {
+            $id = $row['ID_PRODUCTO'];
+            $nombre = htmlspecialchars($row['NOMBRE_PRODUCTO']);
+            $precio = $row['PRECIO'];
 
-    $selectProductos .= "<option value=\"$id\" data-precio=\"$precio\">$nombre</option>";
-}
+            $selectProductos .= "<option value=\"$id\" data-precio=\"$precio\">$nombre</option>";
+        }
 
-$selectProductos .= '</select>';
+        $selectProductos .= '</select>';
 
-oci_free_statement($stmt);
-oci_free_statement($cursor);
+        oci_free_statement($stmt);
+        oci_free_statement($cursor);
 
 // Si se está editando, cargamos los datos del usuario
-if (isset($_GET["edt"])) {
-    $tipoEdit = "Editar Venta";
-    $venta_id = $_GET["edt"];
-    // Obtener datos de la venta
-    $sql = "BEGIN PROC_OBTENER_VENTA(:id_venta, :numero, :impuestos, :id_cliente, :nombre_cliente); END;";
-    $stmt = oci_parse($conn, $sql);
+        if (isset($_GET["edt"])) {
+            $tipoEdit = "Ver Venta";
+            $venta_id = $_GET["edt"];
+            // Obtener datos de la venta
+            $sql = "BEGIN PROC_OBTENER_VENTA(:id_venta, :numero, :impuestos, :id_cliente, :nombre_cliente); END;";
+            $stmt = oci_parse($conn, $sql);
 
-    // Parámetros IN y OUT
-    oci_bind_by_name($stmt, ":id_venta", $venta_id); // IN
-    oci_bind_by_name($stmt, ":numero", $numero, 32); // OUT
-    oci_bind_by_name($stmt, ":impuestos", $impuestos, 32); // OUT
-    oci_bind_by_name($stmt, ":id_cliente", $id_cliente, 32); // OUT
-    oci_bind_by_name($stmt, ":nombre_cliente", $nombre_cliente,128); // OUT
+            // Parámetros IN y OUT
+            oci_bind_by_name($stmt, ":id_venta", $venta_id); // IN
+            oci_bind_by_name($stmt, ":numero", $numero, 32); // OUT
+            oci_bind_by_name($stmt, ":impuestos", $impuestos, 32); // OUT
+            oci_bind_by_name($stmt, ":id_cliente", $id_cliente, 32); // OUT
+            oci_bind_by_name($stmt, ":nombre_cliente", $nombre_cliente,128); // OUT
 
-    if (!oci_execute($stmt)) {
-        $e = oci_error($stmt);
-        echo "Error al ejecutar el procedimiento: " . $e['message'];
-    }
-    $cliente_seleccionado = $id_cliente;
+            if (!oci_execute($stmt)) {
+                $e = oci_error($stmt);
+                echo "Error al ejecutar el procedimiento: " . $e['message'];
+            }
+            $cliente_seleccionado = $id_cliente;
 
-    // Conexión y preparación
-    $sqlDetalle = "BEGIN PROC_LISTAR_DETALLES_VENTA(:id_venta, :cursor); END;";
-    $stmtDetalle = oci_parse($conn, $sqlDetalle);
+            // Conexión y preparación
+            $sqlDetalle = "BEGIN PROC_LISTAR_DETALLES_VENTA(:id_venta, :cursor); END;";
+            $stmtDetalle = oci_parse($conn, $sqlDetalle);
 
-    // Crear cursor de salida
-    $cursorDetalle = oci_new_cursor($conn);
+            // Crear cursor de salida
+            $cursorDetalle = oci_new_cursor($conn);
 
-    // Bind de parámetros
-    oci_bind_by_name($stmtDetalle, ":id_venta", $venta_id);
-    oci_bind_by_name($stmtDetalle, ":cursor", $cursorDetalle, -1, OCI_B_CURSOR);
+            // Bind de parámetros
+            oci_bind_by_name($stmtDetalle, ":id_venta", $venta_id);
+            oci_bind_by_name($stmtDetalle, ":cursor", $cursorDetalle, -1, OCI_B_CURSOR);
 
-    // Ejecutar procedimiento y cursor
-    oci_execute($stmtDetalle);
-    oci_execute($cursorDetalle);
+            // Ejecutar procedimiento y cursor
+            oci_execute($stmtDetalle);
+            oci_execute($cursorDetalle);
 
-    // Leer resultados
-    $detalles = [];
-    while ($row = oci_fetch_assoc($cursorDetalle)) {
-        $detalles[] = $row;
-    }
+            // Leer resultados
+            $detalles = [];
+            while ($row = oci_fetch_assoc($cursorDetalle)) {
+                $detalles[] = $row;
+            }
 
-    // Liberar recursos
-    oci_free_statement($stmtDetalle);
-    oci_free_statement($cursorDetalle);
-} else {
-    $sql = "BEGIN PROC_OBTENER_MAX_NUMERO_VENTA(:max_numero); END;";
-    $stmt = oci_parse($conn, $sql);
-    oci_bind_by_name($stmt, ":max_numero", $maxNumero, 10);
-    oci_execute($stmt);
-    $maxNumero += 1;
-}
+            // Liberar recursos
+            oci_free_statement($stmtDetalle);
+            oci_free_statement($cursorDetalle);
+        } else {
+            $sql = "BEGIN PROC_OBTENER_MAX_NUMERO_VENTA(:max_numero); END;";
+            $stmt = oci_parse($conn, $sql);
+            oci_bind_by_name($stmt, ":max_numero", $maxNumero, 10);
+            oci_execute($stmt);
+            $maxNumero += 1;
+        }
 
-echo "<h3 class='modalx-titulo'>$tipoEdit</h3>";
+        echo "<h3 class='modalx-titulo'>$tipoEdit</h3>";
 
 // llenar select de clientes
 
 
-$selectClientes = llenarSelect("cliente", "ID_CLIENTE", "NOMBRE_CLIENTE", $cliente_seleccionado, "BEGIN PROC_listar_clientes(:cursor); END;", $conn);
-?>
+        //$selectClientes = llenarSelect("cliente", "ID_CLIENTE", "NOMBRE_CLIENTE", $cliente_seleccionado, "BEGIN PROC_listar_clientes(:cursor); END;", $conn);
+        ?>
 
-        <form action="ventas.php<?php echo "?op=$op&ta=$ta"; ?>" method="POST" id="formFactura">
+        <form action="ventas_anuladas.php<?php echo "?op=$op&ta=$ta"; ?>" method="POST" id="formFactura">
             <!-- Encabezado de factura -->
             <div style="display: flex; gap: 20px;">
                 <div class="form-group" style="flex: 1;">
-                    <label for="numero">Número:</label>
-                    <input type="number" id="numero" name="numero" class="form-control" value="<?php
-        if (isset($_GET["edt"])) {
-            echo $numero;
-        } else
-            echo $maxNumero;
-?>" required>
+                    <label for="numero">Número:</label><br>
+                    <label for="numero"><?php
+                        if (isset($_GET["edt"])) {
+                            echo $numero;
+                        } 
+                        ?></label>
                 </div>
                 <div class="form-group" style="flex: 1;">
-                    <label for="impuestos">Impuestos (%):</label>
-                    <input type="number" id="impuestos" name="impuestos" class="form-control" value="<?php
-                    if (isset($_GET["edt"])) {
-                        echo $impuestos;
-                    } else
-                        echo 13;
-                    ?>" required>
+                    <label for="impuestos">Impuestos (%):</label><br>
+                    <label tfor="impuestos"> <?php
+                        if (isset($_GET["edt"])) {
+                            echo $impuestos;
+                        } else
+                            echo 13;
+                        ?></label>
                 </div>
             </div>
 
             <div class="form-group mt-3">
-                <label for="cliente">Cliente:</label>
-                           <?php echo $selectClientes; ?>
+                <label for="cliente">Cliente:</label><br>
+                <?php echo $nombre_cliente; ?>
             </div>
 
             <!-- Tabla de detalles -->
@@ -566,55 +464,49 @@ $selectClientes = llenarSelect("cliente", "ID_CLIENTE", "NOMBRE_CLIENTE", $clien
                         <th>Cantidad</th>
                         <th>Descuento</th>
                         <th>Precio Unitario</th>
-                        <th>Acción</th>
+
                     </tr>
                 </thead>
                 <tbody id="detalleFactura">
                     <!-- Las filas se agregarán dinámicamente -->
-<?php
-$subtotal = 0;
-$descuento = 0;
-$total = 0;
-$impuestos_total = 0;
-if (!empty($detalles)) {
-    foreach ($detalles as $det) {
-        $descuento = ($det['CANTIDAD'] * $det['PRECIO_UNITARIO']) * ($det['DESCUENTO'] / 100);
-        $subtotal += ($det['CANTIDAD'] * $det['PRECIO_UNITARIO']);
-        $impuestos_total += ($det['CANTIDAD'] * $det['PRECIO_UNITARIO']) * ($impuestos / 100);
+                    <?php
+                    $subtotal = 0;
+                    $descuento = 0;
+                    $total = 0;
+                    $impuestos_total = 0;
+                    if (!empty($detalles)) {
+                        foreach ($detalles as $det) {
+                            $descuento = ($det['CANTIDAD'] * $det['PRECIO_UNITARIO']) * ($det['DESCUENTO'] / 100);
+                            $subtotal += ($det['CANTIDAD'] * $det['PRECIO_UNITARIO']);
+                            $impuestos_total += ($det['CANTIDAD'] * $det['PRECIO_UNITARIO']) * ($impuestos / 100);
 
-        echo "<tr>
+                            echo "<tr>
                                 <td>{$det['NOMBRE_PRODUCTO']}<input type='hidden' name='producto[]' value='{$det['ID_PRODUCTO']}'></td>
                                 <td>{$det['CANTIDAD']}<input type='hidden' name='cantidad[]' value='{$det['CANTIDAD']}'></td>
                                 <td>{$det['DESCUENTO']}<input type='hidden' name='descuento[]' value='{$det['DESCUENTO']}'></td>
                                 <td>{$det['PRECIO_UNITARIO']}<input type='hidden' name='precio_unitario[]' value='{$det['PRECIO_UNITARIO']}'></td>
-                                <td><button type='button' class='btn btn-danger' onclick='this.closest(\"tr\").remove()'>X</button></td>
+                                
                                 </tr>";
-    }
-    $total = ($subtotal - $descuento) + $impuestos_total;
-}
-?>
+                        }
+                        $total = ($subtotal - $descuento) + $impuestos_total;
+                    }
+                    ?>
 
                 </tbody>
                 <tfoot>
-                    <tr>
-                        <td><?php echo str_replace('name="producto"', 'id="producto"', $selectProductos); ?></td>
-                        <td><input type="number" id="cantidad" class="form-control" placeholder="Cantidad"></td>
-                        <td><input type="number" id="descuento" class="form-control" placeholder="Descuento"></td>
-                        <td><input type="number" readonly id="precio_unitario" class="form-control" placeholder="Precio Unitario"></td>                        
-                        <td><button type="button" class="btn btn-primary" onclick="agregarFila()">Agregar</button></td>
-                    </tr>
+
                 </tfoot>
             </table>
 
             <!-- Totales visuales (puedes mejorarlos con JS si quieres) -->
             <div style="text-align: right; margin-top: 20px;">
                 <p>Subtotal: <span id="subtotal"><?php
-                    if (isset($_GET['edt'])) {
-                        echo $subtotal;
-                    } else {
-                        echo '0.00';
-                    }
-?></span></p>
+                        if (isset($_GET['edt'])) {
+                            echo $subtotal;
+                        } else {
+                            echo '0.00';
+                        }
+                        ?></span></p>
                 <p>Descuento Total: <span id="descuento_total"><?php
                         if (isset($_GET['edt'])) {
                             echo $descuento;
@@ -641,8 +533,8 @@ if (!empty($detalles)) {
             <input type="hidden" name="submitted" value="TRUE">
 
             <div class="modal-footer">
-                <a href="ventas.php<?php echo "?op=$op&ta=$ta"; ?>" class="btn btn-danger">Salir</a>
-                <button type="submit" class="btn btn-success">Agregar Factura</button>
+                <a href="ventas_anuladas.php<?php echo "?op=$op&ta=$ta"; ?>" class="btn btn-danger">Salir</a>
+
             </div>
         </form>
     </div>
@@ -654,21 +546,21 @@ if (!empty($detalles)) {
         <h3 class="modalx-titulo">Confirmar eliminación</h3>
         <p class="modalx-texto">¿Estás seguro de que deseas eliminar esta venta?</p>
         <div class="modalx-footer">
-            <a href='ventas.php<?php echo "?op=$op&ta=$ta"; ?>' class="btn btn-cancelar">Cancelar</a>
-            <a href='ventas.php<?php echo "?op=$op&ta=$ta&del2=" . $del; ?>' class="btn-confirmar">Eliminar</a>
+            <a href='ventas_anuladas.php<?php echo "?op=$op&ta=$ta"; ?>' class="btn btn-cancelar">Cancelar</a>
+            <a href='ventas_anuladas.php<?php echo "?op=$op&ta=$ta&del2=" . $del; ?>' class="btn-confirmar">Eliminar</a>
         </div>
     </div>
 </div>
 
 
-<!-- ------------------ MODAL DE CONFIRMACIÓN PARA annular ---------------------- -->
+<!-- ------------------ MODAL DE CONFIRMACIÓN PARA habilitar---------------------- -->
 <div id="modal-anular" class="modalx">
     <div class="modalx-content">
         <h3 class="modalx-titulo">Confirmar anulación</h3>
         <p class="modalx-texto">¿Estás seguro de que deseas anular la venta?</p>
         <div class="modalx-footer">
-            <a href='ventas.php<?php echo "?op=$op&ta=$ta"; ?>' class="btn-cancelar">Cancelar</a>
-            <a href='ventas.php<?php echo "?op=$op&ta=$ta&anular2=" . $anular; ?>' class="btn-confirmar">Anular</a>
+            <a href='ventas_anuladas.php<?php echo "?op=$op&ta=$ta"; ?>' class="btn-cancelar">Cancelar</a>
+            <a href='ventas_anuladas.php<?php echo "?op=$op&ta=$ta&anular2=" . $anular; ?>' class="btn btn-success">Habilitar</a>
         </div>
     </div>
 </div>

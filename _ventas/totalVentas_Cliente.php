@@ -4,11 +4,7 @@ include("../includes/barralateral.php");
 include ('../includes/funciones.php');
 ?>
 
-<hr>
-<ol class="breadcrumb bc-3">
-    <li><a href="../_dashboard/escritorio.php"><i class="entypo-home"></i>Home</a></li>
-    <li class="active"><strong>Lista de Compras efectuadas por Cliente</strong></li>
-</ol>
+
 
 <?php
 include("tabs.php");

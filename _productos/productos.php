@@ -39,8 +39,7 @@ if (isset($_GET['del'])) {
 if (isset($_GET['del2'])) {
     $del2 = $_GET['del2'];
     
-    $stmt_contexto =  "BEGIN pkg_contexto_usuario.set_usuario(:id); END;";
-    llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_usuario.set_usuario(:id); END;", $conn);
+    $stmt_contexto = llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_usuario.set_usuario(:id); END;", $conn);
     
     $sql = "BEGIN PROC_eliminar_producto(:id); END;";
     $stmt = oci_parse($conn, $sql);

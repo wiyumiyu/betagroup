@@ -125,11 +125,6 @@ if ($pc == 0) {
                                             </a>                            
                                         </li>          
                                         <li class='active'>
-                                            <a href=''>
-                                                <span>Roles</span>
-                                            </a>                            
-                                        </li>      
-                                        <li class='active'>
                                             <a href='..\_usuarios\bitacora.php?op=0&ta=0'>
                                                 <span>Bitácora</span>
                                             </a>                            
@@ -226,7 +221,7 @@ if ($pc == 0) {
             </ul>
         </li>
         
-        <li class="active <?php echo $op_menu06; ?> active">
+<!--        <li class="active php echo $op_menu06; ?> active">
             <a href="#">
                 <i class="entypo-user-add"></i>
                 <span><font size="3"><strong>Vistas</strong></font></span>
@@ -235,20 +230,20 @@ if ($pc == 0) {
 
                 <li class="active">
                     
-                        <?php echo "<a href=''> "; ?>    
+                        php echo "<a href=''> "; ?>    
                         <span>Vista 1</span>                        
                     </a>                            
                 </li>     
 
                 <li class="active">
                     
-                    <?php echo "<a href=''>"; ?>     
+                    php echo "<a href=''>"; ?>     
                         <span>Vista2</span>
                     </a>                            
                 </li>   
 
             </ul>
-        </li>        
+        </li>        -->
 
     </ul>
 </div>	
