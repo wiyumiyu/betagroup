@@ -18,6 +18,9 @@ if (isset($_GET['del'])) {
 // Eliminar tipo de clínica si viene ?del2
 if (isset($_GET['del2'])) {
     $del2 = $_GET['del2'];
+
+    $stmt_contexto = llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_usuario.set_usuario(:id); END;", $conn);
+
     $sql = "BEGIN PROC_eliminar_tipo_clinica(:id); END;";
     $stmt = oci_parse($conn, $sql);
     oci_bind_by_name($stmt, ":id", $del2);
@@ -29,12 +32,15 @@ if (isset($_GET['del2'])) {
         echo "Error al eliminar: " . $e['message'];
     }
 
+    if (isset($stmt_contexto)) oci_free_statement($stmt_contexto);
     oci_free_statement($stmt);
 }
 
 // Insertar o actualizar tipo de clínica
 if (isset($_POST['submitted'])) {
     $descripcion = trim($_POST["descripcion"]);
+
+    $stmt_contexto = llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_usuario.set_usuario(:id); END;", $conn);
 
     if (isset($_GET['edt'])) {
         $id = $_GET['edt'];
@@ -58,6 +64,7 @@ if (isset($_POST['submitted'])) {
         echo "Error: " . $e['message'];
     }
 
+    if (isset($stmt_contexto)) oci_free_statement($stmt_contexto);
     oci_free_statement($stmt);
     oci_close($conn);
 }

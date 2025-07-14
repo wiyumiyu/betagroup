@@ -18,6 +18,9 @@ $edtVer = ($edt != "") ? "edt=$edt" : "";
 // Eliminar cliente
 if (isset($_GET['del2'])) {
     $del2 = $_GET['del2'];
+
+    $stmt_contexto = llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_usuario.set_usuario(:id); END;", $conn);
+
     $sql = "BEGIN PROC_eliminar_cliente(:id); END;";
     $stmt = oci_parse($conn, $sql);
     oci_bind_by_name($stmt, ":id", $del2);
@@ -27,6 +30,8 @@ if (isset($_GET['del2'])) {
         $e = oci_error($stmt);
         echo "Error: " . $e['message'];
     }
+
+    if (isset($stmt_contexto)) oci_free_statement($stmt_contexto);
     oci_free_statement($stmt);
 }
 
@@ -36,6 +41,8 @@ if (isset($_POST['submitted'])) {
     $correo = trim($_POST["correo"]);
     $tipo = trim($_POST["id_tipo_clinica"]);
 
+    $stmt_contexto = llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_usuario.set_usuario(:id); END;", $conn);
+
     if ($edt != "") {
         $id = $edt;
         $sql = "BEGIN PROC_actualizar_cliente(:id, :nombre, :correo, :tipo); END;";
@@ -44,12 +51,12 @@ if (isset($_POST['submitted'])) {
     } else {
         $sql = "BEGIN PROC_insertar_cliente(:nombre, :correo, :tipo); END;";
         $stmt = oci_parse($conn, $sql);
-        // Necesitamos obtener el ID del último cliente insertado para los teléfonos
+        // Obtener ID del último cliente insertado para teléfonos
         $get_id_sql = "SELECT MAX(ID_CLIENTE) AS ID_CLIENTE FROM CLIENTE";
         $stmt_get = oci_parse($conn, $get_id_sql);
         oci_execute($stmt_get);
         $row = oci_fetch_assoc($stmt_get);
-        $id = $row['ID_CLIENTE'] + 1; // Asumimos autoincremento
+        $id = $row['ID_CLIENTE'] + 1;
         oci_free_statement($stmt_get);
     }
 
@@ -59,6 +66,8 @@ if (isset($_POST['submitted'])) {
     oci_execute($stmt);
     oci_free_statement($stmt);
 
+    if (isset($stmt_contexto)) oci_free_statement($stmt_contexto);
+    
     // Insertar / actualizar teléfonos
     $telefonos_actuales = [];
     $ids_recibidos = [];

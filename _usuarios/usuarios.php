@@ -22,8 +22,13 @@ if (isset($_GET['edt'])) {
 if (isset($_GET['del'])) {
     $del = $_GET['del'];
 }
+
+//Eliminar usuario
 if (isset($_GET['del2'])) {
     $del2 = $_GET['del2'];
+
+    $stmt_contexto = llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_usuario.set_usuario(:id); END;", $conn);
+
     $sql = "BEGIN PROC_eliminar_usuario(:id); END;";
     $stmt = oci_parse($conn, $sql);
     oci_bind_by_name($stmt, ":id", $del2);
@@ -33,10 +38,15 @@ if (isset($_GET['del2'])) {
         $e = oci_error($stmt);
         echo "Error al eliminar el usuario: " . $e['message'];
     }
+
+    if (isset($stmt_contexto)) oci_free_statement($stmt_contexto);
     oci_free_statement($stmt);
 }
 
 if (isset($_POST['submitted'])) {
+
+    $stmt_contexto = llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_usuario.set_usuario(:id); END;", $conn);
+
     $nombre = trim($_POST["nombre_usuario"]);
     $contrasena = trim($_POST["contrasena"]);
     $telefono = trim($_POST["telefono"]);
@@ -44,6 +54,7 @@ if (isset($_POST['submitted'])) {
     $rol = trim($_POST["rol"]);
     $estado = isset($_POST["estado"]) ? intval($_POST["estado"]) : 1;
 
+    //Actualizar usuario
     if (isset($_GET['edt'])) {
         $id = $_GET['edt'];
 
@@ -76,6 +87,7 @@ if (isset($_POST['submitted'])) {
         echo "Error: " . $e['message'];
     }
 
+    if (isset($stmt_contexto)) oci_free_statement($stmt_contexto);
     oci_free_statement($stmt);
 }
 ?>
