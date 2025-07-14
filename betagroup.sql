@@ -1191,7 +1191,7 @@ BEGIN
 END;
 /
 
--- 4. Procedimiento vara consultar lo productos menos vendidos
+-- 4. Procedimiento para consultar lo productos menos vendidos
 
 CREATE OR REPLACE PROCEDURE PROC_LISTAR_PRODUCTOS_MENOS_VENDIDOS (
     p_cursor OUT SYS_REFCURSOR
@@ -1213,7 +1213,6 @@ CREATE OR REPLACE PACKAGE pkg_contexto_usuario AS
   PROCEDURE limpiar_usuario;
 END;
 /
-
 
 
 -- -------------------------- PAQUETES ------------------------------------------------------
@@ -1622,9 +1621,6 @@ VALUES (1002, SYSDATE, 20, 1, 1);
 INSERT INTO VENTA ( NUMERO, FECHA, IMPUESTOS, ID_CLIENTE, ID_USUARIO)
 VALUES ( 1003, SYSDATE, 10, 1, 2);
 
-
-
-
 commit;
 
 -- Drops de los nombres anteriores
@@ -1695,4 +1691,9 @@ DROP PROCEDURE listar_usuarios_deshabilitados;
 DROP PROCEDURE obtener_clientes_por_clinica;
 DROP PROCEDURE LISTAR_PROVEEDORES_DESHABILITADOS;
 DROP PROCEDURE LISTAR_PRODUCTOS_MENOS_VENDIDOS;
+*/
+
+/*
+GRANT CREATE ANY CONTEXT TO BETAGROUP;
+GRANT EXECUTE ON SYS.DBMS_SESSION TO BETAGROUP;
 */
