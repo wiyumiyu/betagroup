@@ -1385,6 +1385,110 @@ BEGIN
 END;
 /
 
+-- 5. Auditar los cambios de la tabla usuarios en bitacora
+CREATE OR REPLACE TRIGGER trg_bitacora_usuario
+AFTER INSERT OR UPDATE OR DELETE ON USUARIO
+FOR EACH ROW
+DECLARE
+  v_usuario     NUMBER := TO_NUMBER(SYS_CONTEXT('APP_CTX', 'ID_USUARIO'));
+  v_operacion   VARCHAR2(10);
+  v_descripcion CLOB;
+BEGIN
+  IF INSERTING THEN
+    v_operacion := 'INSERT';
+    v_descripcion := 'Se insertó el usuario: ' ||
+                     'ID=' || :NEW.ID_USUARIO || ', ' ||
+                     'NOMBRE=' || :NEW.NOMBRE_USUARIO || ', ' ||
+                     'CORREO=' || :NEW.CORREO || ', ' ||
+                     'ROL=' || :NEW.ROL;
+
+  ELSIF UPDATING THEN
+    v_operacion := 'UPDATE';
+    v_descripcion := 'Se actualizó el usuario ID=' || :OLD.ID_USUARIO || ' ? ' ||
+                     'ANTES [NOMBRE=' || :OLD.NOMBRE_USUARIO || ', CORREO=' || :OLD.CORREO || ', ROL=' || :OLD.ROL || '] ? ' ||
+                     'DESPUÉS [NOMBRE=' || :NEW.NOMBRE_USUARIO || ', CORREO=' || :NEW.CORREO || ', ROL=' || :NEW.ROL || ']';
+
+  ELSIF DELETING THEN
+    v_operacion := 'DELETE';
+    v_descripcion := 'Se eliminó el usuario: ' ||
+                     'ID=' || :OLD.ID_USUARIO || ', ' ||
+                     'NOMBRE=' || :OLD.NOMBRE_USUARIO || ', ' ||
+                     'CORREO=' || :OLD.CORREO;
+  END IF;
+
+  INSERT INTO BITACORA (ID_USUARIO, FECHA_OPERACION, DESCRIPCION)
+  VALUES (v_usuario, SYSTIMESTAMP, v_operacion || ' - ' || v_descripcion);
+END;
+/
+
+--6. Auditar los cambios de la tabla cliente en bitacora
+CREATE OR REPLACE TRIGGER trg_bitacora_cliente
+AFTER INSERT OR UPDATE OR DELETE ON CLIENTE
+FOR EACH ROW
+DECLARE
+  v_usuario     NUMBER := TO_NUMBER(SYS_CONTEXT('APP_CTX', 'ID_USUARIO'));
+  v_operacion   VARCHAR2(10);
+  v_descripcion CLOB;
+BEGIN
+  IF INSERTING THEN
+    v_operacion := 'INSERT';
+    v_descripcion := 'Se insertó el cliente: ' ||
+                     'ID=' || :NEW.ID_CLIENTE || ', ' ||
+                     'NOMBRE=' || :NEW.NOMBRE_CLIENTE || ', ' ||
+                     'CORREO=' || :NEW.CORREO || ', ' ||
+                     'TIPO_CLINICA=' || :NEW.ID_TIPO_CLINICA;
+
+  ELSIF UPDATING THEN
+    v_operacion := 'UPDATE';
+    v_descripcion := 'Se actualizó el cliente ID=' || :OLD.ID_CLIENTE || ' ? ' ||
+                     'ANTES [NOMBRE=' || :OLD.NOMBRE_CLIENTE || ', CORREO=' || :OLD.CORREO || ', TIPO=' || :OLD.ID_TIPO_CLINICA || '] ? ' ||
+                     'DESPUÉS [NOMBRE=' || :NEW.NOMBRE_CLIENTE || ', CORREO=' || :NEW.CORREO || ', TIPO=' || :NEW.ID_TIPO_CLINICA || ']';
+
+  ELSIF DELETING THEN
+    v_operacion := 'DELETE';
+    v_descripcion := 'Se eliminó el cliente: ' ||
+                     'ID=' || :OLD.ID_CLIENTE || ', ' ||
+                     'NOMBRE=' || :OLD.NOMBRE_CLIENTE || ', ' ||
+                     'CORREO=' || :OLD.CORREO;
+  END IF;
+
+  INSERT INTO BITACORA (ID_USUARIO, FECHA_OPERACION, DESCRIPCION)
+  VALUES (v_usuario, SYSTIMESTAMP, v_operacion || ' - ' || v_descripcion);
+END;
+/
+
+--7. Auditar los cambios de la tabla tipo clinica en bitacora
+CREATE OR REPLACE TRIGGER trg_bitacora_tipo_clinica
+AFTER INSERT OR UPDATE OR DELETE ON TIPO_CLINICA
+FOR EACH ROW
+DECLARE
+  v_usuario     NUMBER := TO_NUMBER(SYS_CONTEXT('APP_CTX', 'ID_USUARIO'));
+  v_operacion   VARCHAR2(10);
+  v_descripcion CLOB;
+BEGIN
+  IF INSERTING THEN
+    v_operacion := 'INSERT';
+    v_descripcion := 'Se insertó el tipo de clínica: ' ||
+                     'ID=' || :NEW.ID_TIPO_CLINICA || ', ' ||
+                     'DESCRIPCION=' || :NEW.DESCRIPCION;
+
+  ELSIF UPDATING THEN
+    v_operacion := 'UPDATE';
+    v_descripcion := 'Se actualizó el tipo de clínica ID=' || :OLD.ID_TIPO_CLINICA || ' ? ' ||
+                     'ANTES [DESCRIPCION=' || :OLD.DESCRIPCION || '] ? ' ||
+                     'DESPUÉS [DESCRIPCION=' || :NEW.DESCRIPCION || ']';
+
+  ELSIF DELETING THEN
+    v_operacion := 'DELETE';
+    v_descripcion := 'Se eliminó el tipo de clínica: ' ||
+                     'ID=' || :OLD.ID_TIPO_CLINICA || ', ' ||
+                     'DESCRIPCION=' || :OLD.DESCRIPCION;
+  END IF;
+
+  INSERT INTO BITACORA (ID_USUARIO, FECHA_OPERACION, DESCRIPCION)
+  VALUES (v_usuario, SYSTIMESTAMP, v_operacion || ' - ' || v_descripcion);
+END;
+/
 
 -- -------------------------- DATOS Y PRUEBAS ------------------------------------------------------
 
