@@ -40,7 +40,30 @@ $cantidadmaximalineas = 277;
 //$primeralinea = 0;
 $primeralineadetalle = 70;
 $pagina = 1;
-$version = 3;
+$version = 1;
+
+// traer info de la factura
+$id_venta = 6; // o cualquier otro ID que estés usando
+$conn = oci_connect("BETAGROUP", "beta123", "localhost/orcl", "AL32UTF8");
+$sql_info = "BEGIN :cursor := FUNC_INFO_VENTA(:id_venta); END;";
+$stid_info = oci_parse($conn, $sql_info);
+
+$cursor_info = oci_new_cursor($conn);
+oci_bind_by_name($stid_info, ":cursor", $cursor_info, -1, OCI_B_CURSOR);
+oci_bind_by_name($stid_info, ":id_venta", $id_venta);
+
+oci_execute($stid_info);
+oci_execute($cursor_info);
+
+$info = [];
+if ($row = oci_fetch_assoc($cursor_info)) {
+    $info = $row;
+    // Acceder por: $info['NOMBRE_CLIENTE'], $info['TELEFONOS_CLIENTE'], etc.
+}
+
+oci_free_statement($stid_info);
+oci_free_statement($cursor_info);
+
 
 
 $pdf = new PDF(); //Creamos un objeto de la librería
@@ -48,13 +71,13 @@ $pdf->AliasNbPages();
 $pdf->Xsangria = $Xsangria;
 $pdf->primeralineamuestras = $primeralineadetalle;
 $pdf->version = $version;
-$pdf->s_numero0 = "1";
-$pdf->s_usuario3 = "NOMBRE DEL CLIENTE";
-$pdf->s_usuario25 = "3";
-$pdf->correosR = $correosR;
-$pdf->impuestos = $impuestos;
+$pdf->s_numero0 = $info['NUMERO'];
+$pdf->s_usuario3 = $info['NOMBRE_CLIENTE'];
+$pdf->s_usuario25 = "";
+$pdf->correosR = $info['CORREO_CLIENTE'];
+$pdf->impuestos = $info['IMPUESTOS'];
 //$pdf->s_subcliente16 = $solicitud[14];
-$pdf->s_fecha1 = "fecha";
+$pdf->s_fecha1 = $info['FECHA'];
 //$pdf->responsable = $responsable;
 //$pdf->s_material12 = $solicitud[12];
 $pdf->telefonos = $telefonos;
@@ -127,13 +150,36 @@ $i = 0;
 
 $tamarr = 0;
 
-$arr = array(
-    array(2, "Teclado",      10, 15.00, 15.00),
-    array(1, "Mouse",       0, 10.00, 10.00),
-    array(3, "Monitor",      5, 120.00, 120.00),
-    array(1, "Impresora",    20, 200.00, 200.00),
-    array(5, "USB 32GB",      0, 8.50, 8.50)
-);
+
+
+
+
+
+// FUNC_DETALLE_VENTA
+$sql = "BEGIN :cursor := FUNC_DETALLE_VENTA(:id_venta); END;";
+$stid = oci_parse($conn, $sql);
+
+$cursor = oci_new_cursor($conn);
+oci_bind_by_name($stid, ":cursor", $cursor, -1, OCI_B_CURSOR);
+oci_bind_by_name($stid, ":id_venta", $id_venta);
+
+oci_execute($stid);
+oci_execute($cursor);
+
+$arr = [];
+while ($row = oci_fetch_assoc($cursor)) {
+    // Asumimos que las columnas son: NOMBRE_PRODUCTO, CANTIDAD, PRECIO_UNITARIO, DESCUENTO, TOTAL_PRODUCTO
+    $arr[] = array(
+        $row['NOMBRE_PRODUCTO'],
+        $row['CANTIDAD'],
+        $row['PRECIO_UNITARIO'],
+        $row['DESCUENTO'],
+        $row['TOTAL_PRODUCTO']
+    );
+}
+
+oci_free_statement($stid);
+oci_free_statement($cursor);
 
 $tamarr = count($arr);
 
@@ -148,7 +194,12 @@ $Xsangria  = 15;
 $pdf->SetFont('Arial', '', 7);
 $impresa = false;
 
-while ($i < $tamarr) {
+foreach ($arr as $i => $item) {
+    $producto = $item[0];
+    $cantidad = $item[1];
+    $precio   = $item[2];
+    $descuento = $item[3];
+    $total = $item[4];
 
 
     $y = $pdf->GetY();
@@ -158,31 +209,31 @@ while ($i < $tamarr) {
 
     $x = $Xsangria;
     $pdf->SetX($x);
-    $pdf->MultiCell($col0, 4, $arr[$i][0]  ,0, 'L', 0);
+    $pdf->MultiCell($col0, 4, $cantidad  ,0, 'L', 0);
 
     $pdf->SetY($y);
     $x+= $col0;
     $pdf->SetX($x);
-    $pdf->MultiCell($col1, 4, $arr[$i][1] , 0, 'L', 0);
+    $pdf->MultiCell($col1, 4, $producto , 0, 'L', 0);
 
     $pdf->SetY($y);
     $x += $col1;
     $pdf->SetX($x );
-    $pdf->MultiCell($col2, 4, $arr[$i][2], 0, 'L', 0);
+    $pdf->MultiCell($col2, 4,$descuento, 0, 'L', 0);
 
     $pdf->SetY($y);
     $x += $col2;
     $pdf->SetX($x);
-    $pdf->MultiCell($col3, 4, $arr[$i][3]  , 0, 'R', 0);
+    $pdf->MultiCell($col3, 4, $precio  , 0, 'R', 0);
 
     $pdf->SetY($y);
     $x += $col3;
     $pdf->SetX($x );
-    $pdf->MultiCell($col4, 4, $arr[$i][4], 0, 'R', 0);
+    $pdf->MultiCell($col4, 4, $total, 0, 'R', 0);
     
     
     $impresa = true;
-    $i++;
+    //$i++;
 }
 
 //if ($impresa == true){

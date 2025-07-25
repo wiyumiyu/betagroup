@@ -1067,6 +1067,9 @@ BEGIN
 END;
 /
 
+
+
+
 -- -------------------------- VISTAS ------------------------------------------------------
 
 -- 1. Vista de Usuarios Deshabilitados
@@ -1125,7 +1128,7 @@ SELECT
     p.NOMBRE_PROVEEDOR,
     p.CORREO,
     p.DIRECCION_PROVEEDOR,
-    -- Agrupar tel�fonos en una sola columna
+    -- Agrupar telefonos en una sola columna
     (
         SELECT LISTAGG(t.TELEFONO, CHR(10)) WITHIN GROUP (ORDER BY t.ID_TELEFONO)
         FROM TELEFONO_PROVEEDOR t
@@ -1528,6 +1531,56 @@ BEGIN
 END;
 /
 
+
+
+CREATE OR REPLACE FUNCTION FUNC_TOTALES_VENTA (
+    p_id_venta IN NUMBER
+) RETURN SYS_REFCURSOR
+IS
+    v_cursor SYS_REFCURSOR;
+BEGIN
+    OPEN v_cursor FOR
+        SELECT
+            SUM(D.CANTIDAD * D.PRECIO_UNITARIO) AS SUBTOTAL,
+            SUM(D.CANTIDAD * D.PRECIO_UNITARIO * (D.DESCUENTO / 100)) AS DESCUENTO_TOTAL,
+            SUM(D.CANTIDAD * D.PRECIO_UNITARIO * (1 - D.DESCUENTO / 100)) AS TOTAL
+        FROM VENTA_DETALLE D
+        WHERE D.ID_VENTA = p_id_venta;
+    RETURN v_cursor;
+END;
+/
+
+CREATE OR REPLACE FUNCTION FUNC_INFO_VENTA (
+    p_id_venta IN NUMBER
+) RETURN SYS_REFCURSOR
+IS
+    v_cursor SYS_REFCURSOR;
+BEGIN
+    OPEN v_cursor FOR
+        SELECT 
+            v.NUMERO,
+            REGEXP_REPLACE(
+                TO_CHAR(v.FECHA, 'DD-MM-YYYY HH24:MI'),
+                '^([[:digit:]]{2})-([[:digit:]]{2})-([[:digit:]]{4}).*',
+                '\1/\2/\3'
+            ) AS FECHA,
+            v.IMPUESTOS,
+            c.NOMBRE_CLIENTE,
+            c.CORREO AS CORREO_CLIENTE,
+            (
+                SELECT LISTAGG(t.TELEFONO, CHR(10)) WITHIN GROUP (ORDER BY t.ID_TELEFONO)
+                FROM TELEFONO_CLIENTE t
+                WHERE t.ID_CLIENTE = c.ID_CLIENTE
+            ) AS TELEFONOS_CLIENTE,
+            u.NOMBRE_USUARIO
+        FROM VENTA v
+        JOIN CLIENTE c ON v.ID_CLIENTE = c.ID_CLIENTE
+        JOIN USUARIO u ON v.ID_USUARIO = u.ID_USUARIO
+        WHERE v.ID_VENTA = p_id_venta;
+
+    RETURN v_cursor;
+END;
+/
 
 -- -------------------------- DATOS Y PRUEBAS ------------------------------------------------------
 

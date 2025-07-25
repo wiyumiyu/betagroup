@@ -33,8 +33,8 @@ class PDF extends FPDF {
         $tam1 = 22;
         $tam2 = 163;
         $tam3 = 116;
-        $tam4 = 15;
-        $tam5 = 32;
+        $tam4 = 20;
+        $tam5 = 27;
         $tam6 = 27;
 
 
@@ -126,7 +126,7 @@ class PDF extends FPDF {
         $this->SetFont('Arial', '', 10); //Establecemos tipo de fuente, negrita y tamaño 16
         $this->Cell($tam4, 5, "Impuestos: ", 'B', 0, 'L');
         $this->SetFont('Arial', '', 8);
-        $this->Cell($tam5, 5,  mb_convert_encoding($this->impuestos, 'ISO-8859-1', 'UTF-8') , 'BR', 1, 'L');
+        $this->Cell($tam5, 5,  mb_convert_encoding($this->impuestos, 'ISO-8859-1', 'UTF-8'). "%" , 'BR', 1, 'L');
 //        
 //
 //        
