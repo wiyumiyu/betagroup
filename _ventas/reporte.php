@@ -5,17 +5,22 @@ include("../includes/funciones.php");
 
 $total_global = 0;
 ?>
+<div style="margin-bottom: 35px;"></div>
+<div style="display: flex; justify-content: space-between; align-items: center;">
+    <h2 style="margin: 0;">Reporte General de Ventas</h2>
+</div>
 
-<div class="container">
-    <h2>Reporte General de Ventas</h2>
-
+<div>
+    <div style="margin-bottom: 15px;"></div>
     <form method="GET" class="form-inline mb-4">
         <label>Desde:</label>
         <input type="date" name="inicio" required value="<?php echo $_GET['inicio'] ?? ''; ?>">
         <label style="margin-left:10px;">Hasta:</label>
         <input type="date" name="fin" required value="<?php echo $_GET['fin'] ?? ''; ?>">
-        <button type="submit" class="btn btn-primary" style="margin-left:10px;">Consultar</button>
+        <button type="submit" class="btn btn-info" style="margin-left:10px;">Consultar</button>
     </form>
+    <div style="margin-bottom: 50px;"></div>
+
 
 <?php
 if (isset($_GET['inicio']) && isset($_GET['fin'])) {
@@ -39,8 +44,7 @@ if (isset($_GET['inicio']) && isset($_GET['fin'])) {
         $impuestos = $venta['IMPUESTOS'];
 
         echo "<div class='card mb-3'><div class='card-body'>";
-        echo "<h5>Factura #$numero - Fecha: $fecha - Impuesto: {$impuestos}%</h5>";
-
+        echo "<p class='lead'><strong>Factura #$numero - Fecha: $fecha - Impuesto: {$impuestos}%</strong></p>";
         // Obtener detalles
         $sql_det = "BEGIN :cursor := FUNC_DETALLE_VENTA(:id_venta); END;";
         $stmt_det = oci_parse($conn, $sql_det);
@@ -79,13 +83,14 @@ if (isset($_GET['inicio']) && isset($_GET['fin'])) {
 
         echo "</tbody></table>";
         echo "<p><strong>Total con impuestos: ₡" . number_format($total_venta, 2) . "</strong></p>";
+        echo "<br></br>";
         echo "</div></div>";
 
         oci_free_statement($stmt_det);
         oci_free_statement($cursor_det);
     }
 
-    echo "<h4 class='text-right'>TOTAL GLOBAL: ₡" . number_format($total_global, 2) . "</h4>";
+    echo "<p class='lead text-right' style='font-weight: bold;'>TOTAL GLOBAL: ₡" . number_format($total_global, 2) . "</p>";
 
     oci_free_statement($stmt);
     oci_free_statement($cursor);
