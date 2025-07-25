@@ -1489,6 +1489,46 @@ BEGIN
 END;
 /
 
+-- -------------------------- FUNCIONES ------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION FUNC_REPORTE_VENTAS_RANGO (
+    p_inicio IN DATE,
+    p_fin    IN DATE
+) RETURN SYS_REFCURSOR
+IS
+    v_cursor SYS_REFCURSOR;
+BEGIN
+    OPEN v_cursor FOR
+        SELECT ID_VENTA, NUMERO, FECHA, IMPUESTOS
+        FROM VENTA
+        WHERE FECHA BETWEEN p_inicio AND p_fin
+          AND ESTADO = 1
+        ORDER BY FECHA;
+    RETURN v_cursor;
+END;
+/
+
+CREATE OR REPLACE FUNCTION FUNC_DETALLE_VENTA (
+    p_id_venta IN NUMBER
+) RETURN SYS_REFCURSOR
+IS
+    v_cursor SYS_REFCURSOR;
+BEGIN
+    OPEN v_cursor FOR
+        SELECT 
+            P.NOMBRE_PRODUCTO,
+            D.CANTIDAD,
+            D.PRECIO_UNITARIO,
+            D.DESCUENTO,
+            (D.CANTIDAD * D.PRECIO_UNITARIO * (1 - D.DESCUENTO / 100)) AS TOTAL_PRODUCTO
+        FROM VENTA_DETALLE D
+        JOIN PRODUCTO P ON P.ID_PRODUCTO = D.ID_PRODUCTO
+        WHERE D.ID_VENTA = p_id_venta;
+    RETURN v_cursor;
+END;
+/
+
+
 -- -------------------------- DATOS Y PRUEBAS ------------------------------------------------------
 
 -- Llamamos al procedimiento para crear la secuencia y trigger para las tablas

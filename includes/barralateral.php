@@ -213,7 +213,7 @@ if ($pc == 0) {
                     </a>                            
                 </li>  
                 <li class="active">
-                    <a href="">
+                    <?php echo "<a href='../_ventas/reporte.php?op=4'>"; ?>  
                         <span>Reporte de Ventas  </span>
                     </a>                            
                 </li>     
