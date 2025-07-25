@@ -30,6 +30,7 @@ if (isset($_GET['del'])) {
 }
 
 if (isset($_GET['del2'])) {
+    $stmt_contexto = llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_usuario.set_usuario(:id); END;", $conn);
     $del2 = $_GET['del2'];
 
     $sql = "BEGIN PROC_eliminar_proveedor(:id); END;";
@@ -47,6 +48,7 @@ if (isset($_GET['del2'])) {
 }
 
 if (isset($_POST['submitted'])) {
+    $stmt_contexto = llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_usuario.set_usuario(:id); END;", $conn);
     $nombre_proveedor = trim($_POST["nombre_proveedor"]);
     $correo = trim($_POST["correo"]);
     $direccion = trim($_POST["direccion"]);
