@@ -137,13 +137,13 @@ class PDF extends FPDF {
         $this->SetFont('Arial', 'B', 10); //Establecemos tipo de fuente, negrita y tamaño 16
         $this->Cell(86, 6, "Producto",'B', 0, 'L');        
         $this->SetFont('Arial', 'B', 10); //Establecemos tipo de fuente, negrita y tamaño 16
-        $this->Cell(30, 6, "Descuento",'B', 0, 'C');
+        $this->Cell(28, 6, "Descuento",'B', 0, 'C');
         
         $this->SetFont('Arial', 'B', 10); //Establecemos tipo de fuente, negrita y tamaño 16
         $this->Cell(30, 6, "P/ Unitario",'B', 0, 'R');
         
         $this->SetFont('Arial', 'B', 10); //Establecemos tipo de fuente, negrita y tamaño 16
-        $this->Cell(30, 6, "Total",'B', 1, 'R');
+        $this->Cell(32, 6, "Total    ",'B', 1, 'R');
         
         
         $this->SetY($this->primeralineamuestras);

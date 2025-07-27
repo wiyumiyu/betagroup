@@ -43,7 +43,8 @@ $pagina = 1;
 $version = 1;
 
 // traer info de la factura
-$id_venta = 6; // o cualquier otro ID que estés usando
+
+$id_venta = $_GET['id']; // o cualquier otro ID que estés usando
 $conn = oci_connect("BETAGROUP", "beta123", "localhost/orcl", "AL32UTF8");
 $sql_info = "BEGIN :cursor := FUNC_INFO_VENTA(:id_venta); END;";
 $stid_info = oci_parse($conn, $sql_info);
@@ -58,7 +59,6 @@ oci_execute($cursor_info);
 $info = [];
 if ($row = oci_fetch_assoc($cursor_info)) {
     $info = $row;
-    // Acceder por: $info['NOMBRE_CLIENTE'], $info['TELEFONOS_CLIENTE'], etc.
 }
 
 oci_free_statement($stid_info);
@@ -181,11 +181,15 @@ while ($row = oci_fetch_assoc($cursor)) {
 oci_free_statement($stid);
 oci_free_statement($cursor);
 
+
+
+
+
 $tamarr = count($arr);
 
 $col0 = 10;
 $col1 = 95;
-$col2 = 20;
+$col2 = 26;
 $col3 = 20;
 $col4 = 35;
 
@@ -201,6 +205,9 @@ foreach ($arr as $i => $item) {
     $descuento = $item[3];
     $total = $item[4];
 
+    
+    $precio = number_format($precio, 2, ',', '.');
+    $total = number_format($total, 2, ',', '.');
 
     $y = $pdf->GetY();
 
@@ -219,33 +226,94 @@ foreach ($arr as $i => $item) {
     $pdf->SetY($y);
     $x += $col1;
     $pdf->SetX($x );
-    $pdf->MultiCell($col2, 4,$descuento, 0, 'L', 0);
+    $pdf->MultiCell($col2, 4,$descuento . "%", 0, 'L', 0);
 
     $pdf->SetY($y);
     $x += $col2;
     $pdf->SetX($x);
-    $pdf->MultiCell($col3, 4, $precio  , 0, 'R', 0);
+    $pdf->MultiCell($col3, 4, mb_convert_encoding("¢" . $precio, 'ISO-8859-1', 'UTF-8')  , 0, 'R', 0);
 
     $pdf->SetY($y);
     $x += $col3;
     $pdf->SetX($x );
-    $pdf->MultiCell($col4, 4, $total, 0, 'R', 0);
+    $pdf->MultiCell($col4, 4,  mb_convert_encoding("¢" . $total, 'ISO-8859-1', 'UTF-8'), 0, 'R', 0);
+    
+    
     
     
     $impresa = true;
     //$i++;
 }
 
-//if ($impresa == true){
-//    $impresa2 = fueimpresa($idsolicitud) ;
-//    if($impresa2 == "x" && $idsolicitud > 34329){
-//        $hoy = date("Y-m-d H:i:s");    
-//            $q = "INSERT INTO tbm_solicitud_impresa(id_solicitud, fecha) VALUES
-//                     ('$idsolicitud', '$hoy') ";
-//                $r = mysqli_query($dbc, $q) or trigger_error("Query: $q\n<br />MySQL Error: " . mysqli_error($dbc));
-//    }
+// FUNC_TOTALES_VENTA
+$sql_total = "BEGIN :cursor := FUNC_TOTALES_VENTA(:id_venta); END;";
+$stid_total = oci_parse($conn, $sql_total);
+
+$cursor_total = oci_new_cursor($conn);
+oci_bind_by_name($stid_total, ":cursor", $cursor_total, -1, OCI_B_CURSOR);
+oci_bind_by_name($stid_total, ":id_venta", $id_venta);
+
+oci_execute($stid_total);
+oci_execute($cursor_total);
+
+$subtotal = $descuento = $total = 0;
+$impuestosFinal = 0;
+if ($row = oci_fetch_assoc($cursor_total)) {
+    $subtotal  = number_format($row['SUBTOTAL'], 2, ',', '.');
+    $descuento = number_format($row['DESCUENTO_TOTAL'], 2, ',', '.');
+    
+    $totalCrudo = $row['TOTAL'];
+    $impuestosFinal = $totalCrudo * ($info['IMPUESTOS']/100);
+    $total = $row['TOTAL'] + $impuestosFinal;
+    $total = number_format($total, 2, ',', '.');
+
+}
+
+oci_free_statement($stid_total);
+oci_free_statement($cursor_total);
+oci_close($conn);
+
+
+
+
+
+$pdf->SetY(210); // O ajustá según el espacio disponible
+
+
+
+// SUBTOTAL
+$pdf->SetX(130);
+$pdf->SetFont('Arial', 'B', 9);
+$pdf->Cell(40, 6, "SUBTOTAL:", 0, 0, 'R'); // 0 = no salto
+$pdf->SetFont('Arial', '', 9);
+$pdf->Cell(30, 6, mb_convert_encoding("¢" . $subtotal, 'ISO-8859-1', 'UTF-8'), 0, 1, 'R');
 //
-//}
+// DESCUENTO
+$pdf->SetX(130);
+$pdf->SetFont('Arial', 'B', 9);
+$pdf->Cell(40, 6, "DESCUENTO:", 0, 0, 'R'); // 0 = no salto
+$pdf->SetFont('Arial', '', 9);
+$pdf->Cell(30, 6, mb_convert_encoding("¢" . $descuento, 'ISO-8859-1', 'UTF-8'), 0, 1, 'R');
+//
+// IMPUESTOS
+$pdf->SetX(130);
+$pdf->SetFont('Arial', 'B', 9);
+$pdf->Cell(40, 6, "IMPUESTOS:", 0, 0, 'R'); // 0 = no salto
+$pdf->SetFont('Arial', '', 9);
+$pdf->Cell(30, 6, mb_convert_encoding("¢" . $impuestosFinal, 'ISO-8859-1', 'UTF-8'), 0, 1, 'R');
+
+// Línea horizontal encima de los totales
+$pdf->SetDrawColor(0); // negro
+$pdf->Line(130, 228, 200, 228); // de X=130 a X=200 en Y=218
+
+//
+// TOTAL
+$pdf->SetX(130);
+$pdf->SetFont('Arial', 'B', 9);
+$pdf->Cell(40, 6, "TOTAL:", 0, 0, 'R'); // 0 = no salto
+$pdf->SetFont('Arial', '', 9);
+$pdf->Cell(30, 6, mb_convert_encoding("¢" . $total, 'ISO-8859-1', 'UTF-8'), 0, 1, 'R');
+
 
 
 

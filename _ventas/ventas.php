@@ -242,9 +242,10 @@ oci_execute($cursor);
 // Recorremos cada venta y la mostramos en una fila de la tabla
 while ($row = oci_fetch_assoc($cursor)) {
     $id = $row['ID_VENTA'];
+    $fecha_venta =     date("d-m-Y", strtotime($row['FECHA']));
     echo "<tr>";
     echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['NUMERO']) . "</td>";
-    echo "<td style='color: #4B4B4B;'>" . date("d-m-Y", strtotime($row['FECHA'])) . "</td>";
+    echo "<td style='color: #4B4B4B;'>" . $fecha_venta . "</td>";
     echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['IMPUESTOS']) . "</td>";
     echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['NOMBRE_CLIENTE']) . "</td>";
     echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['NOMBRE_USUARIO']) . "</td>";
@@ -252,6 +253,7 @@ while ($row = oci_fetch_assoc($cursor)) {
     // Botones de editar y eliminar
     echo "<td>
                     <a href='ventas.php?op=$op&ta=$ta&edt=$id' class='btn btn-default'><i class='entypo-eye'></i></a>
+                    <a href='pdf_ventaimprimir.php?id=$id' class='btn btn-blue' target='_blank'><i class='entypo-newspaper'></i></a>
                     <a href='ventas.php?op=$op&ta=$ta&anular=$id' class='btn btn-orange'><i class='entypo-block'></i></a>
                     <a href='ventas.php?op=$op&ta=$ta&del=$id' class='btn btn-danger'><i class='entypo-cancel'></i></a>
                     

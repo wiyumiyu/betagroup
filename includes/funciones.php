@@ -1,5 +1,8 @@
 <?php
 
+
+
+
 function llenarSelect($name, $id_tabla, $col_tabla, $seleccionado, $sqlproc, $conn) {
 
     $sel = "";
