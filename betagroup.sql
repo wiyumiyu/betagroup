@@ -1303,6 +1303,7 @@ BEGIN
 END;
 /
 
+-- 3. Auditar los cambios de la tabla venta en bitacora
 CREATE OR REPLACE TRIGGER trg_bitacora_venta
 AFTER INSERT OR UPDATE OR DELETE ON VENTA
 FOR EACH ROW
@@ -1346,6 +1347,7 @@ BEGIN
 END;
 /
 
+-- 4. Auditar los cambios de la tabla venta detalle en bitacora
 CREATE OR REPLACE TRIGGER trg_bitacora_venta_detalle
 AFTER INSERT OR UPDATE OR DELETE ON VENTA_DETALLE
 FOR EACH ROW
