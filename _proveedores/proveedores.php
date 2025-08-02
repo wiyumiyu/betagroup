@@ -200,8 +200,9 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
             echo "<td>" . date("d-m-Y", strtotime($row['FECHA_REGISTRO'])) . "</td>";
             echo "<td>
                     <a href='proveedores.php?op=$op&ta=$ta&edt=$id' class='btn btn-default'><i class='entypo-pencil'></i></a>
-                    <a href='proveedores.php?op=$op&ta=$ta&del=$id' class='btn btn-danger'><i class='entypo-cancel'></i></a>
-                  </td>";
+                    
+                    <a href='proveedores.php?op=$op&ta=$ta&del2=$id' class='btn btn-danger'><i class='entypo-cancel'></i></a>
+                    </td>";
             echo "</tr>";
         }
 
@@ -325,15 +326,14 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
     </div>
 </div>
 
-
 <!-- MODAL DE CONFIRMACIÓN PARA ELIMINAR -->
 <div id="modal-eliminar" class="modalx">
     <div class="modalx-content">
         <h3 class="modalx-titulo">Confirmar eliminación</h3>
         <p class="modalx-texto">¿Estás seguro de que deseas eliminar este proveedor?</p>
         <div class="modalx-footer">
-            <a href='proveedores.php<?php echo "?op=$op&ta=$ta" ; ?>' class="btn-cancelar">Cancelar</a>
-            <a href='proveedores.php=<?php echo "?op=$op&ta=$ta&del2=" .  $del; ?>' class="btn-confirmar">Eliminar</a>
+            <a href='proveedores.php<?php echo "?op=$op&ta=$ta"; ?>' class="btn-cancelar">Cancelar</a>
+            <a href='proveedores.php<?php echo "?op=$op&ta=$ta&del2=" . $del; ?>' class="btn-confirmar">Eliminar</a>
         </div>
     </div>
 </div>
