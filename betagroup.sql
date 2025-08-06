@@ -796,8 +796,13 @@ CREATE OR REPLACE PROCEDURE PROC_eliminar_proveedor (
     p_id_proveedor IN proveedor.id_proveedor%TYPE
 ) AS
 BEGIN
+    -- Eliminar teléfonos vinculados a este proveedor
+    DELETE FROM telefono_proveedor
+      WHERE id_proveedor = p_id_proveedor;
+
+    -- Eliminar al proveedor
     DELETE FROM proveedor
-    WHERE id_proveedor = p_id_proveedor;
+      WHERE id_proveedor = p_id_proveedor;
 END;
 /
 
@@ -1639,6 +1644,82 @@ END;
 /
 
 -- -------------------------- FUNCIONES ------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION FUNC_usuario_tiene_ventas_num(p_id_usuario IN NUMBER)
+RETURN NUMBER
+IS
+    v_existe NUMBER := 0;
+BEGIN
+    SELECT 1
+    INTO v_existe
+    FROM VENTA
+    WHERE ID_USUARIO = p_id_usuario
+    AND ROWNUM = 1;
+
+    RETURN 1; -- tiene ventas
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RETURN 0; -- no tiene ventas
+END;
+/
+
+CREATE OR REPLACE FUNCTION FUNC_proveedor_tiene_ventas(p_id_proveedor IN NUMBER)
+RETURN NUMBER
+IS
+    v_existe NUMBER := 0;
+BEGIN
+    SELECT 1
+    INTO v_existe
+    FROM PRODUCTO 
+    WHERE ID_PROVEEDOR = p_id_proveedor
+    AND ROWNUM = 1;
+
+    RETURN 1; -- el proveedor sí tiene productos vendidos
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RETURN 0; -- el proveedor no tiene ventas
+END;
+/
+
+
+CREATE OR REPLACE FUNCTION FUNC_producto_tiene_ventas (
+    p_id_producto IN producto.id_producto%TYPE
+) RETURN NUMBER
+IS
+    v_existe NUMBER;
+BEGIN
+    -- Busca al menos un detalle de venta que tenga el producto
+    SELECT 1
+    INTO v_existe
+    FROM venta_detalle
+    WHERE id_producto = p_id_producto
+    AND ROWNUM = 1;
+
+    RETURN 1;  -- El producto está en alguna venta
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RETURN 0;  -- El producto no se usa en ninguna venta
+END;
+/
+
+CREATE OR REPLACE FUNCTION FUNC_cliente_tiene_ventas (
+    p_id_cliente IN cliente.id_cliente%TYPE
+) RETURN NUMBER
+IS
+    v_existe NUMBER;
+BEGIN
+    SELECT 1
+    INTO v_existe
+    FROM venta
+    WHERE id_cliente = p_id_cliente
+    AND ROWNUM = 1;
+
+    RETURN 1;  -- El cliente tiene ventas asociadas
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RETURN 0;  -- No tiene ventas asociadas
+END;
+/
 
 CREATE OR REPLACE FUNCTION FUNC_REPORTE_VENTAS_RANGO (
     p_inicio IN DATE,
