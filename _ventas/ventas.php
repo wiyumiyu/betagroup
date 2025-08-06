@@ -183,7 +183,7 @@ if (isset($_POST['submitted'])) {
             exit;
         }
 
-        
+        oci_free_statement($stmtDet);
     }
     
      if (isset($stmt_contexto))
@@ -191,7 +191,7 @@ if (isset($_POST['submitted'])) {
 
     oci_free_statement($stmtVenta);
     oci_free_statement($stmtId);
-    oci_free_statement($stmtDet);
+    
 
 
     //5. Confirmación

@@ -30,21 +30,34 @@ if (isset($_GET['del'])) {
 }
 
 if (isset($_GET['del2'])) {
-    $stmt_contexto = llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_usuario.set_usuario(:id); END;", $conn);
     $del2 = $_GET['del2'];
 
-    $sql = "BEGIN PROC_eliminar_proveedor(:id); END;";
-    $stmt = oci_parse($conn, $sql);
-    oci_bind_by_name($stmt, ":id", $del2);
+    $sqlCheck = "BEGIN :result := FUNC_proveedor_tiene_ventas(:id_proveedor); END;";
+    $checkStmt = oci_parse($conn, $sqlCheck);
+    oci_bind_by_name($checkStmt, ":id_proveedor", $del2);
+    oci_bind_by_name($checkStmt, ":result", $tieneVentas, 10); // NUMBER
+    oci_execute($checkStmt);
+    oci_free_statement($checkStmt);
 
-    if (oci_execute($stmt)) {
-        echo "<script>window.location.href = 'proveedores.php?op=$op&ta=$ta';</script>";
+    if ($tieneVentas == 0) {
+
+
+        $stmt_contexto = llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_usuario.set_usuario(:id); END;", $conn);
+        $sql = "BEGIN PROC_eliminar_proveedor(:id); END;";
+        $stmt = oci_parse($conn, $sql);
+        oci_bind_by_name($stmt, ":id", $del2);
+
+        if (oci_execute($stmt)) {
+            echo "<script>window.location.href = 'proveedores.php?op=$op&ta=$ta';</script>";
+        } else {
+            $e = oci_error($stmt);
+            echo "Error al eliminar el proveedor: " . $e['message'];
+        }
+
+        oci_free_statement($stmt);
     } else {
-        $e = oci_error($stmt);
-        echo "Error al eliminar el proveedor: " . $e['message'];
+        echo "<script>alert('No se puede eliminar el proveedor porque tiene productos vendidos en registros de ventas.');</script>";
     }
-
-    oci_free_statement($stmt);
 }
 
 if (isset($_POST['submitted'])) {
@@ -99,7 +112,8 @@ if (isset($_POST['submitted'])) {
             $telefono = trim($_POST['telefonos'][$i]);
             $id_tel = $_POST['id_telefonos'][$i];
 
-            if ($telefono == "") continue;
+            if ($telefono == "")
+                continue;
 
             if ($id_tel == "") {
                 // Insertar nuevo teléfono
@@ -201,7 +215,7 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
             echo "<td>
                     <a href='proveedores.php?op=$op&ta=$ta&edt=$id' class='btn btn-default'><i class='entypo-pencil'></i></a>
                     
-                    <a href='proveedores.php?op=$op&ta=$ta&del2=$id' class='btn btn-danger'><i class='entypo-cancel'></i></a>
+                    <a href='proveedores.php?op=$op&ta=$ta&del=$id' class='btn btn-danger'><i class='entypo-cancel'></i></a>
                     </td>";
             echo "</tr>";
         }
@@ -288,10 +302,10 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
 
             <label>Teléfonos:</label>
             <div id="telefonos-container">
-            <?php
-            if (!empty($telefonos_editar)) {
-                foreach ($telefonos_editar as $tel) {
-                    echo "<div class='input-group mb-2'>
+                <?php
+                if (!empty($telefonos_editar)) {
+                    foreach ($telefonos_editar as $tel) {
+                        echo "<div class='input-group mb-2'>
                             <input type='hidden' name='id_telefonos[]' value='" . $tel['ID_TELEFONO'] . "'>
                             <input type='text' name='telefonos[]' class='form-control' value='" . htmlspecialchars($tel['TELEFONO']) . "'>
                             <span class='input-group-btn'>
@@ -300,10 +314,10 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
                                 </button>
                             </span>
                           </div>";
+                    }
                 }
-            }
-            
-            echo "<div class='input-group mb-2'>
+
+                echo "<div class='input-group mb-2'>
                     <input type='hidden' name='id_telefonos[]' value=''>
                     <input type='text' name='telefonos[]' class='form-control' placeholder='Nuevo teléfono'>
                     <span class='input-group-btn'>
@@ -311,15 +325,14 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
                             <i class='bi bi-plus-circle'></i>
                         </button>
                     </span>
-                  </div>";           
-
-            ?>
+                  </div>";
+                ?>
             </div>
             <br>
 
             <input type="hidden" name="submitted" value="TRUE" />
             <div class="modalx-footer">
-                <a href='proveedores.php<?php echo "?op=$op&ta=$ta";?>' class="btn-cancelar">Cancelar</a>
+                <a href='proveedores.php<?php echo "?op=$op&ta=$ta"; ?>' class="btn-cancelar">Cancelar</a>
                 <button type="submit" class="btn btn-success">Guardar</button>
             </div>
         </form>

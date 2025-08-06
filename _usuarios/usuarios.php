@@ -27,20 +27,36 @@ if (isset($_GET['del'])) {
 if (isset($_GET['del2'])) {
     $del2 = $_GET['del2'];
 
-    $stmt_contexto = llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_usuario.set_usuario(:id); END;", $conn);
+$sqlCheck = "BEGIN :result := FUNC_usuario_tiene_ventas_num(:id_usuario); END;";
+$checkStmt = oci_parse($conn, $sqlCheck);
+oci_bind_by_name($checkStmt, ":id_usuario", $del2);
+oci_bind_by_name($checkStmt, ":result", $tieneVentas, 10); // ahora es NUMBER, no BOOLEAN
+oci_execute($checkStmt);
+oci_free_statement($checkStmt);
 
-    $sql = "BEGIN PROC_eliminar_usuario(:id); END;";
-    $stmt = oci_parse($conn, $sql);
-    oci_bind_by_name($stmt, ":id", $del2);
-    if (oci_execute($stmt)) {
-        echo "<script>window.location.href = 'usuarios.php?op=$op&ta=$ta';</script>";
+// Si el usuario NO tiene ventas, se puede continuar con la eliminación
+    if (!$tieneVentas) {
+
+
+
+        $stmt_contexto = llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_usuario.set_usuario(:id); END;", $conn);
+
+        $sql = "BEGIN PROC_eliminar_usuario(:id); END;";
+        $stmt = oci_parse($conn, $sql);
+        oci_bind_by_name($stmt, ":id", $del2);
+        if (oci_execute($stmt)) {
+            echo "<script>window.location.href = 'usuarios.php?op=$op&ta=$ta';</script>";
+        } else {
+            $e = oci_error($stmt);
+            echo "Error al eliminar el usuario: " . $e['message'];
+        }
+
+        if (isset($stmt_contexto))
+            oci_free_statement($stmt_contexto);
+        oci_free_statement($stmt);
     } else {
-        $e = oci_error($stmt);
-        echo "Error al eliminar el usuario: " . $e['message'];
-    }
-
-    if (isset($stmt_contexto)) oci_free_statement($stmt_contexto);
-    oci_free_statement($stmt);
+    echo "<script>alert('No se puede eliminar el usuario porque tiene ventas registradas.');</script>";
+}
 }
 
 if (isset($_POST['submitted'])) {
@@ -87,7 +103,8 @@ if (isset($_POST['submitted'])) {
         echo "Error: " . $e['message'];
     }
 
-    if (isset($stmt_contexto)) oci_free_statement($stmt_contexto);
+    if (isset($stmt_contexto))
+        oci_free_statement($stmt_contexto);
     oci_free_statement($stmt);
 }
 ?>
@@ -112,103 +129,104 @@ if (isset($_POST['submitted'])) {
         </tr>
     </thead>
     <tbody>
-<?php
-$sql = "BEGIN PROC_LISTAR_USUARIOS(:cursor); END;";
-$stid = oci_parse($conn, $sql);
-$cursor = oci_new_cursor($conn);
-oci_bind_by_name($stid, ":cursor", $cursor, -1, OCI_B_CURSOR);
-oci_execute($stid);
-oci_execute($cursor);
+        <?php
+        $sql = "BEGIN PROC_LISTAR_USUARIOS(:cursor); END;";
+        $stid = oci_parse($conn, $sql);
+        $cursor = oci_new_cursor($conn);
+        oci_bind_by_name($stid, ":cursor", $cursor, -1, OCI_B_CURSOR);
+        oci_execute($stid);
+        oci_execute($cursor);
 
-while ($row = oci_fetch_assoc($cursor)) {
-    $id = $row['ID_USUARIO'];
-    echo "<tr>";
-    echo "<td>" . htmlspecialchars($row['NOMBRE_USUARIO']) . "</td>";
-    echo "<td>" . htmlspecialchars($row['TELEFONO'] ?? '') . "</td>";
-    echo "<td>" . htmlspecialchars($row['CORREO']) . "</td>";
-    $rolTexto = ($row['ROL'] == 1) ? "Administrador" : "Vendedor";
-    echo "<td>$rolTexto</td>";
-    echo "<td>" . date("d-m-Y", strtotime($row['FECHA_REGISTRO'])) . "</td>";
-    echo "<td>
+        while ($row = oci_fetch_assoc($cursor)) {
+            $id = $row['ID_USUARIO'];
+            echo "<tr>";
+            echo "<td>" . htmlspecialchars($row['NOMBRE_USUARIO']) . "</td>";
+            echo "<td>" . htmlspecialchars($row['TELEFONO'] ?? '') . "</td>";
+            echo "<td>" . htmlspecialchars($row['CORREO']) . "</td>";
+            $rolTexto = ($row['ROL'] == 1) ? "Administrador" : "Vendedor";
+            echo "<td>$rolTexto</td>";
+            echo "<td>" . date("d-m-Y", strtotime($row['FECHA_REGISTRO'])) . "</td>";
+            echo "<td>
             <a href='usuarios.php?op=$op&ta=$ta&edt=$id' class='btn btn-default'><i class='entypo-pencil'></i></a>
             <a href='usuarios.php?op=$op&ta=$ta&del=$id' class='btn btn-danger'><i class='entypo-cancel'></i></a>
           </td>";
-    echo "</tr>";
-}
+            echo "</tr>";
+        }
 
-oci_free_statement($stid);
-oci_free_statement($cursor);
-?>
+        oci_free_statement($stid);
+        oci_free_statement($cursor);
+        ?>
     </tbody>
 </table>
 
 <script>
-function abrirModal() {
-    document.getElementById('modal-confirmar').style.display = 'block';
-}
-function cerrarModal() {
-    document.getElementById('modal-confirmar').style.display = 'none';
-}
-window.onclick = function (event) {
-    const modal = document.getElementById('modal-confirmar');
-    if (event.target == modal) cerrarModal();
-};
-$(window).on('load', function () {
-    var edt = '<?php echo $edt; ?>';
-    if (edt != "") {
+    function abrirModal() {
         document.getElementById('modal-confirmar').style.display = 'block';
     }
-    var del = '<?php echo $del; ?>';
-    if (del != "") {
-        document.getElementById('modal-eliminar').style.display = 'block';
+    function cerrarModal() {
+        document.getElementById('modal-confirmar').style.display = 'none';
     }
-});
+    window.onclick = function (event) {
+        const modal = document.getElementById('modal-confirmar');
+        if (event.target == modal)
+            cerrarModal();
+    };
+    $(window).on('load', function () {
+        var edt = '<?php echo $edt; ?>';
+        if (edt != "") {
+            document.getElementById('modal-confirmar').style.display = 'block';
+        }
+        var del = '<?php echo $del; ?>';
+        if (del != "") {
+            document.getElementById('modal-eliminar').style.display = 'block';
+        }
+    });
 </script>
 
 <!-- Modal Agregar/Editar -->
 <div id="modal-confirmar" class="modalx">
     <div class="modalx-content">
-<?php
-$nombre = $telefono = $correo = $contrasena = $rol = "";
-$estado = 1;
-$seleccionadoA = $seleccionadoV = "";
-$seleccionadoActivo = "selected";
-$seleccionadoInactivo = "";
-$tipoEdit = "Agregar nuevo";
-$edtVer = "";
+        <?php
+        $nombre = $telefono = $correo = $contrasena = $rol = "";
+        $estado = 1;
+        $seleccionadoA = $seleccionadoV = "";
+        $seleccionadoActivo = "selected";
+        $seleccionadoInactivo = "";
+        $tipoEdit = "Agregar nuevo";
+        $edtVer = "";
 
-if (isset($_GET["edt"])) {
-    $edt = $_GET["edt"];
+        if (isset($_GET["edt"])) {
+            $edt = $_GET["edt"];
 
-    $sql = "BEGIN PROC_obtener_usuario_por_id(:id_usuario, :cursor); END;";
-    $stid = oci_parse($conn, $sql);
-    $cursor = oci_new_cursor($conn);
+            $sql = "BEGIN PROC_obtener_usuario_por_id(:id_usuario, :cursor); END;";
+            $stid = oci_parse($conn, $sql);
+            $cursor = oci_new_cursor($conn);
 
-    oci_bind_by_name($stid, ":id_usuario", $edt);
-    oci_bind_by_name($stid, ":cursor", $cursor, -1, OCI_B_CURSOR);
+            oci_bind_by_name($stid, ":id_usuario", $edt);
+            oci_bind_by_name($stid, ":cursor", $cursor, -1, OCI_B_CURSOR);
 
-    oci_execute($stid);
-    oci_execute($cursor);
+            oci_execute($stid);
+            oci_execute($cursor);
 
-    if ($row = oci_fetch_array($cursor, OCI_ASSOC)) {
-        $nombre = htmlspecialchars($row["NOMBRE_USUARIO"]);
-        $telefono = isset($row["TELEFONO"]) ? $row["TELEFONO"] : "";
-        $correo = htmlspecialchars($row["CORREO"]);
-        $rol = $row["ROL"];
-        $estado = $row["ESTADO"];
-    }
+            if ($row = oci_fetch_array($cursor, OCI_ASSOC)) {
+                $nombre = htmlspecialchars($row["NOMBRE_USUARIO"]);
+                $telefono = isset($row["TELEFONO"]) ? $row["TELEFONO"] : "";
+                $correo = htmlspecialchars($row["CORREO"]);
+                $rol = $row["ROL"];
+                $estado = $row["ESTADO"];
+            }
 
-    oci_free_statement($stid);
-    oci_free_statement($cursor);
+            oci_free_statement($stid);
+            oci_free_statement($cursor);
 
-    $seleccionadoV = ($rol == 0) ? "selected" : "";
-    $seleccionadoA = ($rol == 1) ? "selected" : "";
-    $seleccionadoActivo = ($estado == 1) ? "selected" : "";
-    $seleccionadoInactivo = ($estado == 0) ? "selected" : "";
-    $tipoEdit = "Editar";
-    $edtVer = "edt=$edt";
-}
-?>
+            $seleccionadoV = ($rol == 0) ? "selected" : "";
+            $seleccionadoA = ($rol == 1) ? "selected" : "";
+            $seleccionadoActivo = ($estado == 1) ? "selected" : "";
+            $seleccionadoInactivo = ($estado == 0) ? "selected" : "";
+            $tipoEdit = "Editar";
+            $edtVer = "edt=$edt";
+        }
+        ?>
 
         <h3 class="modalx-titulo"><?php echo $tipoEdit; ?> usuario</h3>
         <form action="usuarios.php<?php echo "?op=$op&ta=$ta&" . $edtVer; ?>" method="POST">
@@ -231,16 +249,16 @@ if (isset($_GET["edt"])) {
             </select><br>
 
 <?php if (!empty($edt)) { ?>
-            <label for="estado">Estado:</label>
-            <select id="estado" name="estado" class="form-control">
-                <option value="1" <?php echo $seleccionadoActivo; ?>>Habilitado</option>
-                <option value="0" <?php echo $seleccionadoInactivo; ?>>Deshabilitado</option>
-            </select><br>
+                <label for="estado">Estado:</label>
+                <select id="estado" name="estado" class="form-control">
+                    <option value="1" <?php echo $seleccionadoActivo; ?>>Habilitado</option>
+                    <option value="0" <?php echo $seleccionadoInactivo; ?>>Deshabilitado</option>
+                </select><br>
 <?php } ?>
 
             <input type='hidden' name='submitted' value='TRUE' />
             <div class="modalx-footer">
-                <a href='usuarios.php<?php echo "?op=$op&ta=$ta";?>' class="btn-cancelar">Cancelar</a>
+                <a href='usuarios.php<?php echo "?op=$op&ta=$ta"; ?>' class="btn-cancelar">Cancelar</a>
                 <button type="submit" class="btn btn-success">Registrar</button>
             </div>
         </form>
@@ -253,8 +271,8 @@ if (isset($_GET["edt"])) {
         <h3 class="modalx-titulo">Confirmar eliminación</h3>
         <p class="modalx-texto">¿Estás seguro de que deseas eliminar este usuario?</p>
         <div class="modalx-footer">
-            <a href='usuarios.php<?php echo "?op=$op&ta=$ta";?>' class="btn-cancelar">Cancelar</a>
-            <a href='usuarios.php<?php echo "?op=$op&ta=$ta&del2=$del" ; ?>' class="btn-confirmar">Eliminar</a>
+            <a href='usuarios.php<?php echo "?op=$op&ta=$ta"; ?>' class="btn-cancelar">Cancelar</a>
+            <a href='usuarios.php<?php echo "?op=$op&ta=$ta&del2=$del"; ?>' class="btn-confirmar">Eliminar</a>
         </div>
     </div>
 </div>

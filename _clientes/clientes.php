@@ -9,30 +9,49 @@ $ta = "";
 $op = "";
 $linkAceptar = "#";
 
-if (isset($_GET['ta'])) $ta = $_GET['ta'];
-if (isset($_GET['op'])) $op = $_GET['op'];
-if (isset($_GET['edt'])) $edt = $_GET['edt'];
-if (isset($_GET['del'])) $del = $_GET['del'];
+if (isset($_GET['ta']))
+    $ta = $_GET['ta'];
+if (isset($_GET['op']))
+    $op = $_GET['op'];
+if (isset($_GET['edt']))
+    $edt = $_GET['edt'];
+if (isset($_GET['del']))
+    $del = $_GET['del'];
 $edtVer = ($edt != "") ? "edt=$edt" : "";
 
 // Eliminar cliente
 if (isset($_GET['del2'])) {
     $del2 = $_GET['del2'];
 
-    $stmt_contexto = llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_usuario.set_usuario(:id); END;", $conn);
+    // Verificar si el cliente forma parte de alguna venta
+    $sqlCheck = "BEGIN :result := FUNC_cliente_tiene_ventas(:id_cliente); END;";
+    $stmtCheck = oci_parse($conn, $sqlCheck);
+    oci_bind_by_name($stmtCheck, ":id_cliente", $del2);
+    oci_bind_by_name($stmtCheck, ":result", $tieneVentas, 10); // NUMBER (1 o 0)
+    oci_execute($stmtCheck);
+    oci_free_statement($stmtCheck);
 
-    $sql = "BEGIN PROC_eliminar_cliente(:id); END;";
-    $stmt = oci_parse($conn, $sql);
-    oci_bind_by_name($stmt, ":id", $del2);
-    if (oci_execute($stmt)) {
-        echo "<script>window.location.href = 'clientes.php?op=$op&ta=$ta';</script>";
+    if ($tieneVentas == 0) {
+
+        $stmt_contexto = llenarBitacora($_SESSION['id_usuario'], "BEGIN pkg_contexto_usuario.set_usuario(:id); END;", $conn);
+
+        $sql = "BEGIN PROC_eliminar_cliente(:id); END;";
+        $stmt = oci_parse($conn, $sql);
+        oci_bind_by_name($stmt, ":id", $del2);
+        if (oci_execute($stmt)) {
+            echo "<script>window.location.href = 'clientes.php?op=$op&ta=$ta';</script>";
+        } else {
+            $e = oci_error($stmt);
+            echo "Error: " . $e['message'];
+        }
+
+        if (isset($stmt_contexto))
+            oci_free_statement($stmt_contexto);
+        oci_free_statement($stmt);
     } else {
-        $e = oci_error($stmt);
-        echo "Error: " . $e['message'];
+        // El cliente está en alguna venta: mostrar aviso y no eliminar
+        echo "<script>alert('No se puede eliminar el cliente porque está asociado a ventas.');</script>";
     }
-
-    if (isset($stmt_contexto)) oci_free_statement($stmt_contexto);
-    oci_free_statement($stmt);
 }
 
 // Insertar o actualizar cliente
@@ -66,8 +85,9 @@ if (isset($_POST['submitted'])) {
     oci_execute($stmt);
     oci_free_statement($stmt);
 
-    if (isset($stmt_contexto)) oci_free_statement($stmt_contexto);
-    
+    if (isset($stmt_contexto))
+        oci_free_statement($stmt_contexto);
+
     // Insertar / actualizar teléfonos
     $telefonos_actuales = [];
     $ids_recibidos = [];
@@ -92,7 +112,8 @@ if (isset($_POST['submitted'])) {
         $telefono = trim($_POST['telefonos'][$i]);
         $id_tel = $_POST['id_telefonos'][$i];
 
-        if ($telefono == "") continue;
+        if ($telefono == "")
+            continue;
 
         if ($id_tel == "") {
             $sql_tel = "BEGIN PROC_insertar_telefono_cliente(:id, :tel); END;";
@@ -146,131 +167,131 @@ if (isset($_POST['submitted'])) {
         </tr>
     </thead>
     <tbody>
-<?php
-$sql = "BEGIN PROC_listar_clientes(:cursor); END;";
-$stid = oci_parse($conn, $sql);
-$cursor = oci_new_cursor($conn);
-oci_bind_by_name($stid, ":cursor", $cursor, -1, OCI_B_CURSOR);
-oci_execute($stid);
-oci_execute($cursor);
+        <?php
+        $sql = "BEGIN PROC_listar_clientes(:cursor); END;";
+        $stid = oci_parse($conn, $sql);
+        $cursor = oci_new_cursor($conn);
+        oci_bind_by_name($stid, ":cursor", $cursor, -1, OCI_B_CURSOR);
+        oci_execute($stid);
+        oci_execute($cursor);
 
-while ($row = oci_fetch_assoc($cursor)) {
-    $id = $row['ID_CLIENTE'];
+        while ($row = oci_fetch_assoc($cursor)) {
+            $id = $row['ID_CLIENTE'];
 
-    // Obtener teléfonos
-    $telefonos = [];
-    $stmt_tel = oci_parse($conn, "BEGIN PROC_OBTENER_TELEFONOS_CLIENTE(:id, :cur); END;");
-    $cur = oci_new_cursor($conn);
-    oci_bind_by_name($stmt_tel, ":id", $id);
-    oci_bind_by_name($stmt_tel, ":cur", $cur, -1, OCI_B_CURSOR);
-    oci_execute($stmt_tel);
-    oci_execute($cur);
-    while ($tel = oci_fetch_assoc($cur)) {
-        $telefonos[] = $tel['TELEFONO'];
-    }
-    oci_free_statement($stmt_tel);
-    oci_free_statement($cur);
+            // Obtener teléfonos
+            $telefonos = [];
+            $stmt_tel = oci_parse($conn, "BEGIN PROC_OBTENER_TELEFONOS_CLIENTE(:id, :cur); END;");
+            $cur = oci_new_cursor($conn);
+            oci_bind_by_name($stmt_tel, ":id", $id);
+            oci_bind_by_name($stmt_tel, ":cur", $cur, -1, OCI_B_CURSOR);
+            oci_execute($stmt_tel);
+            oci_execute($cur);
+            while ($tel = oci_fetch_assoc($cur)) {
+                $telefonos[] = $tel['TELEFONO'];
+            }
+            oci_free_statement($stmt_tel);
+            oci_free_statement($cur);
 
-    echo "<tr>";
-    echo "<td>" . htmlspecialchars($row['NOMBRE_CLIENTE']) . "</td>";
-    echo "<td>" . htmlspecialchars($row['CORREO']) . "</td>";
-    echo "<td>" . htmlspecialchars($row['TIPO_CLINICA']) . "</td>";
-    echo "<td>" . implode("<br>", $telefonos) . "</td>";
-    echo "<td>
+            echo "<tr>";
+            echo "<td>" . htmlspecialchars($row['NOMBRE_CLIENTE']) . "</td>";
+            echo "<td>" . htmlspecialchars($row['CORREO']) . "</td>";
+            echo "<td>" . htmlspecialchars($row['TIPO_CLINICA']) . "</td>";
+            echo "<td>" . implode("<br>", $telefonos) . "</td>";
+            echo "<td>
             <a href='clientes.php?op=$op&ta=$ta&edt=$id' class='btn btn-default'><i class='entypo-pencil'></i></a>
             <a href='clientes.php?op=$op&ta=$ta&del=$id' class='btn btn-danger'><i class='entypo-cancel'></i></a>
           </td>";
-    echo "</tr>";
-}
-oci_free_statement($stid);
-oci_free_statement($cursor);
-?>
+            echo "</tr>";
+        }
+        oci_free_statement($stid);
+        oci_free_statement($cursor);
+        ?>
     </tbody>
 </table>
 
 <!-- MODAL CLIENTE -->
 <div id="modal-confirmar" class="modalx">
-<div class="modalx-content">
-<?php
-$nombre = $correo = $tipo = "";
-$telefonos_editar = [];
+    <div class="modalx-content">
+        <?php
+        $nombre = $correo = $tipo = "";
+        $telefonos_editar = [];
 
-if ($edt != "") {
-    $sql = "BEGIN PROC_OBTENER_CLIENTE(:id, :nom, :cor, :tip); END;";
-    $stmt = oci_parse($conn, $sql);
-    oci_bind_by_name($stmt, ":id", $edt);
-    oci_bind_by_name($stmt, ":nom", $nombre, 100);
-    oci_bind_by_name($stmt, ":cor", $correo, 100);
-    oci_bind_by_name($stmt, ":tip", $tipo);
-    oci_execute($stmt);
-    oci_free_statement($stmt);
-
-    $stmt_tel = oci_parse($conn, "BEGIN PROC_OBTENER_TELEFONOS_CLIENTE(:id, :cur); END;");
-    $cur = oci_new_cursor($conn);
-    oci_bind_by_name($stmt_tel, ":id", $edt);
-    oci_bind_by_name($stmt_tel, ":cur", $cur, -1, OCI_B_CURSOR);
-    oci_execute($stmt_tel);
-    oci_execute($cur);
-    while ($row = oci_fetch_assoc($cur)) {
-        $telefonos_editar[] = $row;
-    }
-    oci_free_statement($stmt_tel);
-    oci_free_statement($cur);
-}
-?>
-    <h3 class="modalx-titulo"><?php echo ($edt != "") ? "Editar" : "Agregar nuevo"; ?> Cliente</h3>
-    <form method="POST" action="clientes.php?op=<?php echo $op; ?>&ta=<?php echo $ta; ?>&<?php echo $edtVer; ?>">
-        <label>Nombre:</label>
-        <input type="text" class="form-control" name="nombre_cliente" value="<?php echo $nombre; ?>" required><br>
-
-        <label>Correo:</label>
-        <input type="email" class="form-control" name="correo" value="<?php echo $correo; ?>" required><br>
-
-        <label>Tipo de Clínica:</label>
-        <select class="form-control" name="id_tipo_clinica" required>
-            <?php
-            $sql = "SELECT ID_TIPO_CLINICA, DESCRIPCION FROM TIPO_CLINICA";
+        if ($edt != "") {
+            $sql = "BEGIN PROC_OBTENER_CLIENTE(:id, :nom, :cor, :tip); END;";
             $stmt = oci_parse($conn, $sql);
+            oci_bind_by_name($stmt, ":id", $edt);
+            oci_bind_by_name($stmt, ":nom", $nombre, 100);
+            oci_bind_by_name($stmt, ":cor", $correo, 100);
+            oci_bind_by_name($stmt, ":tip", $tipo);
             oci_execute($stmt);
-            while ($r = oci_fetch_assoc($stmt)) {
-                $sel = ($tipo == $r['ID_TIPO_CLINICA']) ? "selected" : "";
-                echo "<option value='{$r['ID_TIPO_CLINICA']}' $sel>" . htmlspecialchars($r['DESCRIPCION']) . "</option>";
-            }
             oci_free_statement($stmt);
-            ?>
-        </select><br>
 
-        <label>Teléfonos:</label>
-        <div id="telefonos-container">
-            <?php foreach ($telefonos_editar as $tel) { ?>
+            $stmt_tel = oci_parse($conn, "BEGIN PROC_OBTENER_TELEFONOS_CLIENTE(:id, :cur); END;");
+            $cur = oci_new_cursor($conn);
+            oci_bind_by_name($stmt_tel, ":id", $edt);
+            oci_bind_by_name($stmt_tel, ":cur", $cur, -1, OCI_B_CURSOR);
+            oci_execute($stmt_tel);
+            oci_execute($cur);
+            while ($row = oci_fetch_assoc($cur)) {
+                $telefonos_editar[] = $row;
+            }
+            oci_free_statement($stmt_tel);
+            oci_free_statement($cur);
+        }
+        ?>
+        <h3 class="modalx-titulo"><?php echo ($edt != "") ? "Editar" : "Agregar nuevo"; ?> Cliente</h3>
+        <form method="POST" action="clientes.php?op=<?php echo $op; ?>&ta=<?php echo $ta; ?>&<?php echo $edtVer; ?>">
+            <label>Nombre:</label>
+            <input type="text" class="form-control" name="nombre_cliente" value="<?php echo $nombre; ?>" required><br>
+
+            <label>Correo:</label>
+            <input type="email" class="form-control" name="correo" value="<?php echo $correo; ?>" required><br>
+
+            <label>Tipo de Clínica:</label>
+            <select class="form-control" name="id_tipo_clinica" required>
+                <?php
+                $sql = "SELECT ID_TIPO_CLINICA, DESCRIPCION FROM TIPO_CLINICA";
+                $stmt = oci_parse($conn, $sql);
+                oci_execute($stmt);
+                while ($r = oci_fetch_assoc($stmt)) {
+                    $sel = ($tipo == $r['ID_TIPO_CLINICA']) ? "selected" : "";
+                    echo "<option value='{$r['ID_TIPO_CLINICA']}' $sel>" . htmlspecialchars($r['DESCRIPCION']) . "</option>";
+                }
+                oci_free_statement($stmt);
+                ?>
+            </select><br>
+
+            <label>Teléfonos:</label>
+            <div id="telefonos-container">
+<?php foreach ($telefonos_editar as $tel) { ?>
+                    <div class="input-group mb-2">
+                        <input type="hidden" name="id_telefonos[]" value="<?php echo $tel['ID_TELEFONO']; ?>">
+                        <input type="text" name="telefonos[]" class="form-control" value="<?php echo htmlspecialchars($tel['TELEFONO']); ?>">
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-danger" onclick="eliminarTelefono(this)">
+                                <i class="bi bi-x-circle"></i>
+                            </button>
+                        </span>
+                    </div>
+<?php } ?>
                 <div class="input-group mb-2">
-                    <input type="hidden" name="id_telefonos[]" value="<?php echo $tel['ID_TELEFONO']; ?>">
-                    <input type="text" name="telefonos[]" class="form-control" value="<?php echo htmlspecialchars($tel['TELEFONO']); ?>">
+                    <input type="hidden" name="id_telefonos[]" value="">
+                    <input type="text" name="telefonos[]" class="form-control" placeholder="Teléfono adicional">
                     <span class="input-group-btn">
-                        <button type="button" class="btn btn-danger" onclick="eliminarTelefono(this)">
-                            <i class="bi bi-x-circle"></i>
+                        <button type="button" class="btn btn-success" onclick="agregarTelefono()">
+                            <i class="bi bi-plus-circle"></i>
                         </button>
                     </span>
                 </div>
-            <?php } ?>
-            <div class="input-group mb-2">
-                <input type="hidden" name="id_telefonos[]" value="">
-                <input type="text" name="telefonos[]" class="form-control" placeholder="Teléfono adicional">
-                <span class="input-group-btn">
-                    <button type="button" class="btn btn-success" onclick="agregarTelefono()">
-                        <i class="bi bi-plus-circle"></i>
-                    </button>
-                </span>
             </div>
-        </div>
 
-        <input type="hidden" name="submitted" value="TRUE" />
-        <div class="modalx-footer">
-            <a href="clientes.php?op=<?php echo $op; ?>&ta=<?php echo $ta; ?>" class="btn-cancelar">Cancelar</a>
-            <button type="submit" class="btn btn-success">Guardar</button>
-        </div>
-    </form>
-</div>
+            <input type="hidden" name="submitted" value="TRUE" />
+            <div class="modalx-footer">
+                <a href="clientes.php?op=<?php echo $op; ?>&ta=<?php echo $ta; ?>" class="btn-cancelar">Cancelar</a>
+                <button type="submit" class="btn btn-success">Guardar</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <!-- MODAL ELIMINAR -->
@@ -319,8 +340,10 @@ if ($edt != "") {
     }
 
     window.onload = function () {
-        if ('<?php echo $edt; ?>' !== "") document.getElementById('modal-confirmar').style.display = 'block';
-        if ('<?php echo $del; ?>' !== "") document.getElementById('modal-eliminar').style.display = 'block';
+        if ('<?php echo $edt; ?>' !== "")
+            document.getElementById('modal-confirmar').style.display = 'block';
+        if ('<?php echo $del; ?>' !== "")
+            document.getElementById('modal-eliminar').style.display = 'block';
     };
 </script>
 
