@@ -86,7 +86,7 @@ if (isset($_POST['submitted'])) {
     oci_bind_by_name($stmt, ":estado", $estado);
 
     if (oci_execute($stmt)) {
-        // ✅ Insertar o actualizar teléfonos
+        // Insertar o actualizar teléfonos
         $telefonos_actuales = [];
         $ids_recibidos = [];
 

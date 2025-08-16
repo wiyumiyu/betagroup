@@ -411,6 +411,11 @@ BEGIN
         p_rol,
         1 -- Habilitado por defecto
     );
+EXCEPTION
+    WHEN DUP_VAL_ON_INDEX THEN
+        RAISE_APPLICATION_ERROR(-20001, 'El usuario ya existe, verifique el nombre o correo.');
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20002, 'Error al insertar usuario: ' || SQLERRM);
 END;
 /
 
@@ -437,10 +442,17 @@ BEGIN
                            ELSE CONTRASENA
                          END
     WHERE ID_USUARIO = p_id_usuario;
+
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE_APPLICATION_ERROR(-20003, 'No se encontró el usuario a actualizar.');
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20004, 'Error al actualizar usuario: ' || SQLERRM);
 END;
 /
 
--- 7. Procedimiento para actualizar usuario sin contrasena
+-- 7. Procedimiento para actualizar usuario sin contraseña
 CREATE OR REPLACE PROCEDURE PROC_actualizar_usuario_sc (
     p_id_usuario  IN USUARIO.ID_USUARIO%TYPE,
     p_nombre      IN USUARIO.NOMBRE_USUARIO%TYPE,
@@ -458,6 +470,13 @@ BEGIN
         ROL            = p_rol,
         ESTADO         = p_estado
     WHERE ID_USUARIO = p_id_usuario;
+
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE_APPLICATION_ERROR(-20005, 'No se encontró el usuario a actualizar.');
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20006, 'Error al actualizar usuario: ' || SQLERRM);
 END;
 /
 
@@ -468,6 +487,13 @@ CREATE OR REPLACE PROCEDURE PROC_eliminar_usuario (
 BEGIN
     DELETE FROM USUARIO
     WHERE ID_USUARIO = p_id;
+
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE_APPLICATION_ERROR(-20007, 'No se encontró el usuario a eliminar.');
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20008, 'Error al eliminar usuario: ' || SQLERRM);
 END;
 /
 
@@ -487,6 +513,11 @@ BEGIN
         p_correo,
         p_id_tipo_clinica
     );
+EXCEPTION
+    WHEN DUP_VAL_ON_INDEX THEN
+        RAISE_APPLICATION_ERROR(-20009, 'El cliente ya existe, verifique el correo.');
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20010, 'Error al insertar cliente: ' || SQLERRM);
 END;
 /
 
@@ -504,6 +535,13 @@ BEGIN
         CORREO          = p_correo,
         ID_TIPO_CLINICA = p_id_tipo_clinica
     WHERE ID_CLIENTE = p_id_cliente;
+
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE_APPLICATION_ERROR(-20011, 'No se encontró el cliente a actualizar.');
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20012, 'Error al actualizar cliente: ' || SQLERRM);
 END;
 /
 
@@ -521,7 +559,7 @@ BEGIN
     -- Eliminar las VENTAS del cliente
     DELETE FROM VENTA
     WHERE ID_CLIENTE = p_id_cliente;
-
+    
     -- Eliminar los telefonos asociados
     DELETE FROM TELEFONO_CLIENTE
     WHERE ID_CLIENTE = p_id_cliente;
@@ -529,10 +567,17 @@ BEGIN
     -- Eliminar el cliente
     DELETE FROM CLIENTE
     WHERE ID_CLIENTE = p_id_cliente;
+
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE_APPLICATION_ERROR(-20013, 'No se encontró el cliente a eliminar.');
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20014, 'Error al eliminar cliente: ' || SQLERRM);
 END;
 /
 
--- 12. Procedimiento para actualizar cliente
+-- 12. Procedimiento para listar clientes
 CREATE OR REPLACE PROCEDURE PROC_listar_clientes (
     p_cursor OUT SYS_REFCURSOR
 ) AS
@@ -545,6 +590,9 @@ BEGIN
         FROM CLIENTE c
         LEFT JOIN TIPO_CLINICA tc ON c.ID_TIPO_CLINICA = tc.ID_TIPO_CLINICA
         ORDER BY c.ID_CLIENTE;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20015, 'Error al listar clientes: ' || SQLERRM);
 END;
 /
 
@@ -555,6 +603,11 @@ CREATE OR REPLACE PROCEDURE PROC_insertar_tipo_clinica (
 BEGIN
     INSERT INTO TIPO_CLINICA (DESCRIPCION)
     VALUES (p_descripcion);
+EXCEPTION
+    WHEN DUP_VAL_ON_INDEX THEN
+        RAISE_APPLICATION_ERROR(-20016, 'La clínica ya existe.');
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20017, 'Error al insertar clínica: ' || SQLERRM);
 END;
 /
 
@@ -567,6 +620,13 @@ BEGIN
     UPDATE TIPO_CLINICA
     SET DESCRIPCION = p_descripcion
     WHERE ID_TIPO_CLINICA = p_id_tipo_clinica;
+
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE_APPLICATION_ERROR(-20018, 'No se encontró la clínica a actualizar.');
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20019, 'Error al actualizar clínica: ' || SQLERRM);
 END;
 /
 
@@ -577,6 +637,13 @@ CREATE OR REPLACE PROCEDURE PROC_eliminar_tipo_clinica (
 BEGIN
     DELETE FROM TIPO_CLINICA
     WHERE ID_TIPO_CLINICA = p_id_tipo_clinica;
+
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE_APPLICATION_ERROR(-20020, 'No se encontró la clínica a eliminar.');
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20021, 'Error al eliminar clínica: ' || SQLERRM);
 END;
 /
 
@@ -589,6 +656,9 @@ BEGIN
         SELECT ID_TIPO_CLINICA, DESCRIPCION
         FROM TIPO_CLINICA
         ORDER BY ID_TIPO_CLINICA;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20022, 'Error al listar clínicas: ' || SQLERRM);
 END;
 /
 
@@ -607,6 +677,9 @@ BEGIN
         JOIN PROVEEDOR PR ON P.ID_PROVEEDOR = PR.ID_PROVEEDOR
         JOIN CATEGORIA C ON P.ID_CATEGORIA = C.ID_CATEGORIA
         ORDER BY P.ID_PRODUCTO;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Error al listar productos: ' || SQLERRM);
 END;
 /
 
@@ -629,6 +702,9 @@ BEGIN
         p_id_proveedor,
         p_id_categoria
     );
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20002, 'Error al insertar producto: ' || SQLERRM);
 END;
 /
 
@@ -648,6 +724,9 @@ BEGIN
         ID_PROVEEDOR = p_id_proveedor,
         ID_CATEGORIA = p_id_categoria
     WHERE ID_PRODUCTO = p_id_producto;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20003, 'Error al actualizar producto: ' || SQLERRM);
 END;
 /
 
@@ -658,6 +737,9 @@ CREATE OR REPLACE PROCEDURE PROC_eliminar_producto (
 BEGIN
     DELETE FROM PRODUCTO
     WHERE ID_PRODUCTO = p_id;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20004, 'Error al eliminar producto: ' || SQLERRM);
 END;
 /
 
@@ -670,6 +752,9 @@ BEGIN
             C.NOMBRE_CATEGORIA
         FROM CATEGORIA C
         ORDER BY C.ID_CATEGORIA;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20005, 'Error al listar categorías: ' || SQLERRM);
 END;
 /
 
@@ -683,6 +768,9 @@ BEGIN
     ) VALUES (
         p_nombre_categoria
     );
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20006, 'Error al insertar categoría: ' || SQLERRM);
 END;
 /
 
@@ -693,6 +781,9 @@ CREATE OR REPLACE PROCEDURE PROC_eliminar_categoria (
 BEGIN
     DELETE FROM CATEGORIA
     WHERE ID_CATEGORIA = p_id;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20007, 'Error al eliminar categoría: ' || SQLERRM);
 END;
 /
 
@@ -717,6 +808,9 @@ BEGIN
       p.ID_PROVEEDOR, p.NOMBRE_PROVEEDOR, p.CORREO, p.DIRECCION_PROVEEDOR, p.FECHA_REGISTRO
     ORDER BY 
       p.ID_PROVEEDOR;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20008, 'Error al listar proveedores: ' || SQLERRM);
 END;
 /
 
@@ -741,6 +835,9 @@ BEGIN
         p_estado
     )
     RETURNING id_proveedor INTO p_id_out;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20009, 'Error al insertar proveedor: ' || SQLERRM);
 END;
 /
    
@@ -759,35 +856,55 @@ BEGIN
         correo = p_correo,
         direccion_proveedor = p_direccion,
         estado = p_estado
-    WHERE
+    WHERE 
         id_proveedor = p_id_proveedor;
+
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE_APPLICATION_ERROR(-20026, 'No se encontró el proveedor a actualizar');
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20027, 'Error al actualizar proveedor: ' || SQLERRM);
 END;
 /
 
 -- 27. Procedimiento para eliminar proveedor
-
 CREATE OR REPLACE PROCEDURE PROC_eliminar_proveedor (
     p_id_proveedor IN proveedor.id_proveedor%TYPE
 ) AS
 BEGIN
-    -- Eliminar telÃ©fonos vinculados a este proveedor
-    DELETE FROM telefono_proveedor
-      WHERE id_proveedor = p_id_proveedor;
+    -- Eliminar teléfonos vinculados a este proveedor
+    DELETE FROM telefono_proveedor 
+     WHERE id_proveedor = p_id_proveedor;
+    
+     -- Eliminar al proveedor
+    DELETE FROM proveedor 
+     WHERE id_proveedor = p_id_proveedor;
 
-    -- Eliminar al proveedor
-    DELETE FROM proveedor
-      WHERE id_proveedor = p_id_proveedor;
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE_APPLICATION_ERROR(-20028, 'No se encontró el proveedor a eliminar');
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20029, 'Error al eliminar proveedor: ' || SQLERRM);
 END;
 /
 
 -- 28. Procedimiento para habilitar un proveedor cambiando su estado a 1
 CREATE OR REPLACE PROCEDURE PROC_habilitar_proveedor (
-    p_id IN PROVEEDOR.ID_PROVEEDOR%TYPE
+    p_id IN proveedor.id_proveedor%TYPE
 ) AS
 BEGIN
-    UPDATE PROVEEDOR
-    SET ESTADO = 1
-    WHERE ID_PROVEEDOR = p_id;
+    UPDATE proveedor
+    SET estado = 1
+    WHERE id_proveedor = p_id;
+
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE_APPLICATION_ERROR(-20030, 'No se encontró el proveedor a habilitar');
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20031, 'Error al habilitar proveedor: ' || SQLERRM);
 END;
 /
 
@@ -798,90 +915,128 @@ CREATE OR REPLACE PROCEDURE PROC_OBTENER_PROVEEDOR (
 ) AS
 BEGIN
     OPEN p_cursor FOR
-        SELECT NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR, ESTADO
-        FROM PROVEEDOR
-        WHERE ID_PROVEEDOR = p_id;
+        SELECT nombre_proveedor, correo, direccion_proveedor, estado
+        FROM proveedor
+        WHERE id_proveedor = p_id;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20032, 'Error al obtener proveedor: ' || SQLERRM);
 END;
 /
 
 -- 30. Procedimiento para obtener solo los ID de telefonos de un proveedor
 CREATE OR REPLACE PROCEDURE PROC_OBTENER_ID_TELEFONOS (
-    p_id_proveedor IN TELEFONO_PROVEEDOR.ID_PROVEEDOR%TYPE,
+    p_id_proveedor IN telefono_proveedor.id_proveedor%TYPE,
     p_cursor       OUT SYS_REFCURSOR
 ) AS
 BEGIN
     OPEN p_cursor FOR
-        SELECT ID_TELEFONO
-        FROM TELEFONO_PROVEEDOR
-        WHERE ID_PROVEEDOR = p_id_proveedor;
+        SELECT id_telefono
+        FROM telefono_proveedor
+        WHERE id_proveedor = p_id_proveedor;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20033, 'Error al obtener IDs de teléfonos: ' || SQLERRM);
 END;
 /
 
--- 31. Procedimiento para obtener los telefonos completos de un proveedor
+-- 31. Procedimiento para obtener teléfonos completos de un proveedor
 CREATE OR REPLACE PROCEDURE PROC_OBTENER_TELEFONOS_PROVEEDOR (
-    p_id_proveedor IN TELEFONO_PROVEEDOR.ID_PROVEEDOR%TYPE,
+    p_id_proveedor IN telefono_proveedor.id_proveedor%TYPE,
     p_cursor       OUT SYS_REFCURSOR
 ) AS
 BEGIN
     OPEN p_cursor FOR
-        SELECT ID_TELEFONO, TELEFONO
-        FROM TELEFONO_PROVEEDOR
-        WHERE ID_PROVEEDOR = p_id_proveedor;
+        SELECT id_telefono, telefono
+        FROM telefono_proveedor
+        WHERE id_proveedor = p_id_proveedor;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20034, 'Error al obtener teléfonos: ' || SQLERRM);
 END;
 /
 
 -- 32. Procedimiento para actualizar un telefono existente
 CREATE OR REPLACE PROCEDURE PROC_actualizar_telefono_proveedor (
-    p_id_telefono   IN TELEFONO_PROVEEDOR.ID_TELEFONO%TYPE,
-    p_telefono      IN TELEFONO_PROVEEDOR.TELEFONO%TYPE
+    p_id_telefono IN telefono_proveedor.id_telefono%TYPE,
+    p_telefono    IN telefono_proveedor.telefono%TYPE
 ) AS
 BEGIN
-    UPDATE TELEFONO_PROVEEDOR
-    SET TELEFONO = p_telefono
-    WHERE ID_TELEFONO = p_id_telefono;
+    UPDATE telefono_proveedor
+    SET telefono = p_telefono
+    WHERE id_telefono = p_id_telefono;
+
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE_APPLICATION_ERROR(-20035, 'No se encontró el teléfono a actualizar');
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20036, 'Error al actualizar teléfono: ' || SQLERRM);
 END;
 /
 
--- 33. Procedimiento para eliminar un telefono
+-- 33. Procedimiento para eliminar un teléfono
 CREATE OR REPLACE PROCEDURE PROC_eliminar_telefono (
-    p_id_tel IN TELEFONO_PROVEEDOR.ID_TELEFONO%TYPE
-)
-AS
+    p_id_tel IN telefono_proveedor.id_telefono%TYPE
+) AS
 BEGIN
-    DELETE FROM TELEFONO_PROVEEDOR
-    WHERE ID_TELEFONO = p_id_tel;
+    DELETE FROM telefono_proveedor
+    WHERE id_telefono = p_id_tel;
+
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE_APPLICATION_ERROR(-20037, 'No se encontró el teléfono a eliminar');
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20038, 'Error al eliminar teléfono: ' || SQLERRM);
 END;
 /
 
 -- 34. Procedimiento para insertar un nuevo telefono para un proveedor
 CREATE OR REPLACE PROCEDURE PROC_insertar_telefono_proveedor (
-    p_id_proveedor IN TELEFONO_PROVEEDOR.ID_PROVEEDOR%TYPE,
-    p_telefono     IN TELEFONO_PROVEEDOR.TELEFONO%TYPE
+    p_id_proveedor IN telefono_proveedor.id_proveedor%TYPE,
+    p_telefono     IN telefono_proveedor.telefono%TYPE
 ) AS
 BEGIN
-    INSERT INTO TELEFONO_PROVEEDOR (ID_PROVEEDOR, TELEFONO)
+    INSERT INTO telefono_proveedor (id_proveedor, telefono)
     VALUES (p_id_proveedor, p_telefono);
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20039, 'Error al insertar teléfono: ' || SQLERRM);
 END;
 /
 
-  
--- 35.  Procedimiento para eliminar una venta
+-- 35. Procedimiento para eliminar venta
 CREATE OR REPLACE PROCEDURE PROC_eliminar_venta (
-    p_id IN VENTA.ID_VENTA%TYPE
+    p_id IN venta.id_venta%TYPE
 ) AS
 BEGIN
-    DELETE FROM VENTA
-    WHERE ID_VENTA = p_id;
+    DELETE FROM venta
+    WHERE id_venta = p_id;
+
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE_APPLICATION_ERROR(-20040, 'No se encontró la venta a eliminar');
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20041, 'Error al eliminar venta: ' || SQLERRM);
 END;
 /
 
--- 36. Procedimiento para eliminar una VENTA_DETALLE
+-- 36. Procedimiento para eliminar una venta_detalle
 CREATE OR REPLACE PROCEDURE PROC_eliminar_venta_detalle (
-    p_id IN VENTA_DETALLE.ID_VENTA_DETALLE%TYPE
+    p_id IN venta_detalle.id_venta_detalle%TYPE
 ) AS
 BEGIN
-    DELETE FROM VENTA_DETALLE
-    WHERE ID_VENTA = p_id;
+    DELETE FROM venta_detalle
+    WHERE id_venta = p_id;
+
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE_APPLICATION_ERROR(-20042, 'No se encontró el detalle de venta a eliminar');
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20043, 'Error al eliminar detalle de venta: ' || SQLERRM);
 END;
 /
 
@@ -889,16 +1044,19 @@ END;
 CREATE OR REPLACE PROCEDURE PROC_LISTAR_VENTAS(
     p_cursor OUT SYS_REFCURSOR,
     p_estado IN VENTA.ESTADO%TYPE
-)  AS
+) AS
 BEGIN
-    -- Abrimos el cursor con los datos de todas las ventas
     OPEN p_cursor FOR
-        SELECT VENTA.ID_VENTA, VENTA.NUMERO, TO_CHAR(VENTA.FECHA, 'YYYY-MM-DD') AS FECHA, VENTA.IMPUESTOS, CLIENTE.NOMBRE_CLIENTE, USUARIO.NOMBRE_USUARIO
+        SELECT VENTA.ID_VENTA, VENTA.NUMERO, TO_CHAR(VENTA.FECHA, 'YYYY-MM-DD') AS FECHA, 
+               VENTA.IMPUESTOS, CLIENTE.NOMBRE_CLIENTE, USUARIO.NOMBRE_USUARIO
         FROM VENTA
         LEFT JOIN CLIENTE ON CLIENTE.ID_CLIENTE = VENTA.ID_CLIENTE
         LEFT JOIN USUARIO ON USUARIO.ID_USUARIO = VENTA.ID_USUARIO
         WHERE VENTA.ESTADO = p_estado
         ORDER BY VENTA.NUMERO;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Error al listar ventas: ' || SQLERRM);
 END;
 /
 
@@ -921,16 +1079,21 @@ BEGIN
         p_id_cliente,
         p_id_usuario
     );
+EXCEPTION
+    WHEN DUP_VAL_ON_INDEX THEN
+        RAISE_APPLICATION_ERROR(-20002, 'Número de venta ya existe');
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20003, 'Error al insertar venta: ' || SQLERRM);
 END;
 /
 
 -- 39. Procedimiento para insertar un detalle de venta
 CREATE OR REPLACE PROCEDURE PROC_insertar_venta_detalle (
-    p_cantidad       IN VENTA_DETALLE.CANTIDAD%TYPE,
+    p_cantidad        IN VENTA_DETALLE.CANTIDAD%TYPE,
     p_precio_unitario IN VENTA_DETALLE.PRECIO_UNITARIO%TYPE,
-    p_descuento      IN VENTA_DETALLE.DESCUENTO%TYPE,
-    p_id_producto    IN VENTA_DETALLE.ID_PRODUCTO%TYPE,
-    p_id_venta       IN VENTA_DETALLE.ID_VENTA%TYPE
+    p_descuento       IN VENTA_DETALLE.DESCUENTO%TYPE,
+    p_id_producto     IN VENTA_DETALLE.ID_PRODUCTO%TYPE,
+    p_id_venta        IN VENTA_DETALLE.ID_VENTA%TYPE
 ) AS
 BEGIN
     INSERT INTO VENTA_DETALLE (
@@ -946,6 +1109,9 @@ BEGIN
         p_id_producto,
         p_id_venta
     );
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20004, 'Error al insertar detalle de venta: ' || SQLERRM);
 END;
 /
 
@@ -954,43 +1120,45 @@ CREATE OR REPLACE PROCEDURE PROC_OBTENER_MAX_NUMERO_VENTA (
     p_max_numero OUT VENTA.NUMERO%TYPE
 ) AS
 BEGIN
-    SELECT NVL(MAX(NUMERO), 0)
-    INTO p_max_numero
+    SELECT NVL(MAX(NUMERO), 0) 
+    INTO p_max_numero 
     FROM VENTA;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20005, 'Error al obtener número máximo de venta: ' || SQLERRM);
 END;
 /
 
 -- 41. Procedimiento que devuelve una venta a partir de un id
 CREATE OR REPLACE PROCEDURE PROC_OBTENER_VENTA (
-    p_id_venta   IN  VENTA.ID_VENTA%TYPE,
-    p_numero     OUT VENTA.NUMERO%TYPE,
-    p_impuestos  OUT VENTA.IMPUESTOS%TYPE,
-    p_id_cliente OUT VENTA.ID_CLIENTE%TYPE,
-    p_nombre_cliente OUT CLIENTE.NOMBRE_CLIENTE%TYPE
-    
+    p_id_venta        IN  VENTA.ID_VENTA%TYPE,
+    p_numero          OUT VENTA.NUMERO%TYPE,
+    p_impuestos       OUT VENTA.IMPUESTOS%TYPE,
+    p_id_cliente      OUT VENTA.ID_CLIENTE%TYPE,
+    p_nombre_cliente  OUT CLIENTE.NOMBRE_CLIENTE%TYPE
 ) AS
 BEGIN
     SELECT v.NUMERO, v.IMPUESTOS, v.ID_CLIENTE, c.NOMBRE_CLIENTE
     INTO   p_numero, p_impuestos, p_id_cliente, p_nombre_cliente
     FROM   VENTA v
-    JOIN    CLIENTE C on c.ID_CLIENTE = v.ID_CLIENTE
-    WHERE  ID_VENTA = p_id_venta;
+    JOIN   CLIENTE c ON c.ID_CLIENTE = v.ID_CLIENTE
+    WHERE  v.ID_VENTA = p_id_venta;
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
-        p_numero     := NULL;
-        p_impuestos  := NULL;
+        p_numero := NULL;
+        p_impuestos := NULL;
         p_id_cliente := NULL;
+        p_nombre_cliente := NULL;
     WHEN OTHERS THEN
-        RAISE;
+        RAISE_APPLICATION_ERROR(-20006, 'Error al obtener venta: ' || SQLERRM);
 END;
 /
 
---42. Procedimiento que devuelve el detalle de una venta
+-- 42. Procedimiento que devuelve el detalle de una venta
 CREATE OR REPLACE PROCEDURE PROC_LISTAR_DETALLES_VENTA (
     p_id_venta IN VENTA_DETALLE.ID_VENTA%TYPE,
-    p_cursor OUT SYS_REFCURSOR
-)
-AS
+    p_cursor   OUT SYS_REFCURSOR
+) AS
 BEGIN
     OPEN p_cursor FOR
         SELECT 
@@ -999,10 +1167,12 @@ BEGIN
             vd.CANTIDAD,
             vd.DESCUENTO,
             vd.PRECIO_UNITARIO
-            
         FROM VENTA_DETALLE vd
         JOIN PRODUCTO p ON vd.ID_PRODUCTO = p.ID_PRODUCTO
         WHERE vd.ID_VENTA = p_id_venta;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20007, 'Error al listar detalles de venta: ' || SQLERRM);
 END;
 /
 
@@ -1012,6 +1182,9 @@ CREATE OR REPLACE PROCEDURE PROC_OBTENER_ULTIMO_ID_VENTA (
 ) AS
 BEGIN
     SELECT NVL(MAX(ID_VENTA), 1) INTO p_id_venta FROM VENTA;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20008, 'Error al obtener último ID de venta: ' || SQLERRM);
 END;
 /
 
@@ -1025,13 +1198,16 @@ BEGIN
         SELECT NOMBRE_PRODUCTO, PRECIO, ID_PROVEEDOR, ID_CATEGORIA
         FROM PRODUCTO
         WHERE ID_PRODUCTO = p_id_producto;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20009, 'Error al obtener producto: ' || SQLERRM);
 END;
 /
 
 --45. Procedimiento para obtener los usuarios por ID
 CREATE OR REPLACE PROCEDURE PROC_obtener_usuario_por_id (
     p_id_usuario IN USUARIO.ID_USUARIO%TYPE,
-    p_cursor OUT SYS_REFCURSOR
+    p_cursor     OUT SYS_REFCURSOR
 ) AS
 BEGIN
     OPEN p_cursor FOR
@@ -1043,126 +1219,127 @@ BEGIN
             ESTADO
         FROM USUARIO
         WHERE ID_USUARIO = p_id_usuario;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20010, 'Error al obtener usuario por ID: ' || SQLERRM);
 END;
 /
 
 --46. Procedimiento para habilitar usuarios desactivados
 CREATE OR REPLACE PROCEDURE PROC_habilitar_usuario (
-    p_id IN USUARIO.ID_USUARIO%TYPE
+    p_id_usuario IN USUARIO.ID_USUARIO%TYPE
 ) AS
 BEGIN
     UPDATE USUARIO
     SET ESTADO = 1
-    WHERE ID_USUARIO = p_id;
+    WHERE ID_USUARIO = p_id_usuario;
 END;
 /
 
 --47. Procedimiento para obtener datos cliente por ID
 CREATE OR REPLACE PROCEDURE PROC_OBTENER_CLIENTE (
-  p_id_cliente IN CLIENTE.ID_CLIENTE%TYPE,
-  p_nombre     OUT CLIENTE.NOMBRE_CLIENTE%TYPE,
-  p_correo     OUT CLIENTE.CORREO%TYPE,
-  p_tipo       OUT CLIENTE.ID_TIPO_CLINICA%TYPE
+    p_id_cliente IN CLIENTE.ID_CLIENTE%TYPE,
+    p_nombre     OUT CLIENTE.NOMBRE_CLIENTE%TYPE,
+    p_correo     OUT CLIENTE.CORREO%TYPE,
+    p_tipo       OUT CLIENTE.ID_TIPO_CLINICA%TYPE
 ) AS
 BEGIN
-  SELECT NOMBRE_CLIENTE, CORREO, ID_TIPO_CLINICA
-    INTO p_nombre, p_correo, p_tipo
-    FROM CLIENTE
-   WHERE ID_CLIENTE = p_id_cliente;
+    SELECT NOMBRE_CLIENTE, CORREO, ID_TIPO_CLINICA
+    INTO   p_nombre, p_correo, p_tipo
+    FROM   CLIENTE
+    WHERE  ID_CLIENTE = p_id_cliente;
 END;
 /
 
---48. Procedimiento para obtener telefonos de un cliente
+-- 48. Procedimiento para obtener teléfonos de un cliente
 CREATE OR REPLACE PROCEDURE PROC_OBTENER_TELEFONOS_CLIENTE (
-  p_id_cliente IN TELEFONO_CLIENTE.ID_CLIENTE%TYPE,
-  p_cursor     OUT SYS_REFCURSOR
+    p_id_cliente IN TELEFONO_CLIENTE.ID_CLIENTE%TYPE,
+    p_cursor     OUT SYS_REFCURSOR
 ) AS
 BEGIN
-  OPEN p_cursor FOR
-    SELECT ID_TELEFONO, TELEFONO
-      FROM TELEFONO_CLIENTE
-     WHERE ID_CLIENTE = p_id_cliente;
+    OPEN p_cursor FOR
+        SELECT ID_TELEFONO, TELEFONO
+        FROM   TELEFONO_CLIENTE
+        WHERE  ID_CLIENTE = p_id_cliente;
 END;
 /
 
---49. Procedimiento para obtener solo los IDs de telefono de un cliente
+-- 49. Procedimiento para obtener solo los IDs de teléfono de un cliente
 CREATE OR REPLACE PROCEDURE PROC_OBTENER_ID_TELEFONOS_CLIENTE (
-  p_id_cliente IN TELEFONO_CLIENTE.ID_CLIENTE%TYPE,
-  p_cursor     OUT SYS_REFCURSOR
+    p_id_cliente IN TELEFONO_CLIENTE.ID_CLIENTE%TYPE,
+    p_cursor     OUT SYS_REFCURSOR
 ) AS
 BEGIN
-  OPEN p_cursor FOR
-    SELECT ID_TELEFONO
-      FROM TELEFONO_CLIENTE
-     WHERE ID_CLIENTE = p_id_cliente;
+    OPEN p_cursor FOR
+        SELECT ID_TELEFONO
+        FROM   TELEFONO_CLIENTE
+        WHERE  ID_CLIENTE = p_id_cliente;
 END;
 /
 
 --50. Procedimiento para insertar un telefono cliente
 CREATE OR REPLACE PROCEDURE PROC_insertar_telefono_cliente (
-  p_id_cliente IN TELEFONO_CLIENTE.ID_CLIENTE%TYPE,
-  p_telefono   IN TELEFONO_CLIENTE.TELEFONO%TYPE
+    p_id_cliente IN TELEFONO_CLIENTE.ID_CLIENTE%TYPE,
+    p_telefono   IN TELEFONO_CLIENTE.TELEFONO%TYPE
 ) AS
 BEGIN
-  INSERT INTO TELEFONO_CLIENTE (ID_CLIENTE, TELEFONO)
-  VALUES (p_id_cliente, p_telefono);
+    INSERT INTO TELEFONO_CLIENTE (ID_CLIENTE, TELEFONO)
+    VALUES (p_id_cliente, p_telefono);
 END;
 /
 
 --51. Procedimiento para actualizar un telefono cliente
 CREATE OR REPLACE PROCEDURE PROC_actualizar_telefono_cliente (
-  p_id_tel   IN TELEFONO_CLIENTE.ID_TELEFONO%TYPE,
-  p_telefono IN TELEFONO_CLIENTE.TELEFONO%TYPE
+    p_id_telefono IN TELEFONO_CLIENTE.ID_TELEFONO%TYPE,
+    p_telefono    IN TELEFONO_CLIENTE.TELEFONO%TYPE
 ) AS
 BEGIN
-  UPDATE TELEFONO_CLIENTE
-     SET TELEFONO = p_telefono
-   WHERE ID_TELEFONO = p_id_tel;
+    UPDATE TELEFONO_CLIENTE
+    SET    TELEFONO = p_telefono
+    WHERE  ID_TELEFONO = p_id_telefono;
 END;
 /
 
 --52. Procedimiento para eliminar un telefono cliente
 CREATE OR REPLACE PROCEDURE PROC_eliminar_telefono_cliente (
-  p_id_tel IN TELEFONO_CLIENTE.ID_TELEFONO%TYPE
+    p_id_tel IN TELEFONO_CLIENTE.ID_TELEFONO%TYPE
 ) AS
 BEGIN
-  DELETE FROM TELEFONO_CLIENTE
-   WHERE ID_TELEFONO = p_id_tel;
+    DELETE FROM TELEFONO_CLIENTE
+    WHERE  ID_TELEFONO = p_id_tel;
 END;
 /
 
 --53. Procedimiento mostrar la bitacora
-CREATE OR REPLACE PROCEDURE PROC_LISTAR_BITACORA(p_cursor OUT SYS_REFCURSOR) AS
+CREATE OR REPLACE PROCEDURE PROC_LISTAR_BITACORA (
+    p_cursor OUT SYS_REFCURSOR
+) AS
 BEGIN
-  OPEN p_cursor FOR
-    SELECT 
-      b.ID_BITACORA,
-      TO_CHAR(B.FECHA_OPERACION, 'DD-MM-YYYY HH24:MI:SS') AS FECHA_OPERACION,
-      u.ID_USUARIO,
-      u.NOMBRE_USUARIO,
-      u.CORREO,
-      b.DESCRIPCION
-    FROM 
-      BITACORA b
-    LEFT JOIN 
-      USUARIO u ON b.ID_USUARIO = u.ID_USUARIO
-    ORDER BY 
-      b.FECHA_OPERACION DESC;
+    OPEN p_cursor FOR
+        SELECT 
+            b.ID_BITACORA,
+            TO_CHAR(b.FECHA_OPERACION, 'DD-MM-YYYY HH24:MI:SS') AS FECHA_OPERACION,
+            u.ID_USUARIO,
+            u.NOMBRE_USUARIO,
+            u.CORREO,
+            b.DESCRIPCION
+        FROM   BITACORA b
+        LEFT JOIN USUARIO u ON b.ID_USUARIO = u.ID_USUARIO
+        ORDER BY b.FECHA_OPERACION DESC;
 END;
 /
 
--- 54. PROCEDIMIENTO PARA HABILITAR - DESHABILITAR  UNA VENTA CAMBIANDO SU ESTADO A UNO O A CERO
-CREATE OR REPLACE PROCEDURE PROC_habilitar_venta (
-    p_id IN VENTA.ID_VENTA%TYPE,
-    p_estado IN VENTA.ESTADO%TYPE
+-- 54. Procedimiento para habilitar o deshabilitar una venta
+CREATE OR REPLACE PROCEDURE PROC_HABILITAR_VENTA (
+    p_id_venta IN VENTA.ID_VENTA%TYPE,
+    p_estado   IN VENTA.ESTADO%TYPE
 ) AS
 BEGIN
     UPDATE VENTA
     SET ESTADO = p_estado
-    WHERE ID_VENTA = p_id;
+    WHERE ID_VENTA = p_id_venta;
 END;
 /
-
 
 -- -------------------------- VISTAS ------------------------------------------------------
 
@@ -1253,6 +1430,10 @@ BEGIN
     OPEN p_cursor FOR
         SELECT ID_USUARIO, NOMBRE_USUARIO, TELEFONO, CORREO, ROL, FECHA_REGISTRO
         FROM VW_USUARIOS_DESHABILITADOS;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Error al listar usuarios deshabilitados: ' || SQLERRM);
 END;
 /
 
@@ -1266,6 +1447,12 @@ BEGIN
         SELECT * 
         FROM VW_CLIENTES_CON_TIPO_CLINICA 
         WHERE ID_TIPO_CLINICA = p_id_tipo_clinica;
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RAISE_APPLICATION_ERROR(-20002, 'No se encontraron clientes para el tipo de clínica ' || p_id_tipo_clinica);
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20003, 'Error al obtener clientes por clínica: ' || SQLERRM);
 END;
 /
 
@@ -1277,6 +1464,10 @@ BEGIN
     OPEN p_cursor FOR
         SELECT ID_PROVEEDOR, NOMBRE_PROVEEDOR, CORREO, DIRECCION_PROVEEDOR, TELEFONOS
         FROM VW_PROVEEDORES_DESHABILITADOS;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20004, 'Error al listar proveedores deshabilitados: ' || SQLERRM);
 END;
 /
 
@@ -1287,9 +1478,12 @@ CREATE OR REPLACE PROCEDURE PROC_LISTAR_PRODUCTOS_MENOS_VENDIDOS (
 BEGIN
     OPEN p_cursor FOR
         SELECT * FROM VW_PRODUCTOS_MENOS_VENDIDOS;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20005, 'Error al listar productos menos vendidos: ' || SQLERRM);
 END;
 /
-
 
 -- -------------------------- CONTEXTOS ------------------------------------------------------
 
@@ -1589,10 +1783,12 @@ BEGIN
     WHERE ID_USUARIO = p_id_usuario
     AND ROWNUM = 1;
 
-    RETURN 1; -- tiene ventas
+    RETURN 1;
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
-        RETURN 0; -- no tiene ventas
+        RETURN 0; 
+    WHEN OTHERS THEN
+        RETURN -1; 
 END;
 /
 
@@ -1608,10 +1804,12 @@ BEGIN
     WHERE ID_PROVEEDOR = p_id_proveedor
     AND ROWNUM = 1;
 
-    RETURN 1; -- el proveedor sÃ­ tiene productos vendidos
+    RETURN 1;  -- el proveedor sí tiene productos vendidos
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
-        RETURN 0; -- el proveedor no tiene ventas
+        RETURN 0; 
+    WHEN OTHERS THEN
+        RETURN -1; 
 END;
 /
 
@@ -1622,17 +1820,18 @@ CREATE OR REPLACE FUNCTION FUNC_producto_tiene_ventas (
 IS
     v_existe NUMBER;
 BEGIN
-    -- Busca al menos un detalle de venta que tenga el producto
     SELECT 1
     INTO v_existe
     FROM venta_detalle
     WHERE id_producto = p_id_producto
     AND ROWNUM = 1;
 
-    RETURN 1;  -- El producto estÃ¡ en alguna venta
+    RETURN 1; -- El producto está en alguna venta
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
         RETURN 0;  -- El producto no se usa en ninguna venta
+    WHEN OTHERS THEN
+        RETURN -1; 
 END;
 /
 
@@ -1649,10 +1848,12 @@ BEGIN
     WHERE id_cliente = p_id_cliente
     AND ROWNUM = 1;
 
-    RETURN 1;  -- El cliente tiene ventas asociadas
+    RETURN 1; -- El cliente tiene ventas asociadas
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
-        RETURN 0;  -- No tiene ventas asociadas
+        RETURN 0; -- No tiene ventas asociadas
+    WHEN OTHERS THEN
+        RETURN -1; 
 END;
 /
 
@@ -1671,6 +1872,9 @@ BEGIN
           AND ESTADO = 1
         ORDER BY FECHA;
     RETURN v_cursor;
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN NULL; 
 END;
 /
 
@@ -1692,6 +1896,9 @@ BEGIN
         JOIN PRODUCTO P ON P.ID_PRODUCTO = D.ID_PRODUCTO
         WHERE D.ID_VENTA = p_id_venta;
     RETURN v_cursor;
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN NULL; 
 END;
 /
 
@@ -1711,6 +1918,9 @@ BEGIN
         WHERE D.ID_VENTA = p_id_venta;
 
     RETURN v_cursor;
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN NULL; 
 END;
 /
 
@@ -1744,6 +1954,9 @@ BEGIN
         WHERE v.ID_VENTA = p_id_venta;
 
     RETURN v_cursor;
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN NULL; 
 END;
 /
 
