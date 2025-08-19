@@ -247,46 +247,46 @@ CREATE TABLE BITACORA (
   DESCRIPCION     CLOB
 );
 
--- ------------------------------------------------- Ã?NDICES ---------------------------------------------------------------------
+-- ------------------------------------------------- ï¿½?NDICES ---------------------------------------------------------------------
 
--- Ã?ndices para USUARIO
+-- ï¿½?ndices para USUARIO
 CREATE INDEX idx_usuario_nombre ON USUARIO (NOMBRE_USUARIO);
 CREATE INDEX idx_usuario_estado ON USUARIO (ESTADO);
 
--- Ã?ndices para PROVEEDOR
+-- ï¿½?ndices para PROVEEDOR
 CREATE INDEX idx_proveedor_nombre ON PROVEEDOR (NOMBRE_PROVEEDOR);
 CREATE INDEX idx_proveedor_estado ON PROVEEDOR (ESTADO);
 
--- Ã?ndices para CLIENTE
+-- ï¿½?ndices para CLIENTE
 CREATE INDEX idx_cliente_nombre ON CLIENTE (NOMBRE_CLIENTE);
 CREATE INDEX idx_cliente_tipo ON CLIENTE (ID_TIPO_CLINICA);
 
--- Ã?ndices para TELEFONO_CLIENTE
+-- ï¿½?ndices para TELEFONO_CLIENTE
 CREATE INDEX idx_tel_cliente ON TELEFONO_CLIENTE (ID_CLIENTE);
 
--- Ã?ndices para TELEFONO_PROVEEDOR
+-- ï¿½?ndices para TELEFONO_PROVEEDOR
 CREATE INDEX idx_tel_proveedor ON TELEFONO_PROVEEDOR (ID_PROVEEDOR);
 
--- Ã?ndices para PRODUCTO
+-- ï¿½?ndices para PRODUCTO
 CREATE INDEX idx_producto_nombre ON PRODUCTO (NOMBRE_PRODUCTO);
 CREATE INDEX idx_producto_prov_cat ON PRODUCTO (ID_PROVEEDOR, ID_CATEGORIA);
 
--- Ã?ndices para VENTA
+-- ï¿½?ndices para VENTA
 CREATE INDEX idx_venta_fecha ON VENTA (FECHA);
 CREATE INDEX idx_venta_cliente_usuario ON VENTA (ID_CLIENTE, ID_USUARIO);
 CREATE INDEX idx_venta_estado ON VENTA (ESTADO);
 
--- Ã?ndices para VENTA_DETALLE
+-- ï¿½?ndices para VENTA_DETALLE
 CREATE INDEX idx_vdetalle_venta ON VENTA_DETALLE (ID_VENTA);
 CREATE INDEX idx_vdetalle_producto ON VENTA_DETALLE (ID_PRODUCTO);
 
--- Ã?ndices para CATEGORIA
+-- ï¿½?ndices para CATEGORIA
 CREATE INDEX idx_categoria_nombre ON CATEGORIA (NOMBRE_CATEGORIA);
 
--- Ã?ndices para TIPO_CLINICA
+-- ï¿½?ndices para TIPO_CLINICA
 CREATE INDEX idx_tipoclinica_descripcion ON TIPO_CLINICA (DESCRIPCION);
 
--- Ã?ndices para BITACORA
+-- ï¿½?ndices para BITACORA
 CREATE INDEX idx_bitacora_usuario_fecha ON BITACORA (ID_USUARIO, FECHA_OPERACION);
 
 -- ------------------------------------------------- PROCEDIMIENTOS ALMACENADOS ---------------------------------------------------------------------
@@ -338,7 +338,7 @@ END;
 CREATE OR REPLACE PROCEDURE PROC_LISTAR_USUARIOS(p_cursor OUT SYS_REFCURSOR) AS
 BEGIN
     OPEN p_cursor FOR
-        SELECT ID_USUARIO, NOMBRE_USUARIO, TELEFONO, CORREO, ROL, FECHA_REGISTRO, ESTADO
+        SELECT ID_USUARIO, NOMBRE_USUARIO, TELEFONO, CORREO, ROL, TO_CHAR(FECHA_REGISTRO, 'YYYY-MM-DD') AS FECHA_REGISTRO, ESTADO
         FROM USUARIO
         WHERE ESTADO = 1
         ORDER BY ID_USUARIO;
@@ -444,7 +444,7 @@ BEGIN
     WHERE ID_USUARIO = p_id_usuario;
 
     IF SQL%ROWCOUNT = 0 THEN
-        RAISE_APPLICATION_ERROR(-20003, 'No se encontró el usuario a actualizar.');
+        RAISE_APPLICATION_ERROR(-20003, 'No se encontrï¿½ el usuario a actualizar.');
     END IF;
 EXCEPTION
     WHEN OTHERS THEN
@@ -452,7 +452,7 @@ EXCEPTION
 END;
 /
 
--- 7. Procedimiento para actualizar usuario sin contraseña
+-- 7. Procedimiento para actualizar usuario sin contraseï¿½a
 CREATE OR REPLACE PROCEDURE PROC_actualizar_usuario_sc (
     p_id_usuario  IN USUARIO.ID_USUARIO%TYPE,
     p_nombre      IN USUARIO.NOMBRE_USUARIO%TYPE,
@@ -472,7 +472,7 @@ BEGIN
     WHERE ID_USUARIO = p_id_usuario;
 
     IF SQL%ROWCOUNT = 0 THEN
-        RAISE_APPLICATION_ERROR(-20005, 'No se encontró el usuario a actualizar.');
+        RAISE_APPLICATION_ERROR(-20005, 'No se encontrï¿½ el usuario a actualizar.');
     END IF;
 EXCEPTION
     WHEN OTHERS THEN
@@ -489,7 +489,7 @@ BEGIN
     WHERE ID_USUARIO = p_id;
 
     IF SQL%ROWCOUNT = 0 THEN
-        RAISE_APPLICATION_ERROR(-20007, 'No se encontró el usuario a eliminar.');
+        RAISE_APPLICATION_ERROR(-20007, 'No se encontrï¿½ el usuario a eliminar.');
     END IF;
 EXCEPTION
     WHEN OTHERS THEN
@@ -537,7 +537,7 @@ BEGIN
     WHERE ID_CLIENTE = p_id_cliente;
 
     IF SQL%ROWCOUNT = 0 THEN
-        RAISE_APPLICATION_ERROR(-20011, 'No se encontró el cliente a actualizar.');
+        RAISE_APPLICATION_ERROR(-20011, 'No se encontrï¿½ el cliente a actualizar.');
     END IF;
 EXCEPTION
     WHEN OTHERS THEN
@@ -569,7 +569,7 @@ BEGIN
     WHERE ID_CLIENTE = p_id_cliente;
 
     IF SQL%ROWCOUNT = 0 THEN
-        RAISE_APPLICATION_ERROR(-20013, 'No se encontró el cliente a eliminar.');
+        RAISE_APPLICATION_ERROR(-20013, 'No se encontrï¿½ el cliente a eliminar.');
     END IF;
 EXCEPTION
     WHEN OTHERS THEN
@@ -605,9 +605,9 @@ BEGIN
     VALUES (p_descripcion);
 EXCEPTION
     WHEN DUP_VAL_ON_INDEX THEN
-        RAISE_APPLICATION_ERROR(-20016, 'La clínica ya existe.');
+        RAISE_APPLICATION_ERROR(-20016, 'La clï¿½nica ya existe.');
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-20017, 'Error al insertar clínica: ' || SQLERRM);
+        RAISE_APPLICATION_ERROR(-20017, 'Error al insertar clï¿½nica: ' || SQLERRM);
 END;
 /
 
@@ -622,11 +622,11 @@ BEGIN
     WHERE ID_TIPO_CLINICA = p_id_tipo_clinica;
 
     IF SQL%ROWCOUNT = 0 THEN
-        RAISE_APPLICATION_ERROR(-20018, 'No se encontró la clínica a actualizar.');
+        RAISE_APPLICATION_ERROR(-20018, 'No se encontrï¿½ la clï¿½nica a actualizar.');
     END IF;
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-20019, 'Error al actualizar clínica: ' || SQLERRM);
+        RAISE_APPLICATION_ERROR(-20019, 'Error al actualizar clï¿½nica: ' || SQLERRM);
 END;
 /
 
@@ -639,11 +639,11 @@ BEGIN
     WHERE ID_TIPO_CLINICA = p_id_tipo_clinica;
 
     IF SQL%ROWCOUNT = 0 THEN
-        RAISE_APPLICATION_ERROR(-20020, 'No se encontró la clínica a eliminar.');
+        RAISE_APPLICATION_ERROR(-20020, 'No se encontrï¿½ la clï¿½nica a eliminar.');
     END IF;
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-20021, 'Error al eliminar clínica: ' || SQLERRM);
+        RAISE_APPLICATION_ERROR(-20021, 'Error al eliminar clï¿½nica: ' || SQLERRM);
 END;
 /
 
@@ -658,7 +658,7 @@ BEGIN
         ORDER BY ID_TIPO_CLINICA;
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-20022, 'Error al listar clínicas: ' || SQLERRM);
+        RAISE_APPLICATION_ERROR(-20022, 'Error al listar clï¿½nicas: ' || SQLERRM);
 END;
 /
 
@@ -670,7 +670,7 @@ BEGIN
             P.ID_PRODUCTO,
             P.NOMBRE_PRODUCTO,
             P.PRECIO,
-            P.FECHA_REGISTRO,
+            TO_CHAR(p.FECHA_REGISTRO, 'YYYY-MM-DD') AS FECHA_REGISTRO,
             PR.NOMBRE_PROVEEDOR,
             C.NOMBRE_CATEGORIA
         FROM PRODUCTO P
@@ -754,7 +754,7 @@ BEGIN
         ORDER BY C.ID_CATEGORIA;
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-20005, 'Error al listar categorías: ' || SQLERRM);
+        RAISE_APPLICATION_ERROR(-20005, 'Error al listar categorï¿½as: ' || SQLERRM);
 END;
 /
 
@@ -770,7 +770,7 @@ BEGIN
     );
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-20006, 'Error al insertar categoría: ' || SQLERRM);
+        RAISE_APPLICATION_ERROR(-20006, 'Error al insertar categorï¿½a: ' || SQLERRM);
 END;
 /
 
@@ -783,7 +783,7 @@ BEGIN
     WHERE ID_CATEGORIA = p_id;
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-20007, 'Error al eliminar categoría: ' || SQLERRM);
+        RAISE_APPLICATION_ERROR(-20007, 'Error al eliminar categorï¿½a: ' || SQLERRM);
 END;
 /
 
@@ -796,7 +796,7 @@ BEGIN
       p.NOMBRE_PROVEEDOR,
       p.CORREO,
       p.DIRECCION_PROVEEDOR,
-      p.FECHA_REGISTRO,
+      TO_CHAR(p.FECHA_REGISTRO, 'YYYY-MM-DD') AS FECHA_REGISTRO,
       LISTAGG(t.TELEFONO, CHR(10)) WITHIN GROUP (ORDER BY t.TELEFONO) AS TELEFONOS
     FROM 
       PROVEEDOR p
@@ -860,7 +860,7 @@ BEGIN
         id_proveedor = p_id_proveedor;
 
     IF SQL%ROWCOUNT = 0 THEN
-        RAISE_APPLICATION_ERROR(-20026, 'No se encontró el proveedor a actualizar');
+        RAISE_APPLICATION_ERROR(-20026, 'No se encontrï¿½ el proveedor a actualizar');
     END IF;
 EXCEPTION
     WHEN OTHERS THEN
@@ -873,7 +873,7 @@ CREATE OR REPLACE PROCEDURE PROC_eliminar_proveedor (
     p_id_proveedor IN proveedor.id_proveedor%TYPE
 ) AS
 BEGIN
-    -- Eliminar teléfonos vinculados a este proveedor
+    -- Eliminar telï¿½fonos vinculados a este proveedor
     DELETE FROM telefono_proveedor 
      WHERE id_proveedor = p_id_proveedor;
     
@@ -882,7 +882,7 @@ BEGIN
      WHERE id_proveedor = p_id_proveedor;
 
     IF SQL%ROWCOUNT = 0 THEN
-        RAISE_APPLICATION_ERROR(-20028, 'No se encontró el proveedor a eliminar');
+        RAISE_APPLICATION_ERROR(-20028, 'No se encontrï¿½ el proveedor a eliminar');
     END IF;
 EXCEPTION
     WHEN OTHERS THEN
@@ -900,7 +900,7 @@ BEGIN
     WHERE id_proveedor = p_id;
 
     IF SQL%ROWCOUNT = 0 THEN
-        RAISE_APPLICATION_ERROR(-20030, 'No se encontró el proveedor a habilitar');
+        RAISE_APPLICATION_ERROR(-20030, 'No se encontrï¿½ el proveedor a habilitar');
     END IF;
 EXCEPTION
     WHEN OTHERS THEN
@@ -936,11 +936,11 @@ BEGIN
         WHERE id_proveedor = p_id_proveedor;
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-20033, 'Error al obtener IDs de teléfonos: ' || SQLERRM);
+        RAISE_APPLICATION_ERROR(-20033, 'Error al obtener IDs de telï¿½fonos: ' || SQLERRM);
 END;
 /
 
--- 31. Procedimiento para obtener teléfonos completos de un proveedor
+-- 31. Procedimiento para obtener telï¿½fonos completos de un proveedor
 CREATE OR REPLACE PROCEDURE PROC_OBTENER_TELEFONOS_PROVEEDOR (
     p_id_proveedor IN telefono_proveedor.id_proveedor%TYPE,
     p_cursor       OUT SYS_REFCURSOR
@@ -952,7 +952,7 @@ BEGIN
         WHERE id_proveedor = p_id_proveedor;
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-20034, 'Error al obtener teléfonos: ' || SQLERRM);
+        RAISE_APPLICATION_ERROR(-20034, 'Error al obtener telï¿½fonos: ' || SQLERRM);
 END;
 /
 
@@ -967,15 +967,15 @@ BEGIN
     WHERE id_telefono = p_id_telefono;
 
     IF SQL%ROWCOUNT = 0 THEN
-        RAISE_APPLICATION_ERROR(-20035, 'No se encontró el teléfono a actualizar');
+        RAISE_APPLICATION_ERROR(-20035, 'No se encontrï¿½ el telï¿½fono a actualizar');
     END IF;
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-20036, 'Error al actualizar teléfono: ' || SQLERRM);
+        RAISE_APPLICATION_ERROR(-20036, 'Error al actualizar telï¿½fono: ' || SQLERRM);
 END;
 /
 
--- 33. Procedimiento para eliminar un teléfono
+-- 33. Procedimiento para eliminar un telï¿½fono
 CREATE OR REPLACE PROCEDURE PROC_eliminar_telefono (
     p_id_tel IN telefono_proveedor.id_telefono%TYPE
 ) AS
@@ -984,11 +984,11 @@ BEGIN
     WHERE id_telefono = p_id_tel;
 
     IF SQL%ROWCOUNT = 0 THEN
-        RAISE_APPLICATION_ERROR(-20037, 'No se encontró el teléfono a eliminar');
+        RAISE_APPLICATION_ERROR(-20037, 'No se encontrï¿½ el telï¿½fono a eliminar');
     END IF;
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-20038, 'Error al eliminar teléfono: ' || SQLERRM);
+        RAISE_APPLICATION_ERROR(-20038, 'Error al eliminar telï¿½fono: ' || SQLERRM);
 END;
 /
 
@@ -1002,7 +1002,7 @@ BEGIN
     VALUES (p_id_proveedor, p_telefono);
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-20039, 'Error al insertar teléfono: ' || SQLERRM);
+        RAISE_APPLICATION_ERROR(-20039, 'Error al insertar telï¿½fono: ' || SQLERRM);
 END;
 /
 
@@ -1015,7 +1015,7 @@ BEGIN
     WHERE id_venta = p_id;
 
     IF SQL%ROWCOUNT = 0 THEN
-        RAISE_APPLICATION_ERROR(-20040, 'No se encontró la venta a eliminar');
+        RAISE_APPLICATION_ERROR(-20040, 'No se encontrï¿½ la venta a eliminar');
     END IF;
 EXCEPTION
     WHEN OTHERS THEN
@@ -1032,7 +1032,7 @@ BEGIN
     WHERE id_venta = p_id;
 
     IF SQL%ROWCOUNT = 0 THEN
-        RAISE_APPLICATION_ERROR(-20042, 'No se encontró el detalle de venta a eliminar');
+        RAISE_APPLICATION_ERROR(-20042, 'No se encontrï¿½ el detalle de venta a eliminar');
     END IF;
 EXCEPTION
     WHEN OTHERS THEN
@@ -1081,7 +1081,7 @@ BEGIN
     );
 EXCEPTION
     WHEN DUP_VAL_ON_INDEX THEN
-        RAISE_APPLICATION_ERROR(-20002, 'Número de venta ya existe');
+        RAISE_APPLICATION_ERROR(-20002, 'Nï¿½mero de venta ya existe');
     WHEN OTHERS THEN
         RAISE_APPLICATION_ERROR(-20003, 'Error al insertar venta: ' || SQLERRM);
 END;
@@ -1125,7 +1125,7 @@ BEGIN
     FROM VENTA;
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-20005, 'Error al obtener número máximo de venta: ' || SQLERRM);
+        RAISE_APPLICATION_ERROR(-20005, 'Error al obtener nï¿½mero mï¿½ximo de venta: ' || SQLERRM);
 END;
 /
 
@@ -1184,7 +1184,7 @@ BEGIN
     SELECT NVL(MAX(ID_VENTA), 1) INTO p_id_venta FROM VENTA;
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-20008, 'Error al obtener último ID de venta: ' || SQLERRM);
+        RAISE_APPLICATION_ERROR(-20008, 'Error al obtener ï¿½ltimo ID de venta: ' || SQLERRM);
 END;
 /
 
@@ -1251,7 +1251,7 @@ BEGIN
 END;
 /
 
--- 48. Procedimiento para obtener teléfonos de un cliente
+-- 48. Procedimiento para obtener telï¿½fonos de un cliente
 CREATE OR REPLACE PROCEDURE PROC_OBTENER_TELEFONOS_CLIENTE (
     p_id_cliente IN TELEFONO_CLIENTE.ID_CLIENTE%TYPE,
     p_cursor     OUT SYS_REFCURSOR
@@ -1264,7 +1264,7 @@ BEGIN
 END;
 /
 
--- 49. Procedimiento para obtener solo los IDs de teléfono de un cliente
+-- 49. Procedimiento para obtener solo los IDs de telï¿½fono de un cliente
 CREATE OR REPLACE PROCEDURE PROC_OBTENER_ID_TELEFONOS_CLIENTE (
     p_id_cliente IN TELEFONO_CLIENTE.ID_CLIENTE%TYPE,
     p_cursor     OUT SYS_REFCURSOR
@@ -1428,7 +1428,7 @@ CREATE OR REPLACE PROCEDURE PROC_listar_usuarios_deshabilitados (
 ) AS
 BEGIN
     OPEN p_cursor FOR
-        SELECT ID_USUARIO, NOMBRE_USUARIO, TELEFONO, CORREO, ROL, FECHA_REGISTRO
+        SELECT ID_USUARIO, NOMBRE_USUARIO, TELEFONO, CORREO, ROL, TO_CHAR(FECHA_REGISTRO, 'YYYY-MM-DD') AS FECHA_REGISTRO
         FROM VW_USUARIOS_DESHABILITADOS;
 
 EXCEPTION
@@ -1450,9 +1450,9 @@ BEGIN
 
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
-        RAISE_APPLICATION_ERROR(-20002, 'No se encontraron clientes para el tipo de clínica ' || p_id_tipo_clinica);
+        RAISE_APPLICATION_ERROR(-20002, 'No se encontraron clientes para el tipo de clï¿½nica ' || p_id_tipo_clinica);
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-20003, 'Error al obtener clientes por clínica: ' || SQLERRM);
+        RAISE_APPLICATION_ERROR(-20003, 'Error al obtener clientes por clï¿½nica: ' || SQLERRM);
 END;
 /
 
@@ -1679,19 +1679,21 @@ BEGIN
                      'ID=' || :NEW.ID_USUARIO || ', ' ||
                      'NOMBRE=' || :NEW.NOMBRE_USUARIO || ', ' ||
                      'CORREO=' || :NEW.CORREO || ', ' ||
+                     'TELEFONO=' || :NEW.TELEFONO || ', ' ||
                      'ROL=' || :NEW.ROL;
 
   ELSIF UPDATING THEN
     v_operacion := 'UPDATE';
     v_descripcion := 'Se actualizÃ³ el usuario ID=' || :OLD.ID_USUARIO || ' ? ' ||
-                     'ANTES [NOMBRE=' || :OLD.NOMBRE_USUARIO || ', CORREO=' || :OLD.CORREO || ', ROL=' || :OLD.ROL || '] ? ' ||
-                     'DESPUÃ‰S [NOMBRE=' || :NEW.NOMBRE_USUARIO || ', CORREO=' || :NEW.CORREO || ', ROL=' || :NEW.ROL || ']';
+                     'ANTES [NOMBRE=' || :OLD.NOMBRE_USUARIO || ', CORREO=' || :OLD.CORREO || ', TELEFONO=' || :OLD.TELEFONO || ', ROL=' || :OLD.ROL || '] ? ' ||
+                     'DESPUÃ‰S [NOMBRE=' || :NEW.NOMBRE_USUARIO || ', CORREO=' || :NEW.CORREO || ', TELEFONO=' || :NEW.TELEFONO || ', ROL=' || :NEW.ROL || ']';
 
   ELSIF DELETING THEN
     v_operacion := 'DELETE';
     v_descripcion := 'Se eliminÃ³ el usuario: ' ||
                      'ID=' || :OLD.ID_USUARIO || ', ' ||
                      'NOMBRE=' || :OLD.NOMBRE_USUARIO || ', ' ||
+                     'TELEFONO=' || :OLD.TELEFONO || ', ' ||
                      'CORREO=' || :OLD.CORREO;
   END IF;
 
@@ -1769,6 +1771,145 @@ BEGIN
 END;
 /
 
+-- 8. Auditar los cambios de la tabla proveedor
+CREATE OR REPLACE TRIGGER trg_bitacora_proveedor
+AFTER INSERT OR UPDATE OR DELETE ON PROVEEDOR
+FOR EACH ROW
+DECLARE
+  v_usuario     NUMBER := TO_NUMBER(SYS_CONTEXT('APP_CTX', 'ID_USUARIO'));
+  v_operacion   VARCHAR2(10);
+  v_descripcion CLOB;
+BEGIN
+  IF INSERTING THEN
+    v_operacion := 'INSERT';
+    v_descripcion := 'Se insertÃ³ el proveedor: ' ||
+                     'ID=' || :NEW.ID_PROVEEDOR || ', ' ||
+                     'NOMBRE=' || :NEW.NOMBRE_PROVEEDOR || ', ' ||
+                     'CORREO=' || :NEW.CORREO || ', ' ||
+                     'DIRECCION=' || :NEW.DIRECCION_PROVEEDOR;
+
+  ELSIF UPDATING THEN
+    v_operacion := 'UPDATE';
+    v_descripcion := 'Se actualizÃ³ el proveedor ID=' || :OLD.ID_PROVEEDOR || ' ? ' ||
+                     'ANTES [NOMBRE=' || :OLD.NOMBRE_PROVEEDOR || ', CORREO=' || :OLD.CORREO || ', DIRECCION=' || :OLD.DIRECCION_PROVEEDOR || '] ? ' ||
+                     'DESPUÃ‰S [NOMBRE=' || :NEW.NOMBRE_PROVEEDOR || ', CORREO=' || :NEW.CORREO || ', DIRECCION=' || :NEW.DIRECCION_PROVEEDOR || ']';
+
+  ELSIF DELETING THEN
+    v_operacion := 'DELETE';
+    v_descripcion := 'Se eliminÃ³ el proveedor: ' ||
+                     'ID=' || :OLD.ID_PROVEEDOR || ', ' ||
+                     'NOMBRE=' || :OLD.NOMBRE_PROVEEDOR || ', ' ||
+                     'CORREO=' || :OLD.CORREO || ', ' ||
+                     'DIRECCION=' || :OLD.DIRECCION_PROVEEDOR;
+  END IF;
+
+  INSERT INTO BITACORA (ID_USUARIO, FECHA_OPERACION, DESCRIPCION)
+  VALUES (v_usuario, SYSTIMESTAMP, v_operacion || ' - ' || v_descripcion);
+END;
+/
+
+-- 9. Auditar los cambios de la telefono cliente
+CREATE OR REPLACE TRIGGER trg_bitacora_telefono_cliente
+AFTER INSERT OR UPDATE OR DELETE ON TELEFONO_CLIENTE
+FOR EACH ROW
+DECLARE
+  v_usuario     NUMBER := TO_NUMBER(SYS_CONTEXT('APP_CTX', 'ID_USUARIO'));
+  v_operacion   VARCHAR2(10);
+  v_descripcion CLOB;
+BEGIN
+  IF INSERTING THEN
+    v_operacion := 'INSERT';
+    v_descripcion := 'Se insertÃ³ un telÃ©fono de cliente: ' ||
+                     'ID_TELEFONO=' || :NEW.ID_TELEFONO || ', ' ||
+                     'TELEFONO=' || :NEW.TELEFONO || ', ' ||
+                     'ID_CLIENTE=' || :NEW.ID_CLIENTE;
+
+  ELSIF UPDATING THEN
+    v_operacion := 'UPDATE';
+    v_descripcion := 'Se actualizÃ³ el telÃ©fono ID=' || :OLD.ID_TELEFONO || ' ? ' ||
+                     'ANTES [TELEFONO=' || :OLD.TELEFONO || ', ID_CLIENTE=' || :OLD.ID_CLIENTE || '] ? ' ||
+                     'DESPUÃ‰S [TELEFONO=' || :NEW.TELEFONO || ', ID_CLIENTE=' || :NEW.ID_CLIENTE || ']';
+
+  ELSIF DELETING THEN
+    v_operacion := 'DELETE';
+    v_descripcion := 'Se eliminÃ³ el telÃ©fono de cliente: ' ||
+                     'ID_TELEFONO=' || :OLD.ID_TELEFONO || ', ' ||
+                     'TELEFONO=' || :OLD.TELEFONO || ', ' ||
+                     'ID_CLIENTE=' || :OLD.ID_CLIENTE;
+  END IF;
+
+  INSERT INTO BITACORA (ID_USUARIO, FECHA_OPERACION, DESCRIPCION)
+  VALUES (v_usuario, SYSTIMESTAMP, v_operacion || ' - ' || v_descripcion);
+END;
+/
+
+-- 10. Auditar los cambios de la telefono proveedor
+CREATE OR REPLACE TRIGGER trg_bitacora_telefono_proveedor
+AFTER INSERT OR UPDATE OR DELETE ON TELEFONO_PROVEEDOR
+FOR EACH ROW
+DECLARE
+  v_usuario     NUMBER := TO_NUMBER(SYS_CONTEXT('APP_CTX', 'ID_USUARIO'));
+  v_operacion   VARCHAR2(10);
+  v_descripcion CLOB;
+BEGIN
+  IF INSERTING THEN
+    v_operacion := 'INSERT';
+    v_descripcion := 'Se insertÃ³ un telÃ©fono de proveedor: ' ||
+                     'ID_TELEFONO=' || :NEW.ID_TELEFONO || ', ' ||
+                     'TELEFONO=' || :NEW.TELEFONO || ', ' ||
+                     'ID_PROVEEDOR=' || :NEW.ID_PROVEEDOR;
+
+  ELSIF UPDATING THEN
+    v_operacion := 'UPDATE';
+    v_descripcion := 'Se actualizÃ³ el telÃ©fono ID=' || :OLD.ID_TELEFONO || ' ? ' ||
+                     'ANTES [TELEFONO=' || :OLD.TELEFONO || ', ID_PROVEEDOR=' || :OLD.ID_PROVEEDOR || '] ? ' ||
+                     'DESPUÃ‰S [TELEFONO=' || :NEW.TELEFONO || ', ID_PROVEEDOR=' || :NEW.ID_PROVEEDOR || ']';
+
+  ELSIF DELETING THEN
+    v_operacion := 'DELETE';
+    v_descripcion := 'Se eliminÃ³ el telÃ©fono de proveedor: ' ||
+                     'ID_TELEFONO=' || :OLD.ID_TELEFONO || ', ' ||
+                     'TELEFONO=' || :OLD.TELEFONO || ', ' ||
+                     'ID_PROVEEDOR=' || :OLD.ID_PROVEEDOR;
+  END IF;
+
+  INSERT INTO BITACORA (ID_USUARIO, FECHA_OPERACION, DESCRIPCION)
+  VALUES (v_usuario, SYSTIMESTAMP, v_operacion || ' - ' || v_descripcion);
+END;
+/
+
+-- 11. Auditar los cambios de la categoria
+CREATE OR REPLACE TRIGGER trg_bitacora_categoria
+AFTER INSERT OR UPDATE OR DELETE ON CATEGORIA
+FOR EACH ROW
+DECLARE
+  v_usuario     NUMBER := TO_NUMBER(SYS_CONTEXT('APP_CTX', 'ID_USUARIO'));
+  v_operacion   VARCHAR2(10);
+  v_descripcion CLOB;
+BEGIN
+  IF INSERTING THEN
+    v_operacion := 'INSERT';
+    v_descripcion := 'Se insertÃ³ la categorÃ­a: ' ||
+                     'ID=' || :NEW.ID_CATEGORIA || ', ' ||
+                     'NOMBRE=' || :NEW.NOMBRE_CATEGORIA;
+
+  ELSIF UPDATING THEN
+    v_operacion := 'UPDATE';
+    v_descripcion := 'Se actualizÃ³ la categorÃ­a ID=' || :OLD.ID_CATEGORIA || ' ? ' ||
+                     'ANTES [NOMBRE=' || :OLD.NOMBRE_CATEGORIA || '] ? ' ||
+                     'DESPUÃ‰S [NOMBRE=' || :NEW.NOMBRE_CATEGORIA || ']';
+
+  ELSIF DELETING THEN
+    v_operacion := 'DELETE';
+    v_descripcion := 'Se eliminÃ³ la categorÃ­a: ' ||
+                     'ID=' || :OLD.ID_CATEGORIA || ', ' ||
+                     'NOMBRE=' || :OLD.NOMBRE_CATEGORIA;
+  END IF;
+
+  INSERT INTO BITACORA (ID_USUARIO, FECHA_OPERACION, DESCRIPCION)
+  VALUES (v_usuario, SYSTIMESTAMP, v_operacion || ' - ' || v_descripcion);
+END;
+/
 -- -------------------------- FUNCIONES ------------------------------------------------------
 
 --1. Funcion para determinar si el usuario tiene ventas
@@ -1804,7 +1945,7 @@ BEGIN
     WHERE ID_PROVEEDOR = p_id_proveedor
     AND ROWNUM = 1;
 
-    RETURN 1;  -- el proveedor sí tiene productos vendidos
+    RETURN 1;  -- el proveedor sï¿½ tiene productos vendidos
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
         RETURN 0; 
@@ -1826,7 +1967,7 @@ BEGIN
     WHERE id_producto = p_id_producto
     AND ROWNUM = 1;
 
-    RETURN 1; -- El producto está en alguna venta
+    RETURN 1; -- El producto estï¿½ en alguna venta
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
         RETURN 0;  -- El producto no se usa en ninguna venta
@@ -1866,7 +2007,7 @@ IS
     v_cursor SYS_REFCURSOR;
 BEGIN
     OPEN v_cursor FOR
-        SELECT ID_VENTA, NUMERO, FECHA, IMPUESTOS
+        SELECT ID_VENTA, NUMERO, TO_CHAR(FECHA, 'YYYY-MM-DD') AS FECHA, IMPUESTOS
         FROM VENTA
         WHERE FECHA BETWEEN p_inicio AND p_fin
           AND ESTADO = 1
@@ -1957,6 +2098,27 @@ BEGIN
 EXCEPTION
     WHEN OTHERS THEN
         RETURN NULL; 
+END;
+/
+
+
+CREATE OR REPLACE FUNCTION FUNC_categoria_tiene_productos_num(p_id_categoria IN NUMBER)
+RETURN NUMBER
+IS
+    v_existe NUMBER := 0;
+BEGIN
+    SELECT 1
+    INTO v_existe
+    FROM PRODUCTO
+    WHERE ID_CATEGORIA = p_id_categoria
+    AND ROWNUM = 1;
+
+    RETURN 1;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RETURN 0; 
+    WHEN OTHERS THEN
+        RETURN -1; 
 END;
 /
 

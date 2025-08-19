@@ -40,7 +40,7 @@ if (isset($_GET['inicio']) && isset($_GET['fin'])) {
     while ($venta = oci_fetch_assoc($cursor)) {
         $id_venta = $venta['ID_VENTA'];
         $numero = $venta['NUMERO'];
-        $fecha = date("d-m-Y", strtotime($venta['FECHA']));
+        $fecha = date("d/m/Y", strtotime($venta['FECHA']));
         $impuestos = $venta['IMPUESTOS'];
 
         echo "<div class='card mb-3'><div class='card-body'>";

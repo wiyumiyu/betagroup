@@ -165,7 +165,7 @@ while ($row = oci_fetch_assoc($cursor)) {
     echo "<td>₡" . number_format($row['PRECIO'], 2) . "</td>";
     echo "<td>" . htmlspecialchars($row['NOMBRE_PROVEEDOR']) . "</td>";
     echo "<td>" . htmlspecialchars($row['NOMBRE_CATEGORIA']) . "</td>";
-    echo "<td style='color: #4B4B4B;'>" . date("d-m-Y", strtotime($row['FECHA_REGISTRO'])) . "</td>";
+    echo "<td style='color: #4B4B4B;'>" . date("d/m/Y", strtotime($row['FECHA_REGISTRO'])) . "</td>";
     echo "<td>
             <a href='productos.php?op=$op&ta=$ta&edt=$id' class='btn btn-default'><i class='entypo-pencil'></i></a>
             <a href='productos.php?op=$op&ta=$ta&del=$id' class='btn btn-danger'><i class='entypo-cancel'></i></a>

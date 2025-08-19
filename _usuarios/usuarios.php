@@ -139,13 +139,14 @@ if (isset($_POST['submitted'])) {
 
         while ($row = oci_fetch_assoc($cursor)) {
             $id = $row['ID_USUARIO'];
+            $fecha =     date("d/m/Y", strtotime($row['FECHA_REGISTRO']));
             echo "<tr>";
             echo "<td>" . htmlspecialchars($row['NOMBRE_USUARIO']) . "</td>";
             echo "<td>" . htmlspecialchars($row['TELEFONO'] ?? '') . "</td>";
             echo "<td>" . htmlspecialchars($row['CORREO']) . "</td>";
             $rolTexto = ($row['ROL'] == 1) ? "Administrador" : "Vendedor";
             echo "<td>$rolTexto</td>";
-            echo "<td>" . date("d-m-Y", strtotime($row['FECHA_REGISTRO'])) . "</td>";
+            echo "<td>" . $fecha . "</td>";
             echo "<td>
             <a href='usuarios.php?op=$op&ta=$ta&edt=$id' class='btn btn-default'><i class='entypo-pencil'></i></a>
             <a href='usuarios.php?op=$op&ta=$ta&del=$id' class='btn btn-danger'><i class='entypo-cancel'></i></a>

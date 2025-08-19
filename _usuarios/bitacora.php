@@ -81,7 +81,7 @@ while ($row = oci_fetch_assoc($cursor)) {
     $correo = htmlspecialchars($row['CORREO'] ?? 'N/A');
 
     // c) Formateamos la fecha de la operación
-    $fecha = date("d-m-Y H:i:s", strtotime($row['FECHA_OPERACION']));
+    $fecha = date("d/m/Y H:i:s", strtotime($row['FECHA_OPERACION']));
 
     // d) Procesamos la descripción (que es un CLOB), usando load() para convertirlo en string
     $descripcion = $row['DESCRIPCION'];

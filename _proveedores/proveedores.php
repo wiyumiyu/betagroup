@@ -211,7 +211,7 @@ function cargarSelect($conn, $proc, $idCampo, $nomCampo, $name) {
             echo "<td>" . htmlspecialchars($row['CORREO']) . "</td>";
             echo "<td>" . htmlspecialchars($row['DIRECCION_PROVEEDOR']) . "</td>";
             echo "<td>" . nl2br(htmlspecialchars($row['TELEFONOS'] ?? '')) . "</td>";
-            echo "<td>" . date("d-m-Y", strtotime($row['FECHA_REGISTRO'])) . "</td>";
+            echo "<td>" . date("d/m/Y", strtotime($row['FECHA_REGISTRO'])) . "</td>";
             echo "<td>
                     <a href='proveedores.php?op=$op&ta=$ta&edt=$id' class='btn btn-default'><i class='entypo-pencil'></i></a>
                     

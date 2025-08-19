@@ -242,7 +242,7 @@ oci_execute($cursor);
 // Recorremos cada venta y la mostramos en una fila de la tabla
 while ($row = oci_fetch_assoc($cursor)) {
     $id = $row['ID_VENTA'];
-    $fecha_venta =     date("d-m-Y", strtotime($row['FECHA']));
+    $fecha_venta =     date("d/m/Y", strtotime($row['FECHA']));
     echo "<tr>";
     echo "<td style='color: #4B4B4B;'>" . htmlspecialchars($row['NUMERO']) . "</td>";
     echo "<td style='color: #4B4B4B;'>" . $fecha_venta . "</td>";
@@ -529,6 +529,12 @@ echo "<h3 class='modalx-titulo'>$tipoEdit</h3>";
 
 
 $selectClientes = llenarSelect("cliente", "ID_CLIENTE", "NOMBRE_CLIENTE", $cliente_seleccionado, "BEGIN PROC_listar_clientes(:cursor); END;", $conn);
+$lblAccion = "";
+if (isset($_GET['edt'])){
+    $lblAccion = "";
+}else{
+    $lblAccion = "Acción";
+}
 ?>
 
         <form action="ventas.php<?php echo "?op=$op&ta=$ta"; ?>" method="POST" id="formFactura">
@@ -536,7 +542,7 @@ $selectClientes = llenarSelect("cliente", "ID_CLIENTE", "NOMBRE_CLIENTE", $clien
             <div style="display: flex; gap: 20px;">
                 <div class="form-group" style="flex: 1;">
                     <label for="numero">Número:</label>
-                    <input type="number" id="numero" name="numero" class="form-control" value="<?php
+                    <input readonly type="number" id="numero" name="numero" class="form-control" value="<?php
         if (isset($_GET["edt"])) {
             echo $numero;
         } else
@@ -568,7 +574,7 @@ $selectClientes = llenarSelect("cliente", "ID_CLIENTE", "NOMBRE_CLIENTE", $clien
                         <th>Cantidad</th>
                         <th>Descuento</th>
                         <th>Precio Unitario</th>
-                        <th>Acción</th>
+                        <th><?php echo $lblAccion;?></th>
                     </tr>
                 </thead>
                 <tbody id="detalleFactura">
@@ -589,13 +595,24 @@ if (!empty($detalles)) {
                                 <td>{$det['CANTIDAD']}<input type='hidden' name='cantidad[]' value='{$det['CANTIDAD']}'></td>
                                 <td>{$det['DESCUENTO']}<input type='hidden' name='descuento[]' value='{$det['DESCUENTO']}'></td>
                                 <td>{$det['PRECIO_UNITARIO']}<input type='hidden' name='precio_unitario[]' value='{$det['PRECIO_UNITARIO']}'></td>
-                                <td><button type='button' class='btn btn-danger' onclick='this.closest(\"tr\").remove()'>X</button></td>
+                                <td></td>
                                 </tr>";
     }
+    //<button type='button' class='btn btn-danger' onclick='this.closest(\"tr\").remove()'>X</button>
     $total = ($subtotal - $descuento) + $impuestos_total;
+    
+}
+$btnAgregarFactura = "";
+$btnAgregarFactura = "";
+if (isset($_GET['edt'])){
+    $btnAgregar = "";
+    $btnAgregarFactura = "";
+}else{
+    $btnAgregar = "<button type='button' class='btn btn-primary' onclick='agregarFila()'>Agregar</button>";
+    $btnAgregarFactura = "<button type='submit' class='btn btn-success'>Agregar Factura</button>";
 }
 ?>
-
+                    
                 </tbody>
                 <tfoot>
                     <tr>
@@ -603,7 +620,7 @@ if (!empty($detalles)) {
                         <td><input type="number" id="cantidad" class="form-control" placeholder="Cantidad"></td>
                         <td><input type="number" id="descuento" class="form-control" placeholder="Descuento"></td>
                         <td><input type="number" readonly id="precio_unitario" class="form-control" placeholder="Precio Unitario"></td>                        
-                        <td><button type="button" class="btn btn-primary" onclick="agregarFila()">Agregar</button></td>
+                        <td><?php echo $btnAgregar;?></td>
                     </tr>
                 </tfoot>
             </table>
@@ -644,7 +661,7 @@ if (!empty($detalles)) {
 
             <div class="modal-footer">
                 <a href="ventas.php<?php echo "?op=$op&ta=$ta"; ?>" class="btn btn-danger">Salir</a>
-                <button type="submit" class="btn btn-success">Agregar Factura</button>
+                <?php echo $btnAgregarFactura; ?>
             </div>
         </form>
     </div>
